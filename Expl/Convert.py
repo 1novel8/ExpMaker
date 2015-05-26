@@ -119,55 +119,6 @@ def bgd_to_dicts(bgd_li):
         bgd_dict[row[0]][row[1]][row[2]][row[3]].append(row[4:])
     return bgd_dict
 
-# def bgd1_control(self, nn):
-#     b1 = bgd_1
-#     if self.bgd_control != 2:
-#         try:
-#             bgd_li = bgd_1[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
-#             for b_row in bgd_li:  # bgd_row: f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME
-#                 if b_row[0] <= self.nptype <= b_row[1]:
-#                     self.nusname[nn] = b_row[2]
-#                     self.dopname[nn] = b_row[3]
-#                     self.bgd_control = 1
-#                     return True
-#         except KeyError:
-#             pass
-#     return False
-#
-# upd_state_li = []
-# upd_lc_li = []
-
-# def bgd2_control(self, nn):
-#     b2 = bgd_2
-#     try:
-#         bgd_li = bgd_2[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
-#         for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1), NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5),  newstate(6),  NEWUSNAME(7), DOPUSNAME(8)
-#             if b_row[1] <= self.nptype <= b_row[2] \
-#                     and b_row[3] <= self.lc <= b_row[4]:
-#                 self.f22[nn]  = b_row[0]
-#                 self.nusname[nn] = b_row[7]
-#                 self.dopname[nn] = b_row[8]
-#                 if self.bgd_control == 0:
-#                     self.bgd_control = 2
-#                 if b_row[5]: #Необходимо изменить lcode
-#                     if not self.lc_changed:
-#                         self.lc = b_row[5]
-#                         self.lc_changed = True
-#                     else:
-#                         break
-#                 if b_row[6] and self.bgd_control != 1: #Необходимо изменить state
-#                     if not self.state_changed:
-#                         self.state = b_row[6]
-#                         self.state_changed = True
-#                     else:
-#                         self.reset_bgd_args()
-#                         break
-#                 return True
-#     except KeyError:
-#         pass
-#     return False
-
-
 class CtrRow(object):
     def __init__(self, r_args, nm):  #r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, F22_*, UserN_*,Usertype_*, Area_*,
         self.no_err = True
