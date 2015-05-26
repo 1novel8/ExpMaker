@@ -255,6 +255,7 @@ def convert(soursedbf, bgd2e_li):
     conn.close()
 
     err_dict = dict()
+    whats_err = {1 : [], 2 : [], 3 : []}
     for err in rows_failed:
         for n in range(err.n):
             if not err.nusname[n]:
@@ -262,6 +263,7 @@ def convert(soursedbf, bgd2e_li):
                     err_dict[n+1].append(err.object_id)
                 except KeyError:
                     err_dict[n+1] = [err.object_id,]
+        whats_err[err.has_err].append(err.object_id)
 
     f22_dict = dict()
     for row in rows_ok:
@@ -272,8 +274,7 @@ def convert(soursedbf, bgd2e_li):
                 f22_dict[row.f22[n]].append(row_params)
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
-
-    print err_dict
+#12345
     return err_dict,f22_dict
 
 
