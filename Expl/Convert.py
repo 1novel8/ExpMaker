@@ -65,7 +65,7 @@ def add_utype_partn(connection):
         try:
             connection.execute(sql2)
         except pyodbc.Error:
-            print u'Возможно нету поля UserN_Sad?'
+            print u'Возможно, нету поля UserN_Sad?'
         #---------------------------PART_n----------------------------------------------
         addColumn(connection, ct, u"Area_%s" % un, u'DOUBLE NULL')
         sqlarea = u'''UPDATE %(t)s
@@ -121,11 +121,14 @@ def bgd_to_dicts(bgd_li):
 
 class CtrRow(object):
     def __init__(self, r_args, nm):  #r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, F22_*, UserN_*,Usertype_*, Area_*,
-        self.no_err = True
-        self.after_control = 0    # 0 - контроль не пройден, 1 - пройден по bgd1, 2 - пройден по bgd2; -1 - сброс всех параметров,ошибка
-        self.objectid = r_args[0]
+        self.has_err = False                # False - контроль пройден,
+                                            # 1 - ошибки при доле 100%,
+                                            # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
+                                            # 3 - сброс всех параметров,ошибка new_state при долях
+
+        self.object_id = r_args[0]
         self.soato = r_args[1]
-        self.nptype = make_nptype(self.soato)
+        self.np_type = make_nptype(self.soato)
         self.slnad = r_args[2]
         self.state = r_args[3]
         self.lc = r_args[4]
@@ -139,42 +142,65 @@ class CtrRow(object):
         self.usern = list(r_args[nm+7:nm+7+self.n])
         self.utype = list(r_args[2*nm+7:2*nm+7+self.n])
         self.area = list(r_args[3*nm+7:3*nm+7+self.n])
-        self.lc_changed = False
+
+        self.new_state = False
+        self.new_lc = False
         self.state_changed = False
+        self.lc_changed = False
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
         self.bgd_control()
 
+    def bgd_control(self):
+        if self.n == 1:
+            if self.bgd1_control(0):
+                pass
+            elif self.bgd2_control(0):
+                if self.new_state:
+                    self.change_state()
+                if self.new_lc:
+                    self.change_lc()
+            else:
+                self.has_err = 1
+        else:
+            bgd1_failed = []
+            for n in range(self.n):
+                if not self.bgd1_control(n):
+                    bgd1_failed.append(n)
+            if bgd1_failed:
+                for n in bgd1_failed:
+                    if self.bgd2_control(n):
+                        if self.new_lc:
+                            self.change_lc()
+                        if self.new_state:
+                            self.reset_bgd_args()
+                            break
+                    else:
+                        self.has_err = 2
+
+    def change_lc(self):
+        self.lc_changed = self.lc
+        self.lc = self.new_lc
+    def change_state(self):
+        self.state_changed = self.state
+        self.state = self.new_state
     def reset_bgd_args(self):
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
-        self.after_control = -1
-        self.no_err = False
-
-    def bgd_control(self):
-        for n in range(self.n):
-            if self.bgd1_control(n):
-                continue
-            elif self.bgd2_control(n):
-                continue
-            else:
-                self.no_err = False
-                if self.after_control == -1:
-                    break
+        self.has_err = 3
 
     def bgd1_control(self, nn):
         b1 = bgd_1
-        if self.after_control != 2:
-            try:
-                bgd_li = bgd_1[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
-                for b_row in bgd_li:  # bgd_row: f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME,
-                    if b_row[0] <= self.nptype <= b_row[1]:
-                        self.nusname[nn] = b_row[2]
-                        self.dopname[nn] = b_row[3]
-                        self.after_control = 1
-                        return True
-            except KeyError:
-                pass
+        try:
+            bgd_li = bgd_1[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
+            for b_row in bgd_li:  # bgd_row: f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME,
+                if b_row[0] <= self.np_type <= b_row[1]:
+                    self.nusname[nn] = b_row[2]
+                    self.dopname[nn] = b_row[3]
+                    # self.after_control = 1
+                    return True
+        except KeyError:
+            pass
         return False
 
     def bgd2_control(self, nn):
@@ -182,38 +208,22 @@ class CtrRow(object):
         try:
             bgd_li = bgd_2[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
             for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1), NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5),  newstate(6),  NEWUSNAME(7), DOPUSNAME(8)
-                if b_row[1] <= self.nptype <= b_row[2] \
+                if b_row[1] <= self.np_type <= b_row[2] \
                         and b_row[3] <= self.lc <= b_row[4]:
                     self.f22[nn]  = b_row[0]
                     self.nusname[nn] = b_row[7]
                     self.dopname[nn] = b_row[8]
-                    if self.after_control == 0:
-                        self.after_control = 2
-                    self.new_state_lc(b_row[5],b_row[6])
+                    self.new_lc, self.new_state = b_row[5],b_row[6]
                     return True
         except KeyError:
             pass
         return False
-
-    def new_state_lc(self, nlc, nst):
-        if nlc:                             #Необходимо изменить lcode
-            if not self.lc_changed:
-                self.lc = nlc
-                self.lc_changed = True
-        if nst and self.after_control != 1: #Необходимо изменить state
-            if not self.state_changed:
-                self.state = nst
-                self.state_changed = True
-            else:
-                self.reset_bgd_args()
 
 def for_query(field, count):
     fields = u''
     for i in range(1,count+1):
         fields += u'%s%s, ' % field, i
     return fields[:-2]
-
-
 
 def convert(soursedbf, bgd2e_li):
     global bgd_1, bgd_2
@@ -239,7 +249,7 @@ def convert(soursedbf, bgd2e_li):
     rows_failed = []
     for row in dbc.execute(select_ctr_all):
         new_row = CtrRow(row, n_max)       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
-        if new_row.no_err:
+        if not new_row.has_err:
             rows_ok.append(new_row)
         else:
             rows_failed.append(new_row)
@@ -247,13 +257,15 @@ def convert(soursedbf, bgd2e_li):
     conn.close()
 
     err_dict = dict()
+    whats_err = {1 : [], 2 : [], 3 : []}
     for err in rows_failed:
         for n in range(err.n):
             if not err.nusname[n]:
                 try:
-                    err_dict[n+1].append(err.objectid)
+                    err_dict[n+1].append(err.object_id)
                 except KeyError:
-                    err_dict[n+1] = [err.objectid,]
+                    err_dict[n+1] = [err.object_id,]
+        whats_err[err.has_err].append(err.object_id)
 
     f22_dict = dict()
     for row in rows_ok:
@@ -265,8 +277,8 @@ def convert(soursedbf, bgd2e_li):
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
 
-
-    return {},f22_dict
+    print err_dict
+    return err_dict,f22_dict
 
 
 if __name__ == '__main__':
