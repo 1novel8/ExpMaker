@@ -189,7 +189,7 @@ class MyWindow(QtGui.QMainWindow):
         self.textEdit = QtGui.QTextEdit(self.centralwidget)
         self.clearbutton = QtGui.QPushButton(u"Очистить окно сообщений",self.centralwidget)
         self.gridLayout.addWidget(self.clearbutton, 13, 11, 1, 1)
-        # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
+        # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)...
         self.setWindowIcon(QtGui.QIcon(u"D:\\pytoexe\\Icons\\up.png"))
         self.setCentralWidget(self.centralwidget)
         self.treeView = QtGui.QTreeView()
