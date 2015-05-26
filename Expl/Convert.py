@@ -274,7 +274,7 @@ def convert(soursedbf, bgd2e_li):
                 f22_dict[row.f22[n]].append(row_params)
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
-#12345
+
     return err_dict,f22_dict
 
 
