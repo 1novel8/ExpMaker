@@ -190,7 +190,6 @@ class CtrRow(object):
         self.has_err = 3
 
     def bgd1_control(self, nn):
-        b1 = bgd_1
         try:
             bgd_li = bgd_1[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
             for b_row in bgd_li:  # bgd_row: f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME,
@@ -204,7 +203,6 @@ class CtrRow(object):
         return False
 
     def bgd2_control(self, nn):
-        b2 = bgd_2
         try:
             bgd_li = bgd_2[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
             for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1), NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5),  newstate(6),  NEWUSNAME(7), DOPUSNAME(8)
@@ -277,7 +275,6 @@ def convert(soursedbf, bgd2e_li):
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
 
-    print err_dict
     return err_dict,f22_dict
 
 
