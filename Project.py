@@ -63,32 +63,18 @@ class ConvertThread(QtCore.QThread):
             return u'%sДанные успешно сконвертированы. Доступен расчет экспликаций.\n' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
 
 class ExpAThread(QtCore.QThread):
-    def __init__(self, edbf, rows, dbf, parent = None):
+    def __init__(self, edbf, rows, parent = None):
         QtCore.QThread.__init__(self, parent)
         self.expdir = edbf
-        self.dbdir = dbf
         self.expsA = ExpA.ExpFA(self.expdir, rows)
         self.exp_tree = self.expsA.make_exp_tree()
-        self.__runAll = True
     def run(self):
-        if self.__runAll:
-            self.expsA.transferToIns()
-        else:
-            self.exp_tree[self.e_key][self.e_ind].add_data()
-            self.emit(QtCore.SIGNAL(u'calculated_exp_A(PyQt_PyObject)'), self.exp_tree[self.e_key][self.e_ind].expArows)
-            self.__runAll = True
-
-    def calc_exp_from_tree(self, key, ind):
-        self.e_key, self.e_ind = key, ind
-        self.__runAll = False
-        self.start()
-
+        self.expsA.transferToIns()
 
 class ExpBThread(QtCore.QThread):
-    def __init__(self, edbf, dbf, parent = None):
+    def __init__(self, edbf, parent = None):
         QtCore.QThread.__init__(self, parent)
         self.expfile = edbf
-        self.dbfile = dbf
     def run(self):
         ExpB = FormB.ExpFormaB(self.expfile)
         ExpB.runExpB()
@@ -140,7 +126,6 @@ class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
         self.dbfile = None
-        self.temp_dbdir = Control.workDir
         self.setWindowTitle(u'Создание экспликации')
         self.resize(1000, 700)
         self.centralwidget = QtGui.QFrame(self)
@@ -397,7 +382,7 @@ class MyWindow(QtGui.QMainWindow):
         self.block_btns()
         if not self.expDBfile:
             self.expDBfile = self.get_edbf_name()
-        self.thread3 = ExpAThread(self.expDBfile,self.thread2.converted_rows,unicode(self.temp_dbdir))
+        self.thread3 = ExpAThread(self.expDBfile, self.thread2.converted_rows)
         self.btn_a_all.setHidden(False)
         self.btn_a_tree.setHidden(False)
         self.block_btns(False)
@@ -464,7 +449,7 @@ class MyWindow(QtGui.QMainWindow):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен расчет экспликации В.')
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
-            self.thread4 = ExpBThread(self.expDBfile, self.temp_dbdir)
+            self.thread4 = ExpBThread(self.expDBfile)
             self.connect(self.thread4, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.thread4, QtCore.SIGNAL(u'finished()'), self.finishtext)
             self.thread4.start()
