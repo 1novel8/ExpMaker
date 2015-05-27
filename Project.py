@@ -72,11 +72,12 @@ class ExpAThread(QtCore.QThread):
         self.expsA.transferToIns()
 
 class ExpBThread(QtCore.QThread):
-    def __init__(self, edbf, parent = None):
+    def __init__(self, edbf, rows, parent = None):
         QtCore.QThread.__init__(self, parent)
         self.expfile = edbf
+        self.rows = rows
     def run(self):
-        ExpB = FormB.ExpFormaB(self.expfile)
+        ExpB = FormB.ExpFormaB(self.expfile, self.rows)
         ExpB.runExpB()
 
 class BGDtoEThread(QtCore.QThread):
@@ -354,12 +355,12 @@ class MyWindow(QtGui.QMainWindow):
     def on_clicked_convert_btn(self):
         self.block_btns()
         self.add_visible_log(u'Запущено конвертирование данных.', True)
-        self.thread2 = ConvertThread(self.dbfile, self.b2e_li)
+        self.convert_thr = ConvertThread(self.dbfile, self.b2e_li)
         self.addloading(u'Данные конвертируются ')
-        self.connect(self.thread2, QtCore.SIGNAL(u'convertpassed'), self.enableB3B4)
-        self.connect(self.thread2, QtCore.SIGNAL(u's2(const QString&)'), self.add_visible_log)
-        self.connect(self.thread2, QtCore.SIGNAL(u'finished()'), self.on_finished)
-        self.thread2.start()
+        self.connect(self.convert_thr, QtCore.SIGNAL(u'convertpassed'), self.enableB3B4)
+        self.connect(self.convert_thr, QtCore.SIGNAL(u's2(const QString&)'), self.add_visible_log)
+        self.connect(self.convert_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
+        self.convert_thr.start()
         self.statusBar().showMessage(u'Busy')
 
     def get_edbf_name(self):
@@ -382,7 +383,7 @@ class MyWindow(QtGui.QMainWindow):
         self.block_btns()
         if not self.expDBfile:
             self.expDBfile = self.get_edbf_name()
-        self.thread3 = ExpAThread(self.expDBfile, self.thread2.converted_rows)
+        self.exp_a_thr = ExpAThread(self.expDBfile, self.convert_thr.converted_rows)
         self.btn_a_all.setHidden(False)
         self.btn_a_tree.setHidden(False)
         self.block_btns(False)
@@ -395,16 +396,16 @@ class MyWindow(QtGui.QMainWindow):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен полный расчет экспликации A.\n', True)
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
-            self.connect(self.thread3, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.thread3, QtCore.SIGNAL(u'finished()'), self.finishtext)
-            self.thread3.start()
+            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
+            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
+            self.exp_a_thr.start()
         else: print u'Can\'t to connect to edb'
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_tree(self):
         self.block_btns()
         self.connect(self.treeView, QtCore.SIGNAL("activated(const QModelIndex &)"),self.tree_editCell)
-        self.model = self.make_tree_model(self.thread3.exp_tree)
+        self.model = self.make_tree_model(self.exp_a_thr.exp_tree)
         self.model.setHorizontalHeaderLabels([u"Набор экспликаций А"])
         self.treeView.setModel(self.model)
         self.treeView.setHidden(False)
@@ -429,7 +430,7 @@ class MyWindow(QtGui.QMainWindow):
 
     def tree_editCell(self, qindex):
         if qindex.parent().isValid():
-            data = self.thread3.exp_tree
+            data = self.exp_a_thr.exp_tree
             pressed_f22 = qindex.parent().row()
             pressed_exp = qindex.row()
             pressed_f22 = sorted(data.keys())[pressed_f22]
@@ -449,10 +450,10 @@ class MyWindow(QtGui.QMainWindow):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен расчет экспликации В.')
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
-            self.thread4 = ExpBThread(self.expDBfile)
-            self.connect(self.thread4, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.thread4, QtCore.SIGNAL(u'finished()'), self.finishtext)
-            self.thread4.start()
+            self.exp_b_thr = ExpBThread(self.expDBfile, self.convert_thr.converted_rows)
+            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
+            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
+            self.exp_b_thr.start()
 
     def finishtext(self):
         self.add_visible_log(u'Расчет завершен.',True)

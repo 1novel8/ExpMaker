@@ -98,22 +98,26 @@ class ExpFA(object):
         self.remakeCodes()
         self.expsdict = self.makeCombData()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
         self.a=self.make_exp_tree()
-    def make_exp_tree(self):
-        """ Returns dictionary:
-            keys: F22, values: combdata instanses
-        """
-        treedict = dict.fromkeys(self.expsdict)
-        for key1 in self.expsdict:
-            treedict[key1] = []
-            for key2 in self.expsdict[key1]:
-                treedict[key1].append(self.expsdict[key1][key2])
-        return treedict
 
-    def makeDictofDict(self, f22_rows):
+    @staticmethod
+    def make_f22_dict(rows_ok):
+        f22_dict = dict()
+        for row in rows_ok:
+            for n in range(row.n):
+                row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.dopname[n])
+                            # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
+                try:
+                    f22_dict[row.f22[n]].append(row_params)
+                except KeyError:
+                    f22_dict[row.f22[n]] = [row_params,]
+        return f22_dict
+
+    def makeDictofDict(self, rows):
         """
-        :param f22_rows: dict, key f22 >> rows(UserN_n, SOATO, NEWUSNAME_n, Area_n,LANDCODE, MELIOCODE, ServType08, State, DOPNAME_n)
+        :param rows : rows instances (f22, UserN_n, SOATO, NEWUSNAME_n, Area_n,LANDCODE, MELIOCODE, ServType08, State, DOPNAME_n)
         :return: dict with dicts, keys: f22 >> usern | soato >> rows(newusname_n, dopname_n, (Area_n,LANDCODE, MELIOCODE, ServType08, State))
         """
+        f22_rows = self.make_f22_dict(rows)
         ctDict = dict()
         for f22 in f22_rows.keys():
             ctDict[f22] = dict()
@@ -125,6 +129,17 @@ class ExpFA(object):
                 except KeyError:
                     ctDict[f22][row[rowind]] = [row[2], row[-1], row[3:-1]]
         return ctDict
+
+    def make_exp_tree(self):
+        """ Returns dictionary:
+            keys: F22, values: combdata instanses
+        """
+        treedict = dict.fromkeys(self.expsdict)
+        for key1 in self.expsdict:
+            treedict[key1] = []
+            for key2 in self.expsdict[key1]:
+                treedict[key1].append(self.expsdict[key1][key2])
+        return treedict
 
     def makeCombData(self):
         combdicts = dict.fromkeys(self.datadict.keys())
@@ -142,6 +157,7 @@ class ExpFA(object):
     #     expA = DataComb(f22, groupparam, nusn, rowslist, inf)
     #     expA.addData()
     #     return expA
+
     def calcAllExps(self):
         for key1 in self.expsdict:
             for key2 in self.expsdict[key1]:

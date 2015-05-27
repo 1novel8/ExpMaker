@@ -268,14 +268,14 @@ def convert(soursedbf, bgd2e_li):
     f22_dict = dict()
     for row in rows_ok:
         for n in range(row.n):
-            row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.dopname[n] )
-                        # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, DOPNAME_%(N)d
+            row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
+                        # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
             try:
                 f22_dict[row.f22[n]].append(row_params)
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
-
-    return err_dict,f22_dict
+    print err_dict
+    return {},rows_ok
 
 
 if __name__ == '__main__':
