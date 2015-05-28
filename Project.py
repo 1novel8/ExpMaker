@@ -126,7 +126,7 @@ class LoadingThread(QtCore.QThread):
 class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.dbfile = None
+        self.db_file = None
         self.setWindowTitle(u'Создание экспликации')
         self.resize(1000, 700)
         self.centralwidget = QtGui.QFrame(self)
@@ -203,6 +203,8 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setStyleSheet((open('d:\workspace\PyQt\ss.css',"r").read()))
+        self.e_db_file = None
+
 
     def hide_props(self, hide = True):
         self.l1.setHidden(hide)
@@ -227,7 +229,7 @@ class MyWindow(QtGui.QMainWindow):
         exit.setStatusTip(u'Определение источника данных')
         exit2.setShortcut(u'Ctrl+Q')
         exit2.setStatusTip(u'Закрыть программу')
-        self.connect(exit, QtCore.SIGNAL(u'triggered()'), self.openFile)
+        self.connect(exit, QtCore.SIGNAL(u'triggered()'), self.open_file)
         self.connect(exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         spr_exit1 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\refresh.png'), u'Обновить BGDtoEKP', self)
         spr_exit2 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\refresh.png'), u'Обновить BGDtoEKP ("*_NEW")', self)
@@ -250,25 +252,30 @@ class MyWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_exit2)
         menu_sprav.addAction(spr_exit3)
 
-    def openFile(self):
+    def reset_parameters(self):
+        self.e_db_file = None
+        self.hide_props(False)
+        self.btn_a_all.setHidden(True)
+        self.btn_a_tree.setHidden(True)
+        self.treeView.setHidden(True)
+        self.treeView.reset()
         # self.button1.setEnabled(False)
         # self.button2.setEnabled(False)
         self.exp_a_btn.setEnabled(False)
         self.exp_b_btn.setEnabled(False)
-        self.dbfile = unicode(QtGui.QFileDialog.getOpenFileName(self, u'Укажите путь к базе данных...', u'/home'))
-        message = self.prepareControl(self.dbfile)
-        if message == 1:
-            self.expDBfile = None
-            self.hide_props(False)
-            self.btn_a_all.setHidden(True)
-            self.btn_a_tree.setHidden(True)
-            self.add_visible_log(u'Открыт файл %s' % self.dbfile, True)
-            self.add_visible_log(u'В базе данных %s присутствуют данные, необходимые для расчета экспликации.' % self.dbfile.split(u'/')[-1])
-            self.add_visible_log(u'Запустите контроль данных для дальнейшей работы\n')
-            self.control_btn.setEnabled(True)
-            self.control_btn.blockSignals(False)
-        else:
-            self.myEvent(message)
+    def open_file(self):
+        self.db_file = unicode(QtGui.QFileDialog.getOpenFileName(self, u'Укажите путь к базе данных...', u'/home'))
+        if self.db_file:
+            message = self.prepareControl(self.db_file)
+            if not message:
+                self.reset_parameters()
+                self.add_visible_log(u'Открыт файл %s' % self.db_file, True)
+                self.add_visible_log(u'В базе данных %s присутствуют данные, необходимые для расчета экспликации.' % self.db_file.split(u'/')[-1])
+                self.add_visible_log(u'Запустите контроль данных для дальнейшей работы\n')
+                self.control_btn.setEnabled(True)
+                self.control_btn.blockSignals(False)
+            else:
+                self.myEvent(message)
 
     def myEvent(self, messag):
         reply = QtGui.QMessageBox.question(self, u'Хотите продолжить работу?',messag,
@@ -292,7 +299,7 @@ class MyWindow(QtGui.QMainWindow):
         if taberr == 1:
             return tablemessage
         else:
-            return 1
+            return 0
 
     def enableB2(self):
         self.convert_btn.setEnabled(True)
@@ -344,7 +351,7 @@ class MyWindow(QtGui.QMainWindow):
         self.block_btns()
         self.add_visible_log(u'Запущен контроль данных.',True)
         self.addloading(u'Производится контроль данных ')
-        self.control_thr = ControlThread(self.dbfile)
+        self.control_thr = ControlThread(self.db_file)
         self.connect(self.control_thr, QtCore.SIGNAL(u'controlpassed'), self.enableB2)
         self.connect(self.control_thr, QtCore.SIGNAL(u's1(const QString&)'), self.add_visible_log)
         self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
@@ -355,7 +362,7 @@ class MyWindow(QtGui.QMainWindow):
     def on_clicked_convert_btn(self):
         self.block_btns()
         self.add_visible_log(u'Запущено конвертирование данных.', True)
-        self.convert_thr = ConvertThread(self.dbfile, self.b2e_li)
+        self.convert_thr = ConvertThread(self.db_file, self.b2e_li)
         self.addloading(u'Данные конвертируются ')
         self.connect(self.convert_thr, QtCore.SIGNAL(u'convertpassed'), self.enableB3B4)
         self.connect(self.convert_thr, QtCore.SIGNAL(u's2(const QString&)'), self.textEdit.insertPlainText)
@@ -365,34 +372,38 @@ class MyWindow(QtGui.QMainWindow):
 
     def get_edbf_name(self):
         exp_dir = unicode(QtGui.QFileDialog.getExistingDirectory(self, u'Выберите путь для сохранения файла Exp_.mdb'))
-        e_dbf = exp_dir + u'\\Exp_' + self.dbfile.split(u'/')[-1]
-        if not os.path.isfile(e_dbf):
-            templ = u"%s\\template.mdb" % Control.workDir
-            if os.path.isfile(templ):
-                try:
-                    shutil.copyfile(templ, e_dbf)
-                except:
-                    print u'Something going Wrong!'
-            else:
-                pass
-                #TODO: Show window, that template file is empty
-        return e_dbf
+        if exp_dir:
+            e_dbf = exp_dir + u'\\Exp_' + self.db_file.split(u'/')[-1]
+            if not os.path.isfile(e_dbf):
+                templ = u"%s\\template.mdb" % Control.workDir
+                if os.path.isfile(templ):
+                    try:
+                        shutil.copyfile(templ, e_dbf)
+                    except:
+                        print u'Something going Wrong!'
+                else:
+                    pass
+                    #TODO: Show window, that template file is empty
+            return e_dbf
+        else: return False
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_a_btn(self):
         self.block_btns()
-        if not self.expDBfile:
-            self.expDBfile = self.get_edbf_name()
-        self.exp_a_thr = ExpAThread(self.expDBfile, self.convert_thr.converted_rows)
-        self.btn_a_all.setHidden(False)
-        self.btn_a_tree.setHidden(False)
-        self.block_btns(False)
-        self.exp_a_btn.hide()
+        if not self.e_db_file:
+            self.e_db_file = self.get_edbf_name()
+        if self.e_db_file:
+            self.exp_a_thr = ExpAThread(self.e_db_file, self.convert_thr.converted_rows)
+            self.btn_a_all.setHidden(False)
+            self.btn_a_tree.setHidden(False)
+            self.block_btns(False)
+            self.exp_a_btn.hide()
+        else: self.block_btns(False)
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_all(self):
         self.block_btns()
-        if self.try_to_connect(self.expDBfile):
+        if self.try_to_connect(self.e_db_file):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен полный расчет экспликации A.', True)
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
@@ -444,16 +455,17 @@ class MyWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def on_clicked_exp_b_btn(self):
         self.block_btns()
-        if not self.expDBfile:
-            self.expDBfile = self.get_edbf_name()
-        if self.try_to_connect(self.expDBfile):
+        if not self.e_db_file:
+            self.e_db_file = self.get_edbf_name()
+        if self.e_db_file and self.try_to_connect(self.e_db_file):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен расчет экспликации В.', True)
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
-            self.exp_b_thr = ExpBThread(self.expDBfile, self.convert_thr.converted_rows)
+            self.exp_b_thr = ExpBThread(self.e_db_file, self.convert_thr.converted_rows)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
             self.exp_b_thr.start()
+        else: self.block_btns(False)
 
     def finishtext(self):
         self.add_visible_log(u'Расчет завершен.\n',True)
