@@ -14,7 +14,7 @@ class DataControl(object):
         self.fieldTypes = []
         self.work_file = filepath
         self.__db_file = u'%s\\tempDbase.mdb' % workDir
-        shutil.copyfile(self.workfile, self.__db_file)
+        shutil.copyfile(self.work_file, self.__db_file)
         self.__db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__db_file
         self.__isconnected = 0
         self.__need_tabs = [u'crostab_razv',u'SOATO',u'Users']

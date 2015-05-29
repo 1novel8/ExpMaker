@@ -9,10 +9,10 @@ def select_sprav(query):
     __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
     conn = pyodbc.connect(__bgd, autocommit = True, unicode_results = True)
     dbc = conn.cursor()
-    selresult = [row for row in dbc.execute(query).fetchall()]
+    sel_result = [row for row in dbc.execute(query).fetchall()]
     dbc.close()
     conn.close()
-    return selresult
+    return sel_result
 
 ins_fields = u'''(Description, UserCount, f_F22, f_1, f_2, f_3, f_4, f_5, f_6,f_7, f_row09, f_row10,
 f_8, f_9, f_10, f_11, f_12, f_13,f_14, f_15, f_16, f_melio1, f_melio2, f_servtype, f_state02,
@@ -220,29 +220,6 @@ class ExpFormaB(object):
             params[u'f_7'] += params[u'f_2'] + params[u'f_5'] + params[u'f_6']
             params[u'f_14'] += params[u'f_15'] + params[u'f_16']
         return params
-
-    # def selectF22Cash(self, F22):
-    #     self.connectCrtab
-    #     tempCT = self.selectoCtrCash(u"NewF22_1 = '%s'" % F22, u'Area_1')
-    #     n = 2
-    #     while True:
-    #         N = unicode(n)
-    #         tempCT.extend(self.selectoCtrCash(u"NewF22_%s = '%s'" % (N, F22), u'Area_%s' % N))
-    #         try:
-    #             n+=1
-    #             self.__ctdbc.execute(u'SELECT NewF22_%s FROM crostab_razv;' % unicode(n))
-    #         except pyodbc.Error:
-    #             self.disconnectCrtab
-    #             break
-    #     return tempCT
-    #
-    # def selectoCtrCash(self, wherecase, area = u'Shape_Area'):
-    #     self.connectCrtab
-    #     if self.__crtabconnected == 1:
-    #         self.__ctdbc.execute(u"select %s, LANDCODE, MELIOCODE, ServType08, State_1  from crostab_razv where %s" % (area, wherecase))
-    #         selresult = [row for row in self.__ctdbc.fetchall()]
-    #         return selresult
-    #     else: print u'Error, Crtab_razv is not connected'
 
     def run_exp_b(self):
         exp_dict = self.create_exp_dict()
