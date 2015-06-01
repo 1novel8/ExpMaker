@@ -22,10 +22,10 @@ class ControlThread(QtCore.QThread):
     def __init__(self, dbf, parent = None):
         QtCore.QThread.__init__(self, parent)
         self.dbfile = dbf
-        self.controlpassed = False
+        self.control_passed = False
     def run(self):
         contr_message = self.run_control(self.dbfile)
-        if self.controlpassed:
+        if self.control_passed:
             self.emit(QtCore.SIGNAL(u'controlpassed'))
         self.emit(QtCore.SIGNAL(u's1(const QString&)'), u'%s' % contr_message)
 
@@ -40,7 +40,7 @@ class ControlThread(QtCore.QThread):
                 protocol += u'\n'
             return protocol
         else:
-            self.controlpassed = True
+            self.control_passed = True
             return u'%s Контроль завершен успешно, несоответствий не обнаружено. Можно приступить к конвертации данных.\n' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
 
 class ConvertThread(QtCore.QThread):
@@ -75,7 +75,7 @@ class ExpAThread(QtCore.QThread):
         self.expsA = ExpA.ExpFA(self.expdir, rows)
         self.exp_tree = self.expsA.make_exp_tree()
     def run(self):
-        self.expsA.transferToIns()
+        self.expsA.transfer_to_ins()
 
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, parent = None):
@@ -211,7 +211,9 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setStyleSheet((open('d:\workspace\PyQt\ss.css').read()))
+        try:
+            self.setStyleSheet((open('%s\ss.css' % Control.workDir).read()))
+        except IOError: pass
         self.bold_font = QtGui.QFont()
         self.normal_font = QtGui.QFont()
         self.set_fonts_properties()
@@ -263,7 +265,7 @@ class MyWindow(QtGui.QMainWindow):
         self.normal_font.setPointSize(10)
         self.bold_font.setPointSize(10)
         self.bold_font.setBold(True)
-        self.normal_font.setFamily('Dutch801 XBd Bt')#'Narkisim',
+        self.normal_font.setFamily('Dutch801 XBd Bt')       #'Narkisim',
         self.bold_font.setFamily('Times New Roman')
     def hide_props(self, hide = True):
         self.l1.setHidden(hide)
