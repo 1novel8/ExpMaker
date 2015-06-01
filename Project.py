@@ -132,10 +132,9 @@ class LoadingThread(QtCore.QThread):
 class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.bold_font = QtGui.QFont()
-        self.normal_font = QtGui.QFont()
-        self.set_fonts_properties()
+        self.__a_thr_reinit = False
         self.db_file = None
+        self.e_db_file = None
         self.setWindowTitle(u'Создание экспликации')
         self.resize(1200, 700)
         self.centralwidget = QtGui.QFrame(self)
@@ -213,7 +212,9 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setStyleSheet((open('d:\workspace\PyQt\ss.css').read()))
-        self.e_db_file = None
+        self.bold_font = QtGui.QFont()
+        self.normal_font = QtGui.QFont()
+        self.set_fonts_properties()
         self.set_widgets_font()
         self.set_sources_widgets()
 
@@ -448,8 +449,6 @@ class MyWindow(QtGui.QMainWindow):
                     #TODO: Show window, that template file is not exist
             self.e_src_lbl.setText(e_dbf)
             self.e_db_file = e_dbf
-        #     return True
-        # else: return False
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_a_btn(self):
@@ -473,20 +472,24 @@ class MyWindow(QtGui.QMainWindow):
             self.statusBar().showMessage(u'Производится расчет')
             self.add_visible_log(u'Запущен полный расчет экспликации А.', True)
             self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
+            if self.__a_thr_reinit:
+                self.exp_a_thr = ExpAThread(self.e_db_file, self.convert_thr.converted_rows)
+            else: self.__a_thr_reinit = True
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
             self.exp_a_thr.start()
         else:
+            self.block_btns(False)
             #TODO: make sure that you have connection to exp file
             print u'Can\'t to connect to edb'
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_tree(self):
-        self.connect(self.treeView, QtCore.SIGNAL("activated(const QModelIndex &)"),self.tree_edit_cell)
         self.model = self.make_tree_model(self.exp_a_thr.exp_tree)
         self.model.setHorizontalHeaderLabels([u"Набор экспликаций А"])
         self.treeView.setModel(self.model)
         self.treeView.setHidden(False)
+        self.connect(self.treeView, QtCore.SIGNAL("activated(const QModelIndex &)"),self.tree_edit_cell)
 
     def make_tree_model(self, data):
         model = QtGui.QStandardItemModel()
