@@ -10,6 +10,7 @@ import os.path
 from PyQt4 import QtGui, QtCore
 from Expl import Control, Convert, ExpA, FormB, Sprav
 from Expl.DefaultSprav import default
+from Expl.SaveToXL import exp_single_fa, export_toxl_fb
 
 def get_f22_notes():
     f22_notes = FormB.select_sprav('Select F22Code, Notes from S_Forma22')
@@ -33,7 +34,7 @@ class ControlThread(QtCore.QThread):
         contr = Control.DataControl(dbfile)
         errList = contr.run_field_control()
         if errList:
-            protocol = u'\nКонтроль исходных данных завершен. Протокол ошбок:\n\n' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
+            protocol = u'\n%sКонтроль исходных данных завершен. Протокол ошбок:\n\n' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
             for err in errList:
                 for i in err:
                     protocol += unicode(i) + u'     '
@@ -84,7 +85,11 @@ class ExpBThread(QtCore.QThread):
         self.rows = rows
     def run(self):
         ExpB = FormB.ExpFormaB(self.expfile, self.rows)
-        ExpB.run_exp_b()
+        b_rows_dict = ExpB.create_exp_dict()
+        ExpB.run_exp_b(b_rows_dict)
+        exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.expfile)[4:-4],time.strftime(u"%d-%m-%Y"))
+        exl_file_path = os.path.dirname(self.expfile)+'\\'+ exl_file_name
+        export_toxl_fb(b_rows_dict,exl_file_path)
 
 class BGDtoEThread(QtCore.QThread):
     def __init__(self, newfields, parent = None):
@@ -157,7 +162,7 @@ class MyWindow(QtGui.QMainWindow):
         self.exp_a_btn = QtGui.QPushButton(u"Расчитать",self.centralwidget)
         self.exp_a_btn.setToolTip(u"Запустить расчет экспликации A")
         self.exp_a_btn.setSizePolicy(self.sizePolicy)
-        self.btn_a_all = QtGui.QPushButton(u"Полный",self.centralwidget)
+        self.btn_a_all = QtGui.QPushButton(u"Сводная",self.centralwidget)
         self.btn_a_all.setToolTip(u"Полный расчет экспликаций A. ")
         self.btn_a_tree = QtGui.QPushButton(u"Выборочный",self.centralwidget)
         self.btn_a_tree.setToolTip(u"Выборочный расчет экспликации A")
@@ -507,13 +512,14 @@ class MyWindow(QtGui.QMainWindow):
             f22_item.setFont(f22_item_font)
             model.appendRow(f22_item)
             item_names = [i.info for i in data[key]]
-            sorted_items = sorted(item_names)
             index_li = []
-            for exp_item in sorted_items:
+            ch_item_count = 1
+            for exp_item in sorted(item_names):
                 index_li.append(item_names.index(exp_item))     #заполняет позициями элементов до сортировки, для дальнейшего определения инстанса в data[key]
-                child_item = QtGui.QStandardItem(exp_item)
+                child_item = QtGui.QStandardItem(u'%d. '%ch_item_count+exp_item)
                 child_item.setFont(QtGui.QFont('Serif', 10))
                 f22_item.appendRow(child_item)
+                ch_item_count+=1
             self.tree_index_dict[key] = index_li
         return model
 
@@ -527,8 +533,10 @@ class MyWindow(QtGui.QMainWindow):
             exp_index = indexes_before_sort[pressed_exp]
             pressed_exp = data[pressed_f22][exp_index]
             pressed_exp.add_data()
-            print pressed_f22, pressed_exp.info
-            print pressed_exp.expArows
+            # print pressed_f22, pressed_exp.info
+            # print qindex.row()
+            # print pressed_exp.expArows
+            exp_single_fa(pressed_exp.expArows, pressed_f22, qindex.row(), pressed_exp.info, self.e_db_file)
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_b_btn(self):

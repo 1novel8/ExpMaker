@@ -32,8 +32,8 @@ def make_nptype(kod):
         if int(kod[0]) == 5:
             return row[6]
         elif int(kod[1]) == row[1]:
-                if row[2] <= int(kod[4:7]) <= row[3] or not row[3]:
-                    if row[4] <= int(kod[7:10]) <= row[5] or not row[4]:
+                if row[2] <= int(kod[4:7]) <= row[3] or row[3] is None:
+                    if row[4] <= int(kod[7:10]) <= row[5] or row[4] is None:
                         return row[6]
 
 def  updSoatoTNP(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
@@ -62,10 +62,10 @@ def add_utype_partn(connection):
                             and %(t)s.UserN_Sad is not null
                             and SLNAD = 2 ;''' % {u't': ct, u'nn': un}
         connection.execute(sql1)
-        try:
-            connection.execute(sql2)
-        except pyodbc.Error:
-            print u'Возможно, нету поля UserN_Sad?'
+        # try:
+        #     connection.execute(sql2)
+        # except pyodbc.Error:
+        #     print u'Возможно, нету поля UserN_Sad?'
         #---------------------------PART_n----------------------------------------------
         addColumn(connection, ct, u"Area_%s" % un, u'DOUBLE NULL')
         sqlarea = u'''UPDATE %(t)s
@@ -125,7 +125,7 @@ class CtrRow(object):
                                             # 1 - ошибки при доле 100%,
                                             # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
                                             # 3 - сброс всех параметров,ошибка new_state при долях
-
+        self.test_npt = make_nptype(u'3223830031')
         self.object_id = r_args[0]
         self.soato = r_args[1]
         self.np_type = make_nptype(self.soato)
@@ -264,7 +264,7 @@ def convert(soursedbf, bgd2e_li):
                 except KeyError:
                     err_dict[n+1] = [err.object_id,]
         whats_err[err.has_err].append(err.object_id)
-
+    print whats_err
     f22_dict = dict()
     for row in rows_ok:
         for n in range(row.n):
@@ -274,7 +274,7 @@ def convert(soursedbf, bgd2e_li):
                 f22_dict[row.f22[n]].append(row_params)
             except KeyError:
                 f22_dict[row.f22[n]] = [row_params,]
-    print err_dict
+    # print err_dict
     return {},rows_ok
 
 

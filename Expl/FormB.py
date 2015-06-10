@@ -221,8 +221,9 @@ class ExpFormaB(object):
             params[u'f_14'] += params[u'f_15'] + params[u'f_16']
         return params
 
-    def run_exp_b(self):
-        exp_dict = self.create_exp_dict()
+    def run_exp_b(self, exp_dict = False):
+        if not exp_dict:
+            exp_dict = self.create_exp_dict()
         for key in sorted(exp_dict.keys()):
             self.insert_row_eb(self.fb_row_data[key][0], 1, key, **exp_dict[key])
 

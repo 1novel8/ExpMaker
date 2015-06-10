@@ -30,6 +30,22 @@ class DataControl(object):
         else:
             self.err_connect()
 
+    def is_data_in_tables(self):
+        """
+        :return: Tables from __need_tabs that has no any data
+        """
+        self.__connect
+        if self.__isconnected == 1:
+            no_data_in = []
+            for tab in self.__need_tabs:
+                self.__dbc.execute(u'select * from %s' % tab)
+                if not self.__dbc.fetchall():
+                    no_data_in.append(tab)
+            self.__disconnect
+            return no_data_in
+        else:
+            self.err_connect()
+
     def contr_field_types(self, tab_name):
         """
             Takes 2 parameters : self and [Table Name] for current control

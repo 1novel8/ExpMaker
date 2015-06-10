@@ -75,6 +75,7 @@ class DataComb(object):
         self.nusname = nusname
         self.data = datali[1:]
         self.expArows = []
+        self.obj_name = inform
         info_is_null = lambda x: x if x else ''
         self.info = info_is_null(datali[0])+u' '+inform
 
