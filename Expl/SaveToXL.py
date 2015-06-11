@@ -4,6 +4,20 @@
 import os
 import openpyxl
 
+def add_values_cells(data, cells):
+    zips =  zip(data, cells)
+    for row in zips:
+        for v,c in zip(row[0], row[1]):
+            c.value = v
+
+def exp_svodn_fa(matrix, save_as):
+    w_book = openpyxl.load_workbook('Expl\\FA_svod.xlsx')
+    sheet = w_book.active
+    cells_tmp =  tuple(sheet.iter_rows(u'A3:Z%s' % len(matrix)))
+    add_values_cells(matrix,cells_tmp)
+    w_book.save(save_as)
+    os.system(u'start excel.exe %s' % save_as)
+
 def exp_single_fa(fa_data, f22, obj_ind, obj_name, expl_file):
     excel_path = os.path.dirname(expl_file)+ u'\\%s_xlsx_files' % os.path.basename(expl_file)[4:-4]
     if not os.path.exists(excel_path): os.makedirs(excel_path)
@@ -17,14 +31,8 @@ def exp_single_fa(fa_data, f22, obj_ind, obj_name, expl_file):
     w_book.save(dest_filename)
     os.system(u'start excel.exe %s' %  dest_filename)
 
-def add_values_cells(data, cells):
-    zips =  zip(data, cells)
-    for row in zips:
-        for v,c in zip(row[0], row[1]):
-            c.value = v
 
 def export_toxl_fb(data_dict, save_as):
-
     list_1_fields = [u'f_1', u'f_2', u'f_3', u'f_4', u'f_5', u'f_6',u'f_7', u'f_row09', u'f_row10']
     list_2_fields = [u'f_8', u'f_9', u'f_10', u'f_11', u'f_12', u'f_13',u'f_14', u'f_15', u'f_16']
     list_3_fields = [u'f_melio1', u'f_melio2', u'f_servtype', u'f_state02',u'f_state03', u'f_state04', u'f_state05', u'f_state06', u'f_state07', u'f_state08']

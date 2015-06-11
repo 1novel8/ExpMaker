@@ -74,15 +74,28 @@ class DataComb(object):
         self.us_soato = user_soato
         self.nusname = nusname
         self.data = datali[1:]
-        self.expArows = []
+        self.exp_a_rows = []
+        self.svodn_row = []
         self.obj_name = inform
         info_is_null = lambda x: x if x else ''
         self.info = info_is_null(datali[0])+u' '+inform
 
     def add_data(self):
-        self.exp_a_dict = make_expa_params(self.data)
+        exp_a_dict = make_expa_params(self.data)
+        self.exp_a_rows = []
         for i in NumRowsLi:
-            self.expArows.append(self.exp_a_dict[i])
+            self.exp_a_rows.append(exp_a_dict[i])
+
+
+    def prepare_svodn_data(self):
+        try:
+            temp = list(self.exp_a_rows[0])
+            for row in self.exp_a_rows[1:-2]:
+                row.pop(-2)
+                temp.append(row[0])
+            return temp
+        except IndexError:
+            return []
 
 
 class ExpFA(object):
@@ -157,18 +170,48 @@ class ExpFA(object):
             for key2 in self.expsdict[key1]:
                 self.expsdict[key1][key2].add_data()
 
+    def prepare_svodn_xl(self, f22_note):
+        xl_f22_dict = {}
+        return_xl_matrix = []
+        n = 1
+        for f22_k  in sorted(self.expsdict.keys()):
+            itogo_row = [0]*100
+            data_matrix = []
+            for group_k in self.expsdict[f22_k]:
+                zem_obj = self.expsdict[f22_k][group_k]
+                row_data = zem_obj.prepare_svodn_data()
+                itogo_row = map(lambda x: sum(x), zip(itogo_row,row_data))
+                row_data.insert(0, zem_obj.info)
+                data_matrix.append(row_data)
+
+            f22_head = [n, f22_k, f22_note[f22_k]]
+            f22_head.extend([None]*len(itogo_row))
+            xl_f22_dict[f22_k] = [f22_head,]
+            n+=1
+            f22_row_num = 1
+            for li in sorted(data_matrix):
+                li[0:0] = [n, u'%d.%d' % (int(f22_k), f22_row_num)]
+                f22_row_num+=1
+                n+=1
+                xl_f22_dict[f22_k].append(li)
+            itogo_row[0:0] = [n, u'%d.i' % int(f22_k), u'Итого']
+            n+=1
+            xl_f22_dict[f22_k].append(itogo_row)
+            return_xl_matrix.extend(list(xl_f22_dict[f22_k]))
+        return return_xl_matrix
+
+
     def transfer_to_ins(self):
         self.__expname = u'ExpA_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
         self.create_clear_edb()
         final_dict = self.expsdict
-        self.calc_all_exps()
         self.__connect_exp()
         fdk = final_dict.keys()
         fdk.sort()
         for f22key in fdk:
             itogo_row = [0]*16
             for us_so_key in final_dict[f22key].keys():
-                li = final_dict[f22key][us_so_key].expArows
+                li = final_dict[f22key][us_so_key].exp_a_rows
                 data = final_dict[f22key][us_so_key].info
                 for i in range(1, len(li)+1):
                     if i == 1:
@@ -176,16 +219,16 @@ class ExpFA(object):
                         itogo_row = map(lambda x: sum(x), zip(itogo_row, li[i-1]))
                     else:
                         self.add_row_exp_a(f22key, us_so_key, i, li[i-1])
-            self.add_row_exp_a(f22key, u'Итого', 0, itogo_row)
+            self.add_row_exp_a(f22key, u'Итого:', 0, itogo_row)
         self.__disconnect_exp()
 
-    def add_row_exp_a(self, ff22, f_us_n, f_r_n, params):
+    def add_row_exp_a(self, f_f22, f_us_n, f_r_n, params):
         if self.__expconnected ==1:
             ins_args = map(lambda x: round(x/10000,4), params)
             sql_ins = u'''insert into %s (f_F22, f_UsN, f_RowNumber, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10,
                         f_11, f_12, f_13, f_14, f_15, f_16) values ( ?, ?, ?, %s);''' % (self.__expname, unicode(ins_args)[1:-1])
             try:
-                self.__edbc.execute(sql_ins, (ff22, f_us_n, f_r_n))
+                self.__edbc.execute(sql_ins, (f_f22, f_us_n, f_r_n))
             except pyodbc.DataError: pass
 
     def create_clear_edb(self):

@@ -10,7 +10,7 @@ import os.path
 from PyQt4 import QtGui, QtCore
 from Expl import Control, Convert, ExpA, FormB, Sprav
 from Expl.DefaultSprav import default
-from Expl.SaveToXL import exp_single_fa, export_toxl_fb
+from Expl.SaveToXL import exp_single_fa, export_toxl_fb, exp_svodn_fa
 
 def get_f22_notes():
     f22_notes = FormB.select_sprav('Select F22Code, Notes from S_Forma22')
@@ -72,23 +72,30 @@ class ConvertThread(QtCore.QThread):
 class ExpAThread(QtCore.QThread):
     def __init__(self, edbf, rows, parent = None):
         QtCore.QThread.__init__(self, parent)
-        self.expdir = edbf
-        self.expsA = ExpA.ExpFA(self.expdir, rows)
+        self.exp_file = edbf
+        self.expsA = ExpA.ExpFA(self.exp_file, rows)
         self.exp_tree = self.expsA.make_exp_tree()
     def run(self):
+        self.expsA.calc_all_exps()
         self.expsA.transfer_to_ins()
+        f22_notes = get_f22_notes()
+        xl_matrix = self.expsA.prepare_svodn_xl(f22_notes)
+        exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
+        exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
+        exp_svodn_fa(xl_matrix,exl_file_path)
+
 
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, parent = None):
         QtCore.QThread.__init__(self, parent)
-        self.expfile = edbf
+        self.exp_file = edbf
         self.rows = rows
     def run(self):
-        ExpB = FormB.ExpFormaB(self.expfile, self.rows)
+        ExpB = FormB.ExpFormaB(self.exp_file, self.rows)
         b_rows_dict = ExpB.create_exp_dict()
         ExpB.run_exp_b(b_rows_dict)
-        exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.expfile)[4:-4],time.strftime(u"%d-%m-%Y"))
-        exl_file_path = os.path.dirname(self.expfile)+'\\'+ exl_file_name
+        exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
+        exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
         export_toxl_fb(b_rows_dict,exl_file_path)
 
 class BGDtoEThread(QtCore.QThread):
@@ -536,7 +543,7 @@ class MyWindow(QtGui.QMainWindow):
             # print pressed_f22, pressed_exp.info
             # print qindex.row()
             # print pressed_exp.expArows
-            exp_single_fa(pressed_exp.expArows, pressed_f22, qindex.row(), pressed_exp.info, self.e_db_file)
+            exp_single_fa(pressed_exp.exp_a_rows, pressed_f22, qindex.row(), pressed_exp.info, self.e_db_file)
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_b_btn(self):
