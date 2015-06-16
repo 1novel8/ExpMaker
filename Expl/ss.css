@@ -1,3 +1,11 @@
+QMainWindow {
+    background: url("v1.png") silver;
+}
+QStatusBar {
+    color : whitesmoke;
+    background: #1347FF;
+}
+
 QTreeView {
     color: #292929 ;
     background-color: lightgrey;
@@ -16,11 +24,40 @@ QHeaderView {
     font-family: 'Trebuchet MS', sans-serif;
     }
 
-/*QPushButton {*/
-    /*color: #292929;*/
-    /*background-color: #D3DEF8;*/
-    /*border: 2px solid #0F85FF ;*/
-    /*border-radius: 5%;*/
-    /*font-weight: 900;*/
-    /*font-family: cursive;*/
-    /*}*/
+QPushButton {
+    color: #292929;
+    font-weight: 900;
+    border: 2px dashed #0F85FF;
+    background-color: lightgrey;
+    border-radius: 5%;
+    font-family: cursive;
+    }
+
+/*QTextEdit {*/
+    /*color: white;*/
+    /*background-color: #292929;*/
+    /*border-radius: 10%;*/
+    /*border: 2px solid #0F85FF;*/
+/*}*/
+
+QPushButton:disabled{
+    background-color: lightgrey;
+    border: 2px solid red ;
+    border-radius:5%;
+}
+QPushButton:focus{
+    background-color: lightgrey;
+    border: 2px solid #0F85FF ;
+    border-radius: 5%;
+    font-weight: 900;
+    font-family: cursive;
+    }
+
+QPushButton:hover{
+    color: #0F85FF;
+    background-color: lightgray;
+    border: 2px solid #0F85FF ;
+    border-radius: 5%;
+    font-weight: 900;
+    font-family: cursive;
+    }

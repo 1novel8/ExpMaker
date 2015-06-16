@@ -4,29 +4,29 @@ import openpyxl
 from xlrd import open_workbook
 from xlutils.copy import copy
 import os
-def a_test():
-    a = []
-    for i in range(11):
-        q = []
-        for e in range(16):
-            q.append(e+i)
-        a.append(q)
-    return a
-# Runfor xlsx format
-
-dest_filename = 'test.xlsx'
-wb = openpyxl.load_workbook('FB.xlsx')
-ws1 = wb.get_sheet_by_name(u'Лист 1')
-# ws1.title = u'Выборочная экспликация'
-a = a_test()
-cells_temp =  ws1.iter_rows('F15:U30')
-zips =  zip(a, cells_temp)
-for row in zips:
-    for v,c in zip(row[0], row[1]):
-        c.value = v
-wb.save(dest_filename)
-
-os.system('start excel.exe %s' % dest_filename)
+# def a_test():
+#     a = []
+#     for i in range(11):
+#         q = []
+#         for e in range(16):
+#             q.append(e+i)
+#         a.append(q)
+#     return a
+# # Runfor xlsx format
+#
+# dest_filename = 'test.xlsx'
+# wb = openpyxl.load_workbook('FB.xlsx')
+# ws1 = wb.get_sheet_by_name(u'Лист 1')
+# # ws1.title = u'Выборочная экспликация'
+# a = a_test()
+# cells_temp =  ws1.iter_rows('F15:U30')
+# zips =  zip(a, cells_temp)
+# for row in zips:
+#     for v,c in zip(row[0], row[1]):
+#         c.value = v
+# wb.save(dest_filename)
+#
+# os.system('start excel.exe %s' % dest_filename)
 
 #Run for xls format
 #
@@ -45,8 +45,42 @@ os.system('start excel.exe %s' % dest_filename)
 #
 #
 
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 
+class AppForm(QMainWindow):
+    def __init__(self, parent=None):
+        QMainWindow.__init__(self, parent)
+        self.create_main_frame()
+
+    def create_main_frame(self):
+        page = QWidget()
+
+        self.button = QPushButton('joy', page)
+        self.edit1 = QLineEdit()
+        self.edit2 = QLineEdit()
+
+        vbox1 = QVBoxLayout()
+        vbox1.addWidget(self.edit1)
+        vbox1.addWidget(self.edit2)
+        vbox1.addWidget(self.button)
+        page.setLayout(vbox1)
+        self.setCentralWidget(page)
+
+        self.connect(self.button, SIGNAL("clicked()"), self.clicked)
+
+    def clicked(self):
+        QMessageBox.critical(self, u"Ошибочка вышла", "%s" % self.edit1)
+
+
+
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    form = AppForm()
+    form.show()
+    app.exec_()
 
 
 
