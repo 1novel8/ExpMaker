@@ -4,7 +4,7 @@
 import pyodbc
 import time
 from Control import workDir
-template_db = u'%s\\template.mdb' % workDir
+# template_db = u'%s\\template.mdb' % workDir
 access_dbf = u"%s\\tempDbase.mdb" % workDir
 dependOfCodes = dict(f_3=1, f_4=1, f_5=1, f_6=1, f_8 =1, f_9=1, f_10=1, f_11 =1, f_12=1, f_13 =1,f_15=1, f_16 =1,
                      f_melio1=2, f_melio2=2, f_servtype=3,
@@ -90,8 +90,8 @@ class DataComb(object):
     def prepare_svodn_data(self):
         try:
             temp = list(self.exp_a_rows[0])
-            for row in self.exp_a_rows[1:-2]:
-                row.pop(-2)
+            for row in self.exp_a_rows[1:]:
+                # row.pop(-2)
                 temp.append(row[0])
             return temp
         except IndexError:
@@ -99,15 +99,13 @@ class DataComb(object):
 
 
 class ExpFA(object):
-    def __init__(self, expdb, ctr_rows, crtabdb = u"%s\\tempDbase.mdb" % workDir):
+    def __init__(self, expdb, input_data):
         self.__expfile = expdb
-        self.__ctrfile = crtabdb
         self.__expAccess = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__expfile
-        self.__crtAccess = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__ctrfile
         self.__expconnected = 0
         self.__crtabconnected = 0
-        self.datadict = self.make_dict_of_dict(ctr_rows)     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
-        self.usersInfo, self.soatoInfo = self.data_users_soato()
+        self.datadict = self.make_dict_of_dict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
+        self.usersInfo, self.soatoInfo = input_data[-2:]
         self.remake_codes()
         self.expsdict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
         self.a=self.make_exp_tree()
@@ -268,25 +266,6 @@ class ExpFA(object):
             except pyodbc.Error:
                 return False
 
-    def data_users_soato(self):
-        """
-        returns UsersDict and SoatoDict with keys usern and soato
-        and values in unicode
-        """
-        self.__connect_crtab()
-        if self.__crtabconnected == 1:
-            self.__ctdbc.execute(u'select KOD, NameSNp from SOATO')
-            sel_result = [row for row in self.__ctdbc.fetchall()]
-            soato_dict = dict(sel_result)
-            self.__ctdbc.execute(u'select UserN, UsName from Users')
-            sel_result = [row for row in self.__ctdbc.fetchall()]
-            users_dict = dict(sel_result)
-            self.__disconnect_crtab()
-            return users_dict, soato_dict
-        else:
-            #TODO: Remake exception
-            print u'Error, Crtab_razv is not connected'
-
     def __connect_exp(self):
         try:
             self.__econn = pyodbc.connect(self.__expAccess, autocommit = True, unicode_results = True)
@@ -301,20 +280,39 @@ class ExpFA(object):
             self.__econn.close()
             self.__expconnected = 0
 
-    def __connect_crtab(self):
-        try:
-            self.__ctconn = pyodbc.connect(self.__crtAccess, autocommit = True, unicode_results = True)
-            self.__ctdbc = self.__ctconn.cursor()
-            self.__crtabconnected = 1
-        except:
-            print u'Error, Crtab_razv is not connected!!!'
-            self.__crtabconnected = 0
+    # def data_users_soato(self):
+    #     """
+    #     returns UsersDict and SoatoDict with keys usern and soato
+    #     and values in unicode
+    #     """
+    #     self.__connect_crtab()
+    #     if self.__crtabconnected == 1:
+    #         self.__ctdbc.execute(u'select KOD, NameSNp from SOATO')
+    #         sel_result = [row for row in self.__ctdbc.fetchall()]
+    #         soato_dict = dict(sel_result)
+    #         self.__ctdbc.execute(u'select UserN, UsName from Users')
+    #         sel_result = [row for row in self.__ctdbc.fetchall()]
+    #         users_dict = dict(sel_result)
+    #         self.__disconnect_crtab()
+    #         return users_dict, soato_dict
+    #     else:
+    #         #TODO: Remake exception
+    #         print u'Error, Crtab_razv is not connected'
 
-    def __disconnect_crtab(self):
-        if self.__crtabconnected == 1:
-            self.__ctdbc.close()
-            self.__ctconn.close()
-            self.__crtabconnected = 0
+    # def __connect_crtab(self):
+    #     try:
+    #         self.__ctconn = pyodbc.connect(self.__crtAccess, autocommit = True, unicode_results = True)
+    #         self.__ctdbc = self.__ctconn.cursor()
+    #         self.__crtabconnected = 1
+    #     except:
+    #         print u'Error, Crtab_razv is not connected!!!'
+    #         self.__crtabconnected = 0
+    #
+    # def __disconnect_crtab(self):
+    #     if self.__crtabconnected == 1:
+    #         self.__ctdbc.close()
+    #         self.__ctconn.close()
+    #         self.__crtabconnected = 0
 
     @staticmethod
     def remake_codes():

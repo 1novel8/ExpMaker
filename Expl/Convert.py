@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import time
-
 import pyodbc
 from Control import workDir
 
 ct = u'crostab_razv'
-def addColumn(connection, tabname, colname, coltype=u'int Null'):
+def add_column(connection, tabname, colname, coltype=u'int Null'):
     try:
         connection.execute(u'ALTER TABLE %s DROP COLUMN "%s";' % (tabname, colname))
     except pyodbc.Error:
@@ -36,7 +33,7 @@ def make_nptype(kod):
                     if row[4] <= int(kod[7:10]) <= row[5] or row[4] is None:
                         return row[6]
 
-def  updSoatoTNP(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
+def  upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
     sqlupdnp = u'update %s set NPType = %s where mid(%s, 1, 1) in (%s)'%(table, typenp, f_kod, zn1)
     if zn2 is not  None:
         sqlupdnp += u' and mid(%s, 2, 1) = %s' % (f_kod, zn2)
@@ -52,7 +49,7 @@ def add_utype_partn(connection):
     while True:
         un = unicode(n)
         #---------------------------UserType_n----------------------------------------------
-        addColumn(connection, ct, u'UserType_%s' % un)
+        add_column(connection, ct, u'UserType_%s' % un)
         sql1 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.usern_%(nn)s
                     SET %(t)s.Usertype_%(nn)s = [Users].[UserType];''' % {u't': ct, u'nn': un}
         sql2 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
@@ -67,7 +64,7 @@ def add_utype_partn(connection):
         # except pyodbc.Error:
         #     print u'Возможно, нету поля UserN_Sad?'
         #---------------------------PART_n----------------------------------------------
-        addColumn(connection, ct, u"Area_%s" % un, u'DOUBLE NULL')
+        add_column(connection, ct, u"Area_%s" % un, u'DOUBLE NULL')
         sqlarea = u'''UPDATE %(t)s
                     SET Area_%(nn)s = (Part_%(nn)s/100)*[Shape_Area]
                     WHERE Part_%(nn)s <> 0''' % {u't': ct, u'nn': un}
@@ -80,9 +77,9 @@ def add_utype_partn(connection):
     return n-1
 
 def convert_soato(connection):
-    addColumn(connection, u'SOATO', u'NameSov', u'varchar(80) NULL')
-    addColumn(connection, u'SOATO', u'NameNasp', u'varchar(80) NULL')
-    addColumn(connection, u'SOATO', u'NameSNp', u'varchar(150) NULL')
+    add_column(connection, u'SOATO', u'NameSov', u'varchar(80) NULL')
+    add_column(connection, u'SOATO', u'NameNasp', u'varchar(80) NULL')
+    add_column(connection, u'SOATO', u'NameSNp', u'varchar(150) NULL')
     sqlsoato = u'''select mid(KOD,1,7), [NAME], PREF from SOATO where mid(KOD,8,3) = '000' and mid(KOD,5,1) = '8';'''
     updnamesov = u'''update SOATO set NameSov = ?+' '+?+' ' where mid(KOD,1,7) = ? ;'''
     updnamenasp1 = u'''update SOATO set NameNasp = NAME +' '+PREF where PREF in ('р-н','с/с');'''
@@ -96,9 +93,9 @@ def convert_soato(connection):
     connection.execute(updnamenasp2)
     connection.execute(updnamesnp)
 
-    addColumn(connection, u'SOATO', u'NPType')
+    add_column(connection, u'SOATO', u'NPType')
     for row in npt_sprav:
-        sqltnp = updSoatoTNP(u'SOATO', u'KOD', *row)
+        sqltnp = upd_soato_tnp(u'SOATO', u'KOD', *row)
         connection.execute(sqltnp)
 
 def bgd_to_dicts(bgd_li):
@@ -125,7 +122,6 @@ class CtrRow(object):
                                             # 1 - ошибки при доле 100%,
                                             # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
                                             # 3 - сброс всех параметров,ошибка new_state при долях
-        self.test_npt = make_nptype(u'3223830031')
         self.object_id = r_args[0]
         self.soato = r_args[1]
         self.np_type = make_nptype(self.soato)
@@ -142,14 +138,13 @@ class CtrRow(object):
         self.usern = list(r_args[nm+7:nm+7+self.n])
         self.utype = list(r_args[2*nm+7:2*nm+7+self.n])
         self.area = list(r_args[3*nm+7:3*nm+7+self.n])
-
         self.new_state = False
         self.new_lc = False
         self.state_changed = False
         self.lc_changed = False
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
-        self.bgd_control()
+
 
     def bgd_control(self):
         if self.n == 1:
@@ -231,11 +226,10 @@ def convert(soursedbf, bgd2e_li):
     load_npt_sprav()
     # import shutil`
     # shutil.copyfile(soursedbf, dbf_file)
-    work_db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % db_file
-    conn = pyodbc.connect(work_db, autocommit=True, unicode_results=True)
-    dbc = conn.cursor()
-    n_max = add_utype_partn(dbc)
-    convert_soato(dbc)
+    dbc_ctr,conn_ctr = connect_crtab(db_file)
+    n_max = add_utype_partn(dbc_ctr)
+    convert_soato(dbc_ctr)
+
     def many_fields_str(f_name, col = n_max):
         s = u''
         for n in range(col):
@@ -245,14 +239,16 @@ def convert(soursedbf, bgd2e_li):
     %s, %s, %s, %s from %s''' % (many_fields_str(u'F22_'),many_fields_str(u'UserN_'),many_fields_str(u'Usertype_'),many_fields_str(u'Area_'),ct)
     rows_ok = []
     rows_failed = []
-    for row in dbc.execute(select_ctr_all):
+    save_rows = []
+    for row in dbc_ctr.execute(select_ctr_all):
         new_row = CtrRow(row, n_max)       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
-        if not new_row.has_err:
-            rows_ok.append(new_row)
-        else:
+        new_row.bgd_control()
+        if new_row.has_err:
             rows_failed.append(new_row)
-    dbc.close()
-    conn.close()
+        else:
+            rows_ok.append(new_row)
+            save_rows.append(row)
+    disconnect_crtab(dbc_ctr,conn_ctr)
 
     err_dict = dict()
     whats_err = {1 : [], 2 : [], 3 : []}
@@ -265,17 +261,67 @@ def convert(soursedbf, bgd2e_li):
                     err_dict[n+1] = [err.object_id,]
         whats_err[err.has_err].append(err.object_id)
     print whats_err
-    f22_dict = dict()
-    for row in rows_ok:
-        for n in range(row.n):
-            row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
-                        # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
-            try:
-                f22_dict[row.f22[n]].append(row_params)
-            except KeyError:
-                f22_dict[row.f22[n]] = [row_params,]
+    # f22_dict = dict()
+    # for row in rows_ok:
+    #     for n in range(row.n):
+    #         row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
+    #                     # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
+    #         try:
+    #             f22_dict[row.f22[n]].append(row_params)
+    #         except KeyError:
+    #             f22_dict[row.f22[n]] = [row_params,]
     # print err_dict
-    return {},rows_ok
+    users_d, soato_d = data_users_soato(db_file)
+    save_info = [rows_ok, users_d, soato_d]
+    # q = create_pkl(save_info)
+    return {}, save_info
+
+def create_pkl(obj):
+    import cPickle as pickle
+
+    output = open('data.pkl','wb')
+    pickle.dump(obj, output, 2)
+    output.close()
+    inp = open('data.pkl', 'rb')
+    q = pickle.load(inp)
+    inp.close()
+    return q
+
+def connect_crtab(db_f):
+    try:
+        work_db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % db_f
+        conn = pyodbc.connect(work_db, autocommit=True, unicode_results=True)
+        dbc = conn.cursor()
+        return dbc, conn
+    except:
+        return False, False
+
+def disconnect_crtab(dbc, conn):
+    try:
+        dbc.close()
+        conn.close()
+    except: pass
+
+def data_users_soato(db_f):
+    """
+    returns UsersDict and SoatoDict with keys usern and soato
+    and values in unicode
+    """
+    ct_dbc,conn_ct = connect_crtab(db_f)
+    if ct_dbc:
+        ct_dbc.execute(u'select KOD, NameSNp from SOATO')
+        sel_result = [row for row in ct_dbc.fetchall()]
+        soato_dict = dict(sel_result)
+        ct_dbc.execute(u'select UserN, UsName from Users')
+        sel_result = [row for row in ct_dbc.fetchall()]
+        users_dict = dict(sel_result)
+        disconnect_crtab(ct_dbc,conn_ct)
+        return users_dict, soato_dict
+    else:
+        #TODO: Remake exception
+        print u'Error with connecting to crtab database'
+
+
 
 
 if __name__ == '__main__':

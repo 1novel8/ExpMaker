@@ -11,9 +11,9 @@ def add_values_cells(data, cells):
             c.value = v
 
 def exp_svodn_fa(matrix, save_as):
-    w_book = openpyxl.load_workbook('Expl\\FA_svod.xlsx')
+    w_book = openpyxl.load_workbook(u'XL_forms\\FA_svod.xlsx')
     sheet = w_book.active
-    cells_tmp =  tuple(sheet.iter_rows(u'A3:Z%s' % len(matrix)))
+    cells_tmp =  tuple(sheet.iter_rows(u'A3:AC%s' % len(matrix)))
     add_values_cells(matrix,cells_tmp)
     w_book.save(save_as)
     os.system(u'start excel.exe %s' % save_as)
@@ -22,7 +22,7 @@ def exp_single_fa(fa_data, f22, obj_ind, obj_name, expl_file):
     excel_path = os.path.dirname(expl_file)+ u'\\%s_xlsx_files' % os.path.basename(expl_file)[4:-4]
     if not os.path.exists(excel_path): os.makedirs(excel_path)
     dest_filename = u'%s\\%s_%s.xlsx'%(excel_path, f22, obj_ind+1)
-    w_book = openpyxl.load_workbook(u'Expl\\FA.xlsx')
+    w_book = openpyxl.load_workbook(u'XL_forms\\FA.xlsx')
     sheet = w_book.active
     sheet.title = u'Выборочная экспликация'
     sheet['M4'] = obj_name
@@ -54,7 +54,7 @@ def export_toxl_fb(data_dict, save_as):
         for key in list_3_fields:
             l3_row.append(data_dict[f22_key][key])
         sh_3_data.append(l3_row)
-    w_book = openpyxl.load_workbook('Expl\\FB.xlsx')
+    w_book = openpyxl.load_workbook('XL_forms\\FB.xlsx')
 
     def write_to_sheet(data_1, data_2, sh_num):
         if sh_num == 1: ex_f1, ex_f2 = u'E', u'M'

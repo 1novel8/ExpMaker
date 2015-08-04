@@ -11,9 +11,12 @@ from PyQt4 import QtGui, QtCore
 from Expl import Control, Convert, ExpA, FormB, Sprav
 from Expl.DefaultSprav import default
 from Expl.SaveToXL import exp_single_fa, export_toxl_fb, exp_svodn_fa
+import cPickle as pickle
+
+project_path = os.getcwd()
 
 def get_f22_notes():
-    f22_notes = FormB.select_sprav('Select F22Code, Notes from S_Forma22')
+    f22_notes = FormB.select_sprav(u'Select F22Code, Notes from S_Forma22')
     f22_n_dict = {}
     for row in f22_notes:
         f22_n_dict[row[0]] = row[1]
@@ -21,7 +24,7 @@ def get_f22_notes():
 
 class ControlThread(QtCore.QThread):
     def __init__(self, dbf, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(ControlThread, self).__init__(parent)
         self.dbfile = dbf
         self.control_passed = False
     def run(self):
@@ -46,18 +49,18 @@ class ControlThread(QtCore.QThread):
 
 class ConvertThread(QtCore.QThread):
     def __init__(self, dbf, b2e, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(ConvertThread, self).__init__(parent)
         self.dbfile = dbf
         self.b2e = b2e
         self.convpassed = False
         self.converted_rows = []
     def run(self):
-        convmessage = self.runConv()
+        convmessage = self.run_conv()
         if self.convpassed:
             self.emit(QtCore.SIGNAL(u'convertpassed'))
         self.emit(QtCore.SIGNAL(u's2(const QString&)'), u'%s' % convmessage)
 
-    def runConv(self):
+    def run_conv(self):
         dict_with_err, self.converted_rows = Convert.convert(self.dbfile, self.b2e)
         if dict_with_err:
             protocol = u'%sКонвертация данных завершена. Найдены несоответствия с таблицей BGDtoEKP:' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
@@ -71,7 +74,7 @@ class ConvertThread(QtCore.QThread):
 
 class ExpAThread(QtCore.QThread):
     def __init__(self, edbf, rows, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(ExpAThread, self).__init__(parent)
         self.exp_file = edbf
         self.expsA = ExpA.ExpFA(self.exp_file, rows)
         self.exp_tree = self.expsA.make_exp_tree()
@@ -86,10 +89,11 @@ class ExpAThread(QtCore.QThread):
             exp_svodn_fa(xl_matrix,exl_file_path)
         except IOError:
             self.emit(QtCore.SIGNAL(u'IOError'))
+            #TODO: Catch Signal
 
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(ExpBThread, self).__init__(parent)
         self.exp_file = edbf
         self.rows = rows
     def run(self):
@@ -97,16 +101,17 @@ class ExpBThread(QtCore.QThread):
         b_rows_dict = ExpB.create_exp_dict()
         ExpB.run_exp_b(b_rows_dict)
         exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
-        exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
+        exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
         try:
             export_toxl_fb(b_rows_dict,exl_file_path)
         except IOError:
             self.emit(QtCore.SIGNAL(u'IOError'))
+            #TODO: Catch Signal
 
 
 class BGDtoEThread(QtCore.QThread):
     def __init__(self, newfields, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(BGDtoEThread, self).__init__(parent)
         self.nf = newfields
     def run(self):
         sprav = Sprav.BGDtoERemaker()
@@ -137,7 +142,7 @@ class BGDtoEThread(QtCore.QThread):
 
 class LoadingThread(QtCore.QThread):
     def __init__(self, parent = None):
-        QtCore.QThread.__init__(self, parent)
+        super(LoadingThread, self).__init__(parent)
     def run(self):
         count = 0
         while True:
@@ -197,12 +202,11 @@ class MyWindow(QtGui.QMainWindow):
         self.textEdit = QtGui.QTextEdit(self.centralwidget)
         self.textEdit.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
         self.textEdit.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
-        self.textEdit.setWindowIcon(QtGui.QIcon('D:\workspace\GitProject\Expl\gras.jpg'))
-
+        self.textEdit.setWindowIcon(QtGui.QIcon(u'%s\\Images\\m.ico' % project_path))
         self.clearbutton = QtGui.QPushButton(u"Очистить окно сообщений",self.centralwidget)
         self.gridLayout.addWidget(self.clearbutton, 13, 11, 1, 1)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)...
-        self.setWindowIcon(QtGui.QIcon(u"D:\\pytoexe\\Icons\\up.png"))
+        self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_path))
         self.setCentralWidget(self.centralwidget)
         self.treeView = QtGui.QTreeView()
         self.treeView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
@@ -229,7 +233,7 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         try:
-            self.setStyleSheet((open('%s\ss.css' % Control.workDir).read()))
+            self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_path).read()))
         except IOError: pass
         self.bold_font = QtGui.QFont()
         self.normal_font = QtGui.QFont()
@@ -237,39 +241,22 @@ class MyWindow(QtGui.QMainWindow):
         self.set_widgets_font()
         self.set_sources_widgets()
         self.export_to_xls = False
+        self.explication_data = None
 
     def set_sources_widgets(self):
-        self.src_widget = QtGui.QWidget()
-        self.src_widget.setStyleSheet('background-color: #959BA8; border-radius: 15%;')
-        self.src_h_box = QtGui.QHBoxLayout(self.src_widget)
-        self.src_btn = QtGui.QToolButton(self.src_widget)
-        self.src_btn.setText(u'...')
-        self.src_btn.setStyleSheet('background-color: white; border-radius: 8%; border: 1px solid #00BA4A;')
-        self.src_lbl = QtGui.QLabel(u'Источник данных ', self.src_widget)
-        self.src_lbl.setStyleSheet('color: white; background-color: #49586B; border-radius: 8%; border: 2px solid #00BA4A;')
-        self.src_lbl.setFont(QtGui.QFont('Segoe Print',9))
-        self.src_btn.setAutoRaise(True)
-        self.src_lbl.setAlignment(QtCore.Qt.AlignRight)
-        self.src_h_box.addWidget(self.src_lbl)
-        self.src_h_box.addWidget(self.src_btn)
+        self.src_widget = SrcWidget()
         self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
-        self.e_src_widget = QtGui.QWidget()
-        self.e_src_widget.setStyleSheet('background-color: #959BA8; border-radius: 15%;')
-        self.e_src_h_box = QtGui.QHBoxLayout(self.e_src_widget)
-        self.e_src_btn = QtGui.QToolButton()
-        self.e_src_btn.setText(u'...')
-        self.e_src_btn.setStyleSheet('background-color: white; border-radius: 8%; border: 1px solid #CDCA00;')
-        self.e_src_lbl = QtGui.QLabel(u'', self.e_src_widget)
-        self.e_src_lbl.setStyleSheet('color: white; background-color: #49586B; border-radius: 8%; border: 2px solid #CDCA00;')
-        self.e_src_lbl.setFont(QtGui.QFont('Segoe Print',9))
-        self.e_src_btn.setAutoRaise(True)
-        self.e_src_lbl.setAlignment(QtCore.Qt.AlignRight)
-        self.e_src_h_box.addWidget(self.e_src_lbl)
-        self.e_src_h_box.addWidget(self.e_src_btn)
-        self.gridLayout.addWidget(self.e_src_widget, 8,0,1,2)
+        self.src_widget.set_lbl_text(u'Источник данных ')
+        self.e_src_widget = SrcWidget(u'#CDCA00')
         self.e_src_widget.hide()
-        self.connect(self.src_btn, QtCore.SIGNAL(u'clicked()'), self.open_file)
-        self.connect(self.e_src_btn, QtCore.SIGNAL(u'clicked()'), self.get_edbf_name)
+        self.gridLayout.addWidget(self.e_src_widget, 9,0,1,2)
+        self.save_widget = SrcWidget(u'#9556FF')
+        self.save_widget.set_lbl_text(u'Сохранить сессию ')
+        self.save_widget.hide()
+        self.gridLayout.addWidget(self.save_widget, 10,0,1,2)
+        self.connect(self.src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.open_file)
+        self.connect(self.e_src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.get_edbf_name)
+        self.connect(self.save_widget.btn, QtCore.SIGNAL(u'clicked()'), self.save_session)
 
     def set_widgets_font(self):
         self.l1.setFont(self.normal_font)
@@ -308,17 +295,17 @@ class MyWindow(QtGui.QMainWindow):
         self.exp_b_btn.blockSignals(blocked)
 
     def set_menu_properties(self):
-        main_exit1 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\a5.png'), u'Открыть', self)
-        main_exit2 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\stop1.png'), u'Закрыть', self)
+        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\a5.png' % project_path), u'Открыть', self)
+        main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_path), u'Закрыть', self)
         main_exit1.setShortcut(u'Ctrl+O')
         main_exit1.setStatusTip(u'Определение источника данных')
         main_exit2.setShortcut(u'Ctrl+Q')
         main_exit2.setStatusTip(u'Закрыть программу')
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
-        spr_exit1 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\refresh.png'), u'Обновить BGDtoEKP', self)
-        spr_exit2 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\refresh.png'), u'Обновить BGDtoEKP ("*_NEW")', self)
-        spr_exit3 = QtGui.QAction(QtGui.QIcon(u'D:\\pytoexe\\Icons\\exclamation.png'), u'Использовать BGDtoEKP по умолчанию', self)
+        spr_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_path), u'Обновить BGDtoEKP', self)
+        spr_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_path), u'Обновить BGDtoEKP ("*_NEW")', self)
+        spr_exit3 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_path), u'Использовать BGDtoEKP по умолчанию', self)
         spr_exit1.setShortcut(u'Ctrl+U')
         spr_exit1.setStatusTip(u'Обновление справочной таблицы BGDtoEKP')
         spr_exit2.setShortcut(u'Ctrl+Y')
@@ -337,34 +324,73 @@ class MyWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_exit2)
         menu_sprav.addAction(spr_exit3)
 
-    def reset_parameters(self):
-        self.e_db_file = None
+    def reset_parameters(self, load_session = False):
+        if not load_session:
+            self.e_db_file = None
         self.hide_props(False)
         self.btn_a_all.setHidden(True)
         self.btn_a_tree.setHidden(True)
         self.treeView.setHidden(True)
         self.treeView.reset()
-        # self.button1.setEnabled(False)
-        # self.button2.setEnabled(False)
-        self.exp_a_btn.setEnabled(False)
-        self.exp_b_btn.setEnabled(False)
+        if load_session:
+            self.convert_btn.setEnabled(False)
+        self.control_btn.setDisabled(load_session)
+        self.exp_a_btn.setEnabled(load_session)
+        self.exp_b_btn.setEnabled(load_session)
         self.e_src_widget.hide()
+        self.save_widget.hide()
+        self.src_widget.lbl.setText(self.db_file)
+        self.src_widget.lbl.repaint()
 
     def open_file(self):
         self.db_file = unicode(QtGui.QFileDialog.getOpenFileName(self, u'Укажите путь к базе данных...'))
         if self.db_file:
-            message = self.prepare_control(self.db_file)
-            if not message:
-                self.reset_parameters()
-                self.add_visible_log(u'Открыт файл %s' % self.db_file, True)
-                self.add_visible_log(u'В базе данных %s присутствуют данные, необходимые для расчета экспликации.' % self.db_file.split(u'/')[-1])
-                self.add_visible_log(u'Запустите контроль данных для дальнейшей работы\n')
-                self.control_btn.setEnabled(True)
-                self.control_btn.blockSignals(False)
-                self.src_lbl.setText(self.db_file)
-                self.src_lbl.repaint()
+            if self.db_file[-4:] == u'.pkl':
+                self.load_session()
+            elif self.db_file[-4:] == u'.mdb':
+                message = self.prepare_control(self.db_file)
+                if message:
+                    self.show_error(message)
+                else:
+                    self.reset_parameters()
+                    self.add_visible_log(u'Открыт файл %s' % self.db_file, True)
+                    self.add_visible_log(u'В базе данных %s присутствуют данные, необходимые для расчета экспликации.' % self.db_file.split(u'/')[-1])
+                    self.add_visible_log(u'Запустите контроль данных для дальнейшей работы\n')
             else:
-                self.show_error(message)
+                self.show_error(u'Выбранный файл не поддерживается.\n(Поддерживаемые расширения: *.mdb; *.pkl)')
+
+    def load_session(self):
+        try:
+            self.add_loading(u'Загрузка *.pkl файла')
+            with open(self.db_file, 'rb') as inp:
+                self.explication_data = pickle.load(inp)
+                self.e_db_file = self.explication_data.pop()
+                inp.close()
+            e_src_text =  u'\\'.join(self.e_db_file.split(u'\\')[:-1])
+            self.e_src_widget.set_lbl_text(e_src_text)
+            self.on_finished()
+            self.add_visible_log(u'загружен файл %s' % self.db_file, True)
+            self.reset_parameters(True)
+        except:
+            #TODO: rename error message and add exceptions
+            self.show_error(u'Wrong file already loaded!')
+
+    def save_session(self):
+        namedb = u'testDB.pkl'
+        save_file = unicode(QtGui.QFileDialog.getSaveFileName(self, u'Сохранить сессию как...', namedb))
+        # u'/'.join(save_file.split(u'\\'))
+
+        if save_file:
+            if save_file[-4:] != u'.pkl':
+                save_file+= u'.pkl'
+            try:
+                with open(save_file,'wb') as output:
+                    self.explication_data.append(self.e_db_file)
+                    pickle.dump(self.explication_data, output, 2)
+                self.add_visible_log(u'Сохранена сессия %s' % self.db_file, True)
+            except:
+                self.show_error(u'Не удалось сохранить выбранный файл. \n Возмодно он поврежден')
+
 
     def ask_question(self, messag):
         reply = QtGui.QMessageBox.question(self, u'Хотите продолжить работу?',messag,
@@ -389,20 +415,23 @@ class MyWindow(QtGui.QMainWindow):
         if tab_err == 1:
             return table_message
         else:
-            return 0
+            return False
 
     def enable_b2(self):
         self.convert_btn.setEnabled(True)
-    def enable_b3_b4(self):
+
+    def enable_explications(self):
         self.exp_a_btn.setEnabled(True)
         self.exp_b_btn.setEnabled(True)
+        self.explication_data = self.convert_thr.converted_rows
 
     def on_finished(self):
         self.block_btns(False)
         self.loadthread.terminate()
         self.statusBar().showMessage(u'Ready')
 
-    def addloading(self, loadmessage):
+    def add_loading(self, loadmessage):
+        self.block_btns()
         self.loadthread = LoadingThread()
         self.lblmessage = loadmessage
         def set_status(dots):
@@ -435,9 +464,8 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_control_btn(self):
-        self.block_btns()
         self.add_visible_log(u'Запущен контроль данных.',True)
-        self.addloading(u'Производится контроль данных ')
+        self.add_loading(u'Производится контроль данных ')
         self.control_thr = ControlThread(self.db_file)
         self.connect(self.control_thr, QtCore.SIGNAL(u'controlpassed'), self.enable_b2)
         self.connect(self.control_thr, QtCore.SIGNAL(u's1(const QString&)'), self.add_visible_log)
@@ -447,11 +475,10 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_convert_btn(self):
-        self.block_btns()
         self.add_visible_log(u'Запущено конвертирование данных.', True)
         self.convert_thr = ConvertThread(self.db_file, self.b2e_li)
-        self.addloading(u'Данные конвертируются ')
-        self.connect(self.convert_thr, QtCore.SIGNAL(u'convertpassed'), self.enable_b3_b4)
+        self.add_loading(u'Данные конвертируются ')
+        self.connect(self.convert_thr, QtCore.SIGNAL(u'convertpassed'), self.enable_explications)
         self.connect(self.convert_thr, QtCore.SIGNAL(u's2(const QString&)'), self.textEdit.insertPlainText)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.convert_thr.start()
@@ -466,14 +493,14 @@ class MyWindow(QtGui.QMainWindow):
                 if os.path.isfile(templ):
                     try:
                         shutil.copyfile(templ, e_dbf)
-                        self.e_src_lbl.setText(exp_dir)
+                        self.e_src_widget.set_lbl_text(exp_dir)
                         self.e_db_file = e_dbf
                     except:
                         self.show_error(u'Something going Wrong!')
                 else:
                     self.show_error(u'Не удалось открыть файл Template.mdb либо он поврежден.')
             else:
-                self.e_src_lbl.setText(exp_dir)
+                self.e_src_widget.set_lbl_text(exp_dir)
                 self.e_db_file = e_dbf
 
     @QtCore.pyqtSlot()
@@ -484,7 +511,8 @@ class MyWindow(QtGui.QMainWindow):
         if self.e_db_file:
             if self.e_src_widget.isHidden():
                 self.e_src_widget.show()
-            self.exp_a_thr = ExpAThread(self.e_db_file, self.convert_thr.converted_rows)
+                self.save_widget.show()
+            self.exp_a_thr = ExpAThread(self.e_db_file, self.explication_data)
             self.btn_a_all.setHidden(False)
             self.btn_a_tree.setHidden(False)
             self.block_btns(False)
@@ -493,19 +521,15 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_all(self):
-        self.block_btns()
         if self.try_to_connect(self.e_db_file):
-            self.statusBar().showMessage(u'Производится расчет')
+            self.add_loading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
             self.add_visible_log(u'Запущен полный расчет экспликации А.', True)
-            self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
             if self.__a_thr_reinit:
-                self.exp_a_thr = ExpAThread(self.e_db_file, self.convert_thr.converted_rows)
+                self.exp_a_thr = ExpAThread(self.e_db_file, self.explication_data)
             else: self.__a_thr_reinit = True
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
+            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.finish_text)
             self.exp_a_thr.start()
-        else:
-            self.block_btns(False)
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_tree(self):
@@ -554,22 +578,20 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_b_btn(self):
-        self.block_btns()
         if not self.e_db_file:
             self.get_edbf_name()
         if self.e_db_file and self.try_to_connect(self.e_db_file):
             if self.e_src_widget.isHidden():
                 self.e_src_widget.show()
-            self.statusBar().showMessage(u'Производится расчет')
+                self.save_widget.show()
+            self.add_loading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
             self.add_visible_log(u'Запущен расчет экспликации В.', True)
-            self.addloading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
-            self.exp_b_thr = ExpBThread(self.e_db_file, self.convert_thr.converted_rows)
+            self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0])
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.finishtext)
+            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.finish_text)
             self.exp_b_thr.start()
-        else: self.block_btns(False)
 
-    def finishtext(self):
+    def finish_text(self):
         self.add_visible_log(u'Расчет завершен.\n',True)
 
     def add_visible_log(self, text, with_time = False):
@@ -591,7 +613,28 @@ class MyWindow(QtGui.QMainWindow):
             return False
 
     def show_error(self, err_text):
-        mess = QtGui.QMessageBox.critical(self, u"Что-то пошло не так...", u"%s" % err_text,u'Закрыть')
+        QtGui.QMessageBox.critical(self, u"Что-то пошло не так...", u"%s" % err_text,u'Закрыть')
+
+class SrcWidget(QtGui.QFrame):
+    def __init__(self, border_color = u'#00BA4A',parent = None):
+        QtGui.QFrame.__init__(self, parent)
+        self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
+        self.h_box = QtGui.QHBoxLayout(self)
+        self.btn = QtGui.QToolButton(self)
+        self.btn.setText(u'...')
+        self.btn.setStyleSheet(u'background-color: white ; border-radius: 8% ; border: 1px solid '+ border_color)
+        self.btn.setAutoRaise(True)
+        self.lbl = QtGui.QLabel(u' ', self)
+        self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
+        self.lbl.setFont(QtGui.QFont('Segoe Print',9))
+        self.lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.h_box.addWidget(self.lbl)
+        self.h_box.addWidget(self.btn)
+    def change_border_color(self, color):
+        self.btn.setStyleSheet(u'border: 1px solid %s;' % color)
+        self.lbl.setStyleSheet(u'border: 2px solid %s;' % color)
+    def set_lbl_text(self, text):
+        self.lbl.setText(text)
 
 
 if __name__ == u'__main__':
