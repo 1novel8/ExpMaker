@@ -53,7 +53,7 @@ class ConvertThread(QtCore.QThread):
         self.dbfile = dbf
         self.b2e = b2e
         self.convpassed = False
-        self.converted_rows = []
+        self.converted_data = []
     def run(self):
         convmessage = self.run_conv()
         if self.convpassed:
@@ -61,7 +61,7 @@ class ConvertThread(QtCore.QThread):
         self.emit(QtCore.SIGNAL(u's2(const QString&)'), u'%s' % convmessage)
 
     def run_conv(self):
-        dict_with_err, self.converted_rows = Convert.convert(self.dbfile, self.b2e)
+        dict_with_err, self.converted_data = Convert.convert(self.dbfile, self.b2e)
         if dict_with_err:
             protocol = u'%sКонвертация данных завершена. Найдены несоответствия с таблицей BGDtoEKP:' % time.strftime(u"\n%d.%m.%Y   %H:%M   ")
             for key in dict_with_err:
@@ -73,40 +73,45 @@ class ConvertThread(QtCore.QThread):
             return u'\n%sДанные успешно сконвертированы. Доступен расчет экспликаций.\n' % time.strftime(u"%d.%m.%Y   %H:%M   ")
 
 class ExpAThread(QtCore.QThread):
-    def __init__(self, edbf, rows, parent = None):
+    def __init__(self, edbf, rows, is_xls, parent = None):
         super(ExpAThread, self).__init__(parent)
         self.exp_file = edbf
         self.expsA = ExpA.ExpFA(self.exp_file, rows)
         self.exp_tree = self.expsA.make_exp_tree()
+        self.xls_mode = is_xls
     def run(self):
         self.expsA.calc_all_exps()
-        self.expsA.transfer_to_ins()
         f22_notes = get_f22_notes()
         xl_matrix = self.expsA.prepare_svodn_xl(f22_notes)
         exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
-        try:
-            exp_svodn_fa(xl_matrix,exl_file_path)
-        except IOError:
-            self.emit(QtCore.SIGNAL(u'IOError'))
-            #TODO: Catch Signal
+        if self.xls_mode:
+            try:
+                exp_svodn_fa(xl_matrix,exl_file_path)
+            except IOError:
+                self.emit(QtCore.SIGNAL(u'IOError'))
+                #TODO: Catch Signal
+        else:
+            self.expsA.transfer_to_ins()
 
 class ExpBThread(QtCore.QThread):
-    def __init__(self, edbf, rows, parent = None):
+    def __init__(self, edbf, rows, is_xls, parent = None):
         super(ExpBThread, self).__init__(parent)
         self.exp_file = edbf
         self.rows = rows
+        self.xls_mode = is_xls
     def run(self):
         ExpB = FormB.ExpFormaB(self.exp_file, self.rows)
         b_rows_dict = ExpB.create_exp_dict()
-        ExpB.run_exp_b(b_rows_dict)
         exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
-        try:
-            export_toxl_fb(b_rows_dict,exl_file_path)
-        except IOError:
-            self.emit(QtCore.SIGNAL(u'IOError'))
-            #TODO: Catch Signal
+        if self.xls_mode:
+            try:
+                export_toxl_fb(b_rows_dict,exl_file_path)
+            except IOError:
+                self.emit(QtCore.SIGNAL(u'IOError'))
+                #TODO: Catch Signal
+        else:ExpB.run_exp_b(b_rows_dict)
 
 
 class BGDtoEThread(QtCore.QThread):
@@ -155,11 +160,12 @@ class LoadingThread(QtCore.QThread):
 class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
+        self.loadthread = LoadingThread()
         self.__a_thr_reinit = False
         self.db_file = None
         self.e_db_file = None
         self.setWindowTitle(u'Создание экспликации')
-        self.resize(1200, 700)
+        self.resize(1400, 700)
         self.centralwidget = QtGui.QFrame(self)
         self.centralwidget.setFrameShape(QtGui.QFrame.StyledPanel)
         self.centralwidget.setFrameShadow(QtGui.QFrame.Raised)
@@ -204,7 +210,7 @@ class MyWindow(QtGui.QMainWindow):
         self.textEdit.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.textEdit.setWindowIcon(QtGui.QIcon(u'%s\\Images\\m.ico' % project_path))
         self.clearbutton = QtGui.QPushButton(u"Очистить окно сообщений",self.centralwidget)
-        self.gridLayout.addWidget(self.clearbutton, 13, 11, 1, 1)
+        self.gridLayout.addWidget(self.clearbutton, 16, 11, 1, 1)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)...
         self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_path))
         self.setCentralWidget(self.centralwidget)
@@ -212,10 +218,13 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.treeView.setHidden(True)
         self.tree_text_widg = QtGui.QWidget()
-        self.tree_text_vbox = QtGui.QVBoxLayout(self.tree_text_widg)
-        self.tree_text_vbox.addWidget(self.treeView)
-        self.tree_text_vbox.addWidget(self.textEdit)
-        self.gridLayout.addWidget(self.tree_text_widg, 0, 2, 12, 11)
+        self.tree_text_hbox = QtGui.QHBoxLayout(self.tree_text_widg)
+        self.tree_text_hbox.addWidget(self.treeView,2)
+        self.tree_text_hbox.addWidget(self.textEdit,1)
+        self.gridLayout.addWidget(self.tree_text_widg, 0, 2, 15, 11)
+        self.treeView.setAlternatingRowColors(True)
+        self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setFocus()
         self.set_menu_properties()
         self.hide_props()
@@ -226,36 +235,42 @@ class MyWindow(QtGui.QMainWindow):
         self.connect(self.btn_a_all, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"on_clicked_btn_a_all()"))
         self.connect(self.btn_a_tree, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"on_clicked_btn_a_tree()"))
         self.connect(self.exp_b_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"on_clicked_exp_b_btn()"))
-        self.show()
         self.b2e_li = default
-        self.recountBGD()
-        self.treeView.setAlternatingRowColors(True)
-        self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.group_box = GroupBox(self)
+        self.gridLayout.addWidget(self.group_box, 0,6,1,3)
+        self.group_box.hide()
         try:
             self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_path).read()))
-        except IOError: pass
+        except IOError:
+            pass
+
         self.bold_font = QtGui.QFont()
         self.normal_font = QtGui.QFont()
         self.set_fonts_properties()
         self.set_widgets_font()
         self.set_sources_widgets()
-        self.export_to_xls = False
+        self.__exp_to_xls = True
         self.explication_data = None
+        self.current_exp_data = None
+        self.__session_flag = False
+        self.recountBGD()
+        self.show()
 
     def set_sources_widgets(self):
-        self.src_widget = SrcWidget()
+        self.export_frame = ExportFrame()
+        self.src_widget = SrcFrame()
         self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
         self.src_widget.set_lbl_text(u'Источник данных ')
-        self.e_src_widget = SrcWidget(u'#CDCA00')
-        self.e_src_widget.hide()
-        self.gridLayout.addWidget(self.e_src_widget, 9,0,1,2)
-        self.save_widget = SrcWidget(u'#9556FF')
+        self.export_frame.hide()
+        self.gridLayout.addWidget(self.export_frame, 9,0,1,2)
+        self.save_widget = SrcFrame(u'#9556FF')
         self.save_widget.set_lbl_text(u'Сохранить сессию ')
         self.save_widget.hide()
         self.gridLayout.addWidget(self.save_widget, 10,0,1,2)
+        self.connect(self.export_frame.rbtn_mdb, QtCore.SIGNAL(u'clicked()'), self.set_mdb_mode)
+        self.connect(self.export_frame.rbtn_xls, QtCore.SIGNAL(u'clicked()'), self.set_xls_mode)
         self.connect(self.src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.open_file)
-        self.connect(self.e_src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.get_edbf_name)
+        self.connect(self.export_frame.e_src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.get_edbf_name)
         self.connect(self.save_widget.btn, QtCore.SIGNAL(u'clicked()'), self.save_session)
 
     def set_widgets_font(self):
@@ -278,6 +293,7 @@ class MyWindow(QtGui.QMainWindow):
         self.bold_font.setBold(True)
         self.normal_font.setFamily('Dutch801 XBd Bt')       #'Narkisim',
         self.bold_font.setFamily('Times New Roman')
+
     def hide_props(self, hide = True):
         self.l1.setHidden(hide)
         self.l2.setHidden(hide)
@@ -293,6 +309,10 @@ class MyWindow(QtGui.QMainWindow):
         self.convert_btn.blockSignals(blocked)
         self.exp_a_btn.blockSignals(blocked)
         self.exp_b_btn.blockSignals(blocked)
+        self.group_box.setDisabled(blocked)
+        self.src_widget.setDisabled(blocked)
+        self.export_frame.setDisabled(blocked)
+        self.save_widget.setDisabled(blocked)
 
     def set_menu_properties(self):
         main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\a5.png' % project_path), u'Открыть', self)
@@ -337,10 +357,11 @@ class MyWindow(QtGui.QMainWindow):
         self.control_btn.setDisabled(load_session)
         self.exp_a_btn.setEnabled(load_session)
         self.exp_b_btn.setEnabled(load_session)
-        self.e_src_widget.hide()
+        self.export_frame.hide()
         self.save_widget.hide()
         self.src_widget.lbl.setText(self.db_file)
         self.src_widget.lbl.repaint()
+        self.group_box.setHidden(not load_session)
 
     def open_file(self):
         self.db_file = unicode(QtGui.QFileDialog.getOpenFileName(self, u'Укажите путь к базе данных...'))
@@ -352,6 +373,7 @@ class MyWindow(QtGui.QMainWindow):
                 if message:
                     self.show_error(message)
                 else:
+                    self.__session_flag = False
                     self.reset_parameters()
                     self.add_visible_log(u'Открыт файл %s' % self.db_file, True)
                     self.add_visible_log(u'В базе данных %s присутствуют данные, необходимые для расчета экспликации.' % self.db_file.split(u'/')[-1])
@@ -361,36 +383,44 @@ class MyWindow(QtGui.QMainWindow):
 
     def load_session(self):
         try:
-            self.add_loading(u'Загрузка *.pkl файла')
             with open(self.db_file, 'rb') as inp:
                 self.explication_data = pickle.load(inp)
-                self.e_db_file = self.explication_data.pop()
                 inp.close()
-            e_src_text =  u'\\'.join(self.e_db_file.split(u'\\')[:-1])
-            self.e_src_widget.set_lbl_text(e_src_text)
-            self.on_finished()
-            self.add_visible_log(u'загружен файл %s' % self.db_file, True)
-            self.reset_parameters(True)
+            loading_password = self.explication_data.pop()
+            if loading_password == u'Alex':
+                self.__session_flag = True
+                self.e_db_file = self.explication_data.pop()
+                e_src_text =  u'\\'.join(self.e_db_file.split(u'\\')[:-1])
+                self.export_frame.e_src_widget.set_lbl_text(e_src_text)
+                self.add_visible_log(u'Загружен файл сессии %s' % self.db_file, True)
+                self.reset_parameters(True)
+                self.current_exp_data = self.explication_data[:]
+                self.show_first_combo()
+            else:
+                self.show_error(u'Загруженный файл содержит некорректные данные!')
         except:
             #TODO: rename error message and add exceptions
             self.show_error(u'Wrong file already loaded!')
 
     def save_session(self):
-        namedb = u'testDB.pkl'
-        save_file = unicode(QtGui.QFileDialog.getSaveFileName(self, u'Сохранить сессию как...', namedb))
-        # u'/'.join(save_file.split(u'\\'))
-
+        default_name = self.e_db_file.split(u'\\')[-1][4:-4]+time.strftime(u'_%d_%m_%y') + u'.pkl'
+        save_file = unicode(QtGui.QFileDialog.getSaveFileName(self, u'Сохранить сессию как...', default_name))
         if save_file:
             if save_file[-4:] != u'.pkl':
                 save_file+= u'.pkl'
             try:
                 with open(save_file,'wb') as output:
                     self.explication_data.append(self.e_db_file)
+                    self.explication_data.append(u'Alex')
                     pickle.dump(self.explication_data, output, 2)
                 self.add_visible_log(u'Сохранена сессия %s' % self.db_file, True)
             except:
                 self.show_error(u'Не удалось сохранить выбранный файл. \n Возмодно он поврежден')
 
+    def set_xls_mode(self):
+        self.__exp_to_xls= True
+    def set_mdb_mode(self):
+        self.__exp_to_xls = False
 
     def ask_question(self, messag):
         reply = QtGui.QMessageBox.question(self, u'Хотите продолжить работу?',messag,
@@ -423,19 +453,134 @@ class MyWindow(QtGui.QMainWindow):
     def enable_explications(self):
         self.exp_a_btn.setEnabled(True)
         self.exp_b_btn.setEnabled(True)
-        self.explication_data = self.convert_thr.converted_rows
+        self.explication_data = self.convert_thr.converted_data
+        self.current_exp_data = self.explication_data[:]
+        self.show_first_combo()
+
+    def show_first_combo(self):
+        self.group_box.show()
+        soato_names_d = self.explication_data[2]
+        group_soatos = self.make_soato_group(soato_names_d.keys())
+        ate_expl_data = dict.fromkeys(group_soatos.keys(), None)
+        for expl in self.current_exp_data[0]:
+            try:
+                ate_expl_data[expl.soato[:-3]].append(expl)
+            except AttributeError:
+                ate_expl_data[expl.soato[:-3]] = [expl,]
+            except KeyError:
+                pass
+                # TODO: This exception can be raised
+        self.ate_expl_data_dict = ate_expl_data
+        names = []
+        for key in group_soatos:
+            names.append((soato_names_d[key+u'000'], key))
+        cmb1_data, self.cmb1_recover_d, ate_len = self._count_cmb_data_recovery(names)
+        self.group_soatos = group_soatos
+        # self.group_box.first_cmb.set_width(ate_len*7)
+        self.group_box.change_first_cmb(cmb1_data)
+        self.disconnect(self.group_box.first_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.first_combo_changed)
+        self.connect(self.group_box.first_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.first_combo_changed)
+
+    def show_second_combo(self, ate_soato):
+        soato_names_d = self.explication_data[2]
+        soatos = self.group_soatos[ate_soato]
+        expl_data = dict.fromkeys(soatos, None)
+        for expl in self.current_exp_data[0]:
+            try:
+                expl_data[expl.soato].append(expl)
+            except AttributeError:
+                expl_data[expl.soato] = [expl,]
+            except KeyError:
+                pass
+                # TODO: This exception raised when soato ends '000'
+
+        self.second_expl_data_dict = expl_data
+        names = []
+        try:
+            c_c_len = len(soato_names_d[ate_soato + u'000'])
+        except KeyError:
+            c_c_len = 0
+        for s in soatos:
+            names.append((soato_names_d[s][c_c_len:], s))
+        cmb2_data, self.cmb2_recover_d, ate_len = self._count_cmb_data_recovery(names, u'Вся АТЕ')
+        self.group_box.change_second_cmb(cmb2_data)
+        # self.group_box.second_cmb.set_width(ate_len*7)
+        self.group_box.second_cmb.show()
+        self.disconnect(self.group_box.second_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.second_combo_changed)
+        self.connect(self.group_box.second_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.second_combo_changed)
+
+    def first_combo_changed(self):
+        curr_ind = self.group_box.get_first_index()
+        self.hide_second_combo()
+        if curr_ind == 0:
+            self.current_exp_data = self.explication_data[:]
+        elif curr_ind == -1:
+            pass
+        else:
+            curr_soato = self.cmb1_recover_d[curr_ind]
+            self.current_exp_data[0] = self.ate_expl_data_dict[curr_soato]
+            if self.group_soatos[curr_soato]:
+                self.show_second_combo(curr_soato)
+        self.on_clicked_exp_a_btn()
+        self.on_clicked_btn_a_tree()
+
+    def hide_second_combo(self):
+        self.group_box.second_cmb.hide()
+
+    def second_combo_changed(self):
+        curr_ind = self.group_box.get_second_index()
+        if curr_ind != -1:
+            curr_soato = self.cmb2_recover_d[curr_ind]
+            if curr_ind == 0:
+                self.current_exp_data[0] = self.ate_expl_data_dict[curr_soato]
+            else:
+                self.current_exp_data[0] = self.second_expl_data_dict[curr_soato]
+            self.on_clicked_exp_a_btn()
+            self.on_clicked_btn_a_tree()
+
+    @staticmethod
+    def _count_cmb_data_recovery(names, first_combo_row = u'Весь район'):
+        """ Input: names - list of tuples (name, soato)
+            returns combo_box data , recovery dictionary to catch, which combo row was checked , max item length
+        """
+        recovery_soato_d = {0:names[0][1][:-3]}
+        combo_data = [u'* ' + first_combo_row]
+        sorted_names = sorted(names)
+        max_len = 0
+        for i in sorted_names:
+            if len(i[0]) > max_len:
+                max_len = len(i[0])
+            combo_data.append(i[0])
+            recovery_soato_d[sorted_names.index(i)+1] = i[1]
+        return combo_data, recovery_soato_d, max_len
+
+    @staticmethod
+    def make_soato_group(s_kods):
+        soato_group = {}
+        ate_soato = []
+        for s in s_kods:
+            ate_key = s[:-3]
+            if not s[-3:] == u'000':
+                try:
+                    soato_group[ate_key].append(s)
+                except KeyError:
+                    soato_group[ate_key] = [s]
+            else:
+                ate_soato.append(ate_key)
+            for soato in ate_soato:
+                if soato not in soato_group.keys():
+                    soato_group[soato] = []
+        return soato_group
 
     def on_finished(self):
         self.block_btns(False)
         self.loadthread.terminate()
         self.statusBar().showMessage(u'Ready')
 
-    def add_loading(self, loadmessage):
+    def add_loading(self, load_message):
         self.block_btns()
-        self.loadthread = LoadingThread()
-        self.lblmessage = loadmessage
         def set_status(dots):
-            mes = self.lblmessage+dots
+            mes = load_message+dots
             self.statusBar().showMessage(mes)
         self.connect(self.loadthread, QtCore.SIGNAL(u's_loading(const QString&)'), set_status)
         self.loadthread.start()
@@ -487,21 +632,27 @@ class MyWindow(QtGui.QMainWindow):
     def get_edbf_name(self):
         exp_dir = unicode(QtGui.QFileDialog.getExistingDirectory(self, u'Выберите путь для сохранения файла Exp_*.mdb'))
         if exp_dir:
-            e_dbf = exp_dir + u'\\Exp_' + self.db_file.split(u'/')[-1]
-            if not os.path.isfile(e_dbf) and not self.export_to_xls:
-                templ = u"%s\\template.mdb" % Control.workDir
-                if os.path.isfile(templ):
-                    try:
-                        shutil.copyfile(templ, e_dbf)
-                        self.e_src_widget.set_lbl_text(exp_dir)
-                        self.e_db_file = e_dbf
-                    except:
-                        self.show_error(u'Something going Wrong!')
-                else:
-                    self.show_error(u'Не удалось открыть файл Template.mdb либо он поврежден.')
+            if self.__session_flag:
+                e_dbf = exp_dir + u'\\' + self.e_db_file.split(u'\\')[-1]
             else:
-                self.e_src_widget.set_lbl_text(exp_dir)
-                self.e_db_file = e_dbf
+                e_dbf = exp_dir + u'\\Exp_' + self.db_file.split(u'/')[-1]
+            if not self.__exp_to_xls:
+                self.try_create_edb_file(e_dbf)
+            self.export_frame.e_src_widget.set_lbl_text(exp_dir)
+            self.e_db_file = e_dbf
+
+    def try_create_edb_file(self, e_dbf):
+        templ = u"%s\\template.mdb" % Control.workDir
+        if not os.path.isfile(e_dbf):
+            if os.path.isfile(templ):
+                try:
+                    shutil.copyfile(templ, e_dbf)
+                except IOError:
+                    self.show_error(u'Не верный путь к файлу экспликации %s!' % e_dbf)
+                except:
+                     self.show_error(u'Ошибка при попытке создания файла %s'% e_dbf)
+            else:
+                self.show_error(u'Не удалось найти файл Template.mdb либо он поврежден.')
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_a_btn(self):
@@ -509,23 +660,23 @@ class MyWindow(QtGui.QMainWindow):
         if not self.e_db_file:
             self.get_edbf_name()
         if self.e_db_file:
-            if self.e_src_widget.isHidden():
-                self.e_src_widget.show()
+            if self.export_frame.isHidden():
+                self.export_frame.show()
                 self.save_widget.show()
-            self.exp_a_thr = ExpAThread(self.e_db_file, self.explication_data)
+            self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.__exp_to_xls)
+            # self.connect(self.exp_a_thr, QtCore.SIGNAL(u'IOError'))
             self.btn_a_all.setHidden(False)
             self.btn_a_tree.setHidden(False)
-            self.block_btns(False)
             self.exp_a_btn.hide()
-        else: self.block_btns(False)
+        self.block_btns(False)
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_all(self):
-        if self.try_to_connect(self.e_db_file):
+        if self.try_connect_edbf():
             self.add_loading(u'Пожалуйста, дождитесь окончания расчета экспликации А')
             self.add_visible_log(u'Запущен полный расчет экспликации А.', True)
             if self.__a_thr_reinit:
-                self.exp_a_thr = ExpAThread(self.e_db_file, self.explication_data)
+                self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.__exp_to_xls)
             else: self.__a_thr_reinit = True
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.finish_text)
@@ -537,7 +688,8 @@ class MyWindow(QtGui.QMainWindow):
         self.model.setHorizontalHeaderLabels([u"Набор экспликаций А"])
         self.treeView.setModel(self.model)
         self.treeView.setHidden(False)
-        self.connect(self.treeView, QtCore.SIGNAL("activated(const QModelIndex &)"),self.tree_edit_cell)
+        self.disconnect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.tree_edit_cell)
+        self.connect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.tree_edit_cell)
 
     def make_tree_model(self, data):
         model = QtGui.QStandardItemModel()
@@ -578,15 +730,16 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_exp_b_btn(self):
+
         if not self.e_db_file:
             self.get_edbf_name()
-        if self.e_db_file and self.try_to_connect(self.e_db_file):
-            if self.e_src_widget.isHidden():
-                self.e_src_widget.show()
+        if self.e_db_file and self.try_connect_edbf():
+            if self.export_frame.isHidden():
+                self.export_frame.show()
                 self.save_widget.show()
             self.add_loading(u'Пожалуйста, дождитесь окончания расчета экспликации В')
             self.add_visible_log(u'Запущен расчет экспликации В.', True)
-            self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0])
+            self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0], self.__exp_to_xls)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.finish_text)
             self.exp_b_thr.start()
@@ -599,23 +752,68 @@ class MyWindow(QtGui.QMainWindow):
             self.textEdit.insertPlainText(time.strftime(u"\n%d.%m.%Y   %H:%M     ")+text)
         else: self.textEdit.insertPlainText(u'\n                                  '+text)
 
+    def try_connect_edbf(self):
+        if self.__exp_to_xls or self.try_to_connect(self.e_db_file):
+            return True
+        self.try_create_edb_file(self.e_db_file)
+        if self.try_to_connect(self.e_db_file):
+            return True
+        else:
+            self.show_error(u'Не удалось соединиться с базой данных экспликации.\nУбедитесь, что нет открытых на редактирование таблиц.')
+            return False
 
-    def try_to_connect(self, dbfile):
+    @staticmethod
+    def try_to_connect(db_file):
         try:
-            db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbfile
+            db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % db_file
             conn = pyodbc.connect(db, autocommit = True, unicode_results = True)
             dbc = conn.cursor()
             dbc.close()
             conn.close()
             return True
         except pyodbc.Error :
-            self.show_error(u'Не удалось соединиться с базой данных экспликации.\nУбедитесь, что нет открытых на редактирование таблиц.')
             return False
 
     def show_error(self, err_text):
         QtGui.QMessageBox.critical(self, u"Что-то пошло не так...", u"%s" % err_text,u'Закрыть')
 
-class SrcWidget(QtGui.QFrame):
+class ExportFrame(QtGui.QFrame):
+    def __init__(self, parent = None):
+        QtGui.QFrame.__init__(self, parent)
+        self.color = u'#D3D120'
+        self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
+        self.rbtn_xls = QtGui.QRadioButton(u'*.xls',self)
+        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_path))
+        self.rbtn_xls.setChecked(True)
+        self.rbtn_xls.setFont(QtGui.QFont('Verdana',10))
+        self.rbtn_mdb = QtGui.QRadioButton(u'*.mdb',self)
+        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\access.ico' % project_path))
+        self.rbtn_mdb.setFont(QtGui.QFont('Verdana',10))
+        self.rbtn_style = u'background-color: white; color: green;' \
+                          u' border-top-right-radius: 3%;' \
+                          u'border-bottom-left-radius: 3%; padding: 3px;' \
+                          u' border: 2px solid' + self.color
+        self.lbl_style = u'background-color: #49586B; color: white;' \
+                          u' border-top-left-radius: 23%;' \
+                          u' border-top-right-radius: 23%;' \
+                          u' border-bottom-left-radius: 23%;' \
+                          u' border-bottom-right-radius: 3%;' \
+                          u' padding-left: 10px;' \
+                          u' border: 2px solid '+self.color
+        self.lbl = QtGui.QLabel(u'Экспорт \n данных', self)
+        # self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
+        self.lbl.setFont(QtGui.QFont('Segoe Print',10))
+        self.e_src_widget = SrcFrame(self.color)
+        self.box = QtGui.QGridLayout(self)
+        self.box.addWidget(self.rbtn_xls, 0, 1, 1, 1)
+        self.box.addWidget(self.rbtn_mdb, 1, 1, 1, 1)
+        self.box.addWidget(self.lbl, 0, 0, 2, 1)
+        self.box.addWidget(self.e_src_widget, 2, 0, 1, 2)
+        self.rbtn_xls.setStyleSheet(self.rbtn_style)
+        self.rbtn_mdb.setStyleSheet(self.rbtn_style)
+        self.lbl.setStyleSheet(self.lbl_style)
+
+class SrcFrame(QtGui.QFrame):
     def __init__(self, border_color = u'#00BA4A',parent = None):
         QtGui.QFrame.__init__(self, parent)
         self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
@@ -636,8 +834,48 @@ class SrcWidget(QtGui.QFrame):
     def set_lbl_text(self, text):
         self.lbl.setText(text)
 
+class CombBox(QtGui.QComboBox):
+    def __init__(self, parent = None, width = 160, data = u'A'):
+        QtGui.QComboBox.__init__(self, parent)
+        self.change_data(data)
+        self.hide()
+        self.set_width(width)
+        self.setMaxVisibleItems(30)
+    def set_width(self, width):
+        self.setFixedWidth(width)
+    def change_data(self, new_data):
+        self.clear()
+        self.addItems(new_data)
+
+class GroupBox(QtGui.QFrame):
+    def __init__(self, parent = None, border_color = u'#C3FFF1'):
+        QtGui.QFrame.__init__(self, parent)
+        self.setMaximumHeight(33)
+        self.setStyleSheet(u'background-color: #2558FF; border-top-left-radius: 30%;border-bottom-right-radius: 30%; padding-right: 5px;padding-left: 5px')
+        self.h_box = QtGui.QHBoxLayout(self)
+        self.first_cmb = CombBox(self)
+        self.first_cmb.show()
+        self.second_cmb = CombBox(self)
+        self.first_cmb.setStyleSheet(u'border-radius: 5% ; border: 1px solid '+ border_color)
+        self.second_cmb.setStyleSheet(u'border-radius: 5% ; border: 2px solid '+ border_color)
+        self.lbl = QtGui.QLabel(u'Группировка \nданных', self)
+        self.lbl.setStyleSheet(u'color: #C3FFF1;')
+        self.lbl.setFont(QtGui.QFont('Segoe Print',9))
+        self.lbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.h_box.addWidget(self.lbl)
+        self.h_box.addWidget(self.first_cmb)
+        self.h_box.addWidget(self.second_cmb)
+
+    def change_first_cmb(self, data):
+        self.first_cmb.change_data(data)
+    def change_second_cmb(self, data):
+        self.second_cmb.change_data(data)
+    def get_first_index(self):
+        return self.first_cmb.currentIndex()
+    def get_second_index(self):
+        return self.second_cmb.currentIndex()
 
 if __name__ == u'__main__':
     app = QtGui.QApplication(sys.argv)
-    cd = MyWindow()
+    exp_maker = MyWindow()
     app.exec_()

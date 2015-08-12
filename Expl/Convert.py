@@ -84,19 +84,18 @@ def convert_soato(connection):
     updnamesov = u'''update SOATO set NameSov = ?+' '+?+' ' where mid(KOD,1,7) = ? ;'''
     updnamenasp1 = u'''update SOATO set NameNasp = NAME +' '+PREF where PREF in ('р-н','с/с');'''
     updnamenasp2 = u'''update SOATO set NameNasp = PREF +' '+ NAME where  NameNasp is Null;'''
-    updnamesnp = u'''update SOATO set NameSNp = IIF(ISNULL(NameSov), NameNasp, NameSov + NameNasp)'''
+    updnamesnp = u'''update SOATO set NameSNp = IIF(NPType in (0,1), NameNasp, NameSov + NameNasp)'''
     connection.execute(sqlsoato)
     sov_kods = [row for row in connection.fetchall()]
     for i in sov_kods:
         connection.execute(updnamesov, (i[1], i[2], i[0]))
     connection.execute(updnamenasp1)
     connection.execute(updnamenasp2)
-    connection.execute(updnamesnp)
-
     add_column(connection, u'SOATO', u'NPType')
     for row in npt_sprav:
         sqltnp = upd_soato_tnp(u'SOATO', u'KOD', *row)
         connection.execute(sqltnp)
+    connection.execute(updnamesnp)
 
 def bgd_to_dicts(bgd_li):
     """
@@ -309,20 +308,34 @@ def data_users_soato(db_f):
     """
     ct_dbc,conn_ct = connect_crtab(db_f)
     if ct_dbc:
-        ct_dbc.execute(u'select KOD, NameSNp from SOATO')
-        sel_result = [row for row in ct_dbc.fetchall()]
-        soato_dict = dict(sel_result)
         ct_dbc.execute(u'select UserN, UsName from Users')
         sel_result = [row for row in ct_dbc.fetchall()]
         users_dict = dict(sel_result)
+        ct_dbc.execute(u'select KOD, NameSNp from SOATO')
+        sel_result = [row for row in ct_dbc.fetchall()]
+        soato_dict = dict(sel_result)
         disconnect_crtab(ct_dbc,conn_ct)
         return users_dict, soato_dict
     else:
         #TODO: Remake exception
         print u'Error with connecting to crtab database'
 
-
-
+def make_soato_group(s_kods):
+    soato_group = {}
+    ate_soato = []
+    for s in s_kods:
+        ate_key = s_kods[:-3]
+        if not s_kods[-3:] == '000':
+            try:
+                soato_group[ate_key].append(s_kods)
+            except KeyError:
+                soato_group[ate_key] = [s_kods]
+        else:
+            ate_soato.append(ate_key)
+        for soato in ate_soato:
+            if soato not in soato_group.keys():
+                soato_group[soato] = []
+    return soato_group
 
 if __name__ == '__main__':
     dbf_file = u'%s\\tempDbase.mdb' % workDir

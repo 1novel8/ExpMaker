@@ -108,7 +108,7 @@ class ExpFA(object):
         self.usersInfo, self.soatoInfo = input_data[-2:]
         self.remake_codes()
         self.expsdict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
-        self.a=self.make_exp_tree()
+        self.make_exp_tree()
 
     @staticmethod
     def make_f22_dict(rows_ok):

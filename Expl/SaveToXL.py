@@ -13,7 +13,7 @@ def add_values_cells(data, cells):
 def exp_svodn_fa(matrix, save_as):
     w_book = openpyxl.load_workbook(u'XL_forms\\FA_svod.xlsx')
     sheet = w_book.active
-    cells_tmp =  tuple(sheet.iter_rows(u'A3:AC%s' % len(matrix)))
+    cells_tmp =  tuple(sheet.iter_rows(u'A3:AC%s' % unicode(len(matrix)+3)))
     add_values_cells(matrix,cells_tmp)
     w_book.save(save_as)
     os.system(u'start excel.exe %s' % save_as)

@@ -77,9 +77,9 @@ class BGDtoERemaker(object):
             self.connectSprav()
             self.disconnectSprav()
         except pyodbc.Error:
-            return 0
+            return False
         else:
-            return 1
+            return True
 
     def contrTables(self):
         self.connectSprav()

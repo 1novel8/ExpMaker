@@ -249,7 +249,7 @@ class ExpFormaB(object):
             self.try_drop_table()
             self.__edbc.execute(self.sql_exp_create)
             self.__disconnect_exp()
-        else: print u'can\'t connect to Explication database'
+
 
     def try_drop_table(self):
         if self.__expconnected == 1:
