@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 
 import pyodbc
 import time
@@ -9,6 +10,13 @@ access_dbf = u"%s\\tempDbase.mdb" % workDir
 dependOfCodes = dict(f_3=1, f_4=1, f_5=1, f_6=1, f_8 =1, f_9=1, f_10=1, f_11 =1, f_12=1, f_13 =1,f_15=1, f_16 =1,
                      f_melio1=2, f_melio2=2, f_servtype=3,
                      f_state02=4, f_state03=4, f_state04 =4, f_state05=4, f_state06=4, f_state07=4, f_state08 =4)
+
+
+def round_row_data(data, accuracy = 4):
+    try:
+        return map(lambda x: round(x/10000, accuracy), data)
+    except TypeError:
+        return round(data/10000, accuracy)
 
 def sum_by_lc(rowsli):
     if len(rowsli):
@@ -84,8 +92,8 @@ class DataComb(object):
         exp_a_dict = make_expa_params(self.data)
         self.exp_a_rows = []
         for i in NumRowsLi:
-            self.exp_a_rows.append(exp_a_dict[i])
-
+            exp_row = round_row_data(exp_a_dict[i])
+            self.exp_a_rows.append(exp_row)
 
     def prepare_svodn_data(self):
         try:
@@ -100,6 +108,7 @@ class DataComb(object):
 
 class ExpFA(object):
     def __init__(self, expdb, input_data):
+        self.__errors = []
         self.__expfile = expdb
         self.__expAccess = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__expfile
         self.__expconnected = 0
@@ -122,6 +131,12 @@ class ExpFA(object):
                 except KeyError:
                     f22_dict[row.f22[n]] = [row_params,]
         return f22_dict
+
+    def has_error(self):
+        if not self.__errors:
+            return False
+        if 1 in self.__errors:
+            return self.__expname
 
     def make_dict_of_dict(self, rows):
         """
@@ -188,11 +203,11 @@ class ExpFA(object):
             n+=1
             f22_row_num = 1
             for li in sorted(data_matrix):
-                li[0:0] = [n, u'%d.%d' % (int(f22_k), f22_row_num)]
+                li[0:0] = [n, u'%s. %d' % (f22_k, f22_row_num)]
                 f22_row_num+=1
                 n+=1
                 xl_f22_dict[f22_k].append(li)
-            itogo_row[0:0] = [n, u'%d.i' % int(f22_k), u'Итого']
+            itogo_row[0:0] = [n, u'%s. i' % f22_k, u'Итого']
             n+=1
             xl_f22_dict[f22_k].append(itogo_row)
             return_xl_matrix.extend(list(xl_f22_dict[f22_k]))
@@ -201,28 +216,30 @@ class ExpFA(object):
 
     def transfer_to_ins(self):
         self.__expname = u'ExpA_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
-        self.create_clear_edb()
-        final_dict = self.expsdict
-        self.__connect_exp()
-        fdk = final_dict.keys()
-        fdk.sort()
-        for f22key in fdk:
-            itogo_row = [0]*16
-            for us_so_key in final_dict[f22key].keys():
-                li = final_dict[f22key][us_so_key].exp_a_rows
-                data = final_dict[f22key][us_so_key].info
-                for i in range(1, len(li)+1):
-                    if i == 1:
-                        self.add_row_exp_a(f22key, data, i, li[i-1])
-                        itogo_row = map(lambda x: sum(x), zip(itogo_row, li[i-1]))
-                    else:
-                        self.add_row_exp_a(f22key, us_so_key, i, li[i-1])
-            self.add_row_exp_a(f22key, u'Итого:', 0, itogo_row)
-        self.__disconnect_exp()
+        if self.create_clear_edb():
+            final_dict = self.expsdict
+            self.__connect_exp()
+            fdk = final_dict.keys()
+            fdk.sort()
+            for f22key in fdk:
+                itogo_row = [0]*16
+                for us_so_key in final_dict[f22key].keys():
+                    li = final_dict[f22key][us_so_key].exp_a_rows
+                    data = final_dict[f22key][us_so_key].info
+                    for i in range(1, len(li)+1):
+                        if i == 1:
+                            self.add_row_exp_a(f22key, data, i, li[i-1])
+                            itogo_row = map(lambda x: sum(x), zip(itogo_row, li[i-1]))
+                        else:
+                            self.add_row_exp_a(f22key, us_so_key, i, li[i-1])
+                self.add_row_exp_a(f22key, u'Итого:', 0, itogo_row)
+            self.__disconnect_exp()
+            os.system(u'start %s' % self.__expfile)
+        else: self.__errors.append(1)
 
     def add_row_exp_a(self, f_f22, f_us_n, f_r_n, params):
         if self.__expconnected ==1:
-            ins_args = map(lambda x: round(x/10000,4), params)
+            ins_args = params
             sql_ins = u'''insert into %s (f_F22, f_UsN, f_RowNumber, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10,
                         f_11, f_12, f_13, f_14, f_15, f_16) values ( ?, ?, ?, %s);''' % (self.__expname, unicode(ins_args)[1:-1])
             try:
@@ -254,17 +271,13 @@ class ExpFA(object):
         PRIMARY KEY(ID));''' % self.__expname
         self.__connect_exp()
         if self.__expconnected == 1:
-            self.try_to_drop()
-            self.__edbc.execute(create_fa)
-            self.__disconnect_exp()
-
-    def try_to_drop(self):
-        if self.__expconnected == 1:
             try:
-                self.__edbc.execute(u"Drop table %s;" % self.__expname)
-                return True
-            except pyodbc.Error:
+                self.__edbc.execute(create_fa)
+            except pyodbc.ProgrammingError:
                 return False
+
+            self.__disconnect_exp()
+        return True
 
     def __connect_exp(self):
         try:
@@ -279,40 +292,6 @@ class ExpFA(object):
             self.__edbc.close()
             self.__econn.close()
             self.__expconnected = 0
-
-    # def data_users_soato(self):
-    #     """
-    #     returns UsersDict and SoatoDict with keys usern and soato
-    #     and values in unicode
-    #     """
-    #     self.__connect_crtab()
-    #     if self.__crtabconnected == 1:
-    #         self.__ctdbc.execute(u'select KOD, NameSNp from SOATO')
-    #         sel_result = [row for row in self.__ctdbc.fetchall()]
-    #         soato_dict = dict(sel_result)
-    #         self.__ctdbc.execute(u'select UserN, UsName from Users')
-    #         sel_result = [row for row in self.__ctdbc.fetchall()]
-    #         users_dict = dict(sel_result)
-    #         self.__disconnect_crtab()
-    #         return users_dict, soato_dict
-    #     else:
-    #         #TODO: Remake exception
-    #         print u'Error, Crtab_razv is not connected'
-
-    # def __connect_crtab(self):
-    #     try:
-    #         self.__ctconn = pyodbc.connect(self.__crtAccess, autocommit = True, unicode_results = True)
-    #         self.__ctdbc = self.__ctconn.cursor()
-    #         self.__crtabconnected = 1
-    #     except:
-    #         print u'Error, Crtab_razv is not connected!!!'
-    #         self.__crtabconnected = 0
-    #
-    # def __disconnect_crtab(self):
-    #     if self.__crtabconnected == 1:
-    #         self.__ctdbc.close()
-    #         self.__ctconn.close()
-    #         self.__crtabconnected = 0
 
     @staticmethod
     def remake_codes():

@@ -25,8 +25,8 @@ def exp_single_fa(fa_data, f22, obj_ind, obj_name, expl_file):
     w_book = openpyxl.load_workbook(u'XL_forms\\FA.xlsx')
     sheet = w_book.active
     sheet.title = u'Выборочная экспликация'
-    sheet['M4'] = obj_name
-    cells_temp =  tuple(sheet.iter_rows('F15:U25'))
+    sheet[u'M4'] = obj_name
+    cells_temp =  tuple(sheet.iter_rows(u'F15:U25'))
     add_values_cells(fa_data,cells_temp)
     w_book.save(dest_filename)
     os.system(u'start excel.exe %s' %  dest_filename)
@@ -54,7 +54,7 @@ def export_toxl_fb(data_dict, save_as):
         for key in list_3_fields:
             l3_row.append(data_dict[f22_key][key])
         sh_3_data.append(l3_row)
-    w_book = openpyxl.load_workbook('XL_forms\\FB.xlsx')
+    w_book = openpyxl.load_workbook(u'XL_forms\\FB.xlsx')
 
     def write_to_sheet(data_1, data_2, sh_num):
         if sh_num == 1: ex_f1, ex_f2 = u'E', u'M'

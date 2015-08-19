@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import pyodbc
 import time
 from Control import workDir
+from ExpA import round_row_data
 
 def select_sprav(query):
     __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
@@ -176,7 +177,14 @@ class ExpFormaB(object):
         exp_dict[u'42'][u'f_1'] += exp_dict[u'25'][u'f_10'] - exp_dict[u'21'][u'f_10']
         exp_dict[u'38'] = self.sum_dict_values(exp_dict[u'04'],exp_dict[u'23'])
         exp_dict[u'41'] = exp_dict[u'20'].copy()
+        self.round_fb(exp_dict)
         return exp_dict
+
+    @staticmethod
+    def round_fb(data_di):
+        for key1 in data_di:
+            for key2 in data_di[key1]:
+                data_di[key1][key2] = round_row_data(data_di[key1][key2])
 
     def make_fbrow_params(self, ctr_data):
         """
@@ -226,6 +234,7 @@ class ExpFormaB(object):
             exp_dict = self.create_exp_dict()
         for key in sorted(exp_dict.keys()):
             self.insert_row_eb(self.fb_row_data[key][0], 1, key, **exp_dict[key])
+        os.system(u'start %s' % self.__expfile)
 
     def insert_row_eb(self, description, user_count, f22, f_1=0, f_2=0, f_3=0, f_4=0, f_5=0, f_6=0,
                    f_7=0, f_row09=0, f_row10=0, f_8=0, f_9=0, f_10=0, f_11=0, f_12=0, f_13=0,
@@ -238,7 +247,7 @@ class ExpFormaB(object):
                        f_14, f_15, f_16, f_melio1, f_melio2, f_servtype, f_state02,
                        f_state03, f_state04, f_state05, f_state06, f_state07, f_state08)
 
-            insargs = map(lambda x: '%.0f'%(x/10000) if x != 0 else '0', insargs)
+            insargs = map(lambda x: '%.0f'%x if x != 0 else '0', insargs)
             sqlins = u'insert into %s %s values ( ?, ?, ?, %s);' % (self.__exp_name, ins_fields, unicode(insargs)[1:-1])
             self.__edbc.execute(sqlins, (description, user_count, f22))
             self.__disconnect_exp()

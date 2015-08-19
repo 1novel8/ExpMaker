@@ -272,19 +272,7 @@ def convert(soursedbf, bgd2e_li):
     # print err_dict
     users_d, soato_d = data_users_soato(db_file)
     save_info = [rows_ok, users_d, soato_d]
-    # q = create_pkl(save_info)
-    return {}, save_info
-
-def create_pkl(obj):
-    import cPickle as pickle
-
-    output = open('data.pkl','wb')
-    pickle.dump(obj, output, 2)
-    output.close()
-    inp = open('data.pkl', 'rb')
-    q = pickle.load(inp)
-    inp.close()
-    return q
+    return err_dict, save_info
 
 def connect_crtab(db_f):
     try:

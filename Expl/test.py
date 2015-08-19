@@ -1,81 +1,81 @@
-__author__ = 'Aliaksandr'
-
-
-import cPickle as pickle
-import Control
-import os
-import shutil
-import pyodbc
-# a = [1,2,3]
-# with open(u'D:/workspace/GitProject/testDB.pkl','wb') as output:
-#     pickle.dump(a, output, 2)
-#
-#
-# with open(u'D:/workspace/GitProject/testDB.pkl', u'rb') as inp:
-#     q = pickle.load(inp)
-#     print q
-#-*- coding: utf-8 -*-
-from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 import sys
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
 
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+def main():
+    app 	= QApplication(sys.argv)
+    table 	= QTableWidget()
+    tableItem 	= QTableWidgetItem()
 
-class Ui_Form(QtGui.QFrame):
-    def __init__(self, parent = None):
-        QtGui.QFrame.__init__(self, parent)
-        self.comboBox = QtGui.QComboBox(self)
-        self.comboBox.setGeometry(QtCore.QRect(20, 20, 61, 21))
-        self.comboBox.setObjectName(_fromUtf8("comboBox"))
-#    self.comboBox.addItem(_fromUtf8(""))
-#    self.comboBox.addItem(_fromUtf8(""))
-#    self.comboBox.addItem(_fromUtf8(""))
+    table.setWindowTitle("Set QWidget for Entire QTableWidget Column")
+    table.resize(400, 250)
+    table.setRowCount(4)
+    table.setColumnCount(3)
 
-    # self.comboBox.addItem(_translate("Form", ".60", None))
-    # self.comboBox.addItem(_translate("Form", ".45", None))
-    # self.comboBox.addItem(_translate("Form", ".19", None))
+    table.setHorizontalHeaderLabels(QString("HEADER 1;HEADER 2;HEADER 3;HEADER 4").split(";"))
 
-        self.pushButton = QtGui.QPushButton(self)
-        self.pushButton.setGeometry(QtCore.QRect(20, 50, 100, 50))
-        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+    table.setItem(0,0, QTableWidgetItem("ITEM 1_1"))
+    table.setItem(0,1, QTableWidgetItem("ITEM 1_2"))
 
-        self.retranslateUi(self)
-        QtCore.QMetaObject.connectSlotsByName(self)
-    #QtCore.QObject.connect(self.comboBox, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")), self.pushButton.click)
-  #
-  # def retranslateUi(self, Form):
-  #   #index;
-  #   Form.setWindowTitle(_translate("Form", "Form", None))
-  #
-  #   self.pushButton.setText(_translate("Form", "SEND!", None))
-  #   self.pushButton.clicked.connect(self.sendIndexFromComboBox)
-  #
-  # def sendIndexFromComboBox(self,index):
-  #
-  #   index = self.comboBox.currentIndex()
-  #   print index
-  #
-  #   text = self.comboBox.currentText()
-  #   print text
+    table.setItem(1,0, QTableWidgetItem("ITEM 2_1"))
+    table.setItem(1,1, QTableWidgetItem("ITEM 2_2"))
 
-#    if index == 0: print ("Send to .45")
-#    elif index == 1: print ("Send to .19")
-#    elif index == 2: print ("Send to .60")
-#    elif index == 3: print ("Send other stand")
+    table.setItem(2,0, QTableWidgetItem("ITEM 3_1"))
+    table.setItem(2,1, QTableWidgetItem("ITEM 3_2"))
 
+    table.setItem(3,0, QTableWidgetItem("ITEM 4_1"))
+    table.setItem(3,1, QTableWidgetItem("ITEM 4_2"))
+
+    #Add Widget to the rightmost Element of First Row
+    table.setItem(0,2,tableItem)
+
+    #Add QPushButton to the rightmost QTableWidgetItem on first row
+    table.setCellWidget(0,2, QPushButton("Cell Widget"));
+
+    #Span Right-Most Item of First Row Here
+    table.setSpan(1,0,1,table.columnCount())
+    table.show()
+    return app.exec_()
 
 if __name__ == '__main__':
-  app = QtGui.QApplication(sys.argv)
-  ex = Ui_Form()
-  ex.show()
-  sys.exit(app.exec_())
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+# from PyQt4.QtGui import QWidget, QApplication, QTreeView, QListView, QTextEdit, \
+#                         QSplitter, QHBoxLayout
+#
+# import sys
+#
+# class MainWindow(QWidget):
+#     def __init__(self):
+#         QWidget.__init__(self)
+#
+#         treeView = QTreeView()
+#         listView = QListView()
+#         textEdit = QTextEdit()
+#         splitter = QSplitter(self)
+#
+#         splitter.addWidget(treeView)
+#         splitter.addWidget(listView)
+#         splitter.addWidget(textEdit)
+#
+#         layout = QHBoxLayout()
+#         layout.addWidget(splitter)
+#         self.setLayout(layout)
+#
+#
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     mainWindow = MainWindow()
+#     mainWindow.show()
+#     sys.exit(app.exec_())
