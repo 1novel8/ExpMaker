@@ -16,8 +16,11 @@ from Expl import Control, Convert, ExpA, FormB, Sprav
 from Expl.DefaultSprav import default
 from Expl.SaveToXL import exp_single_fa, export_toxl_fb, exp_svodn_fa
 
-
 project_path = os.getcwd()
+
+def rm_temp_db(file_rm = Control.tempDB_path):
+    if os.path.isfile(file_rm):
+        os.remove(file_rm)
 
 def get_f22_notes():
     f22_notes = FormB.select_sprav(u'Select F22Code, Notes from S_Forma22')
@@ -51,6 +54,8 @@ class ConvertThread(QtCore.QThread):
             self.emit(QtCore.SIGNAL(u'conv_failed(PyQt_PyObject)'), dict_with_err)
         else:
             self.emit(QtCore.SIGNAL(u'convertpassed'))
+    def __del__(self):
+        rm_temp_db()
 
 class ExpAThread(QtCore.QThread):
     def __init__(self, edbf, rows, is_xls, parent = None):
@@ -84,17 +89,19 @@ class ExpBThread(QtCore.QThread):
     def run(self):
         ExpB = FormB.ExpFormaB(self.exp_file, self.rows)
         b_rows_dict = ExpB.create_exp_dict()
-        exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
-        exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
         if self.xls_mode:
+            exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
+            exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
             try:
                 export_toxl_fb(b_rows_dict,exl_file_path)
             except IOError:
-                self.emit(QtCore.SIGNAL(u'already_opened(const QString&)'), Message.xl_already_opened % exl_file_path)
-
+                self.emit(QtCore.SIGNAL(u'b_already_opened(const QString&)'), Message.xl_already_opened % exl_file_path)
         else:
-            ExpB.run_exp_b(b_rows_dict)
-            #TODO: catch Error like made in E_A
+            if ExpB.create_exp_table():
+                ExpB.run_exp_b(b_rows_dict)
+            else:
+                self.emit(QtCore.SIGNAL(u'b_already_opened(const QString&)'), Message.xl_already_opened % self.exp_file)
+                #TODO: catch Error like made in E_A
 
 
 class BGDtoEThread(QtCore.QThread):
@@ -132,6 +139,8 @@ class LoadingThread(QtCore.QThread):
                 count = 1
             else: count += 1
 
+
+# noinspection PyTypeChecker
 class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
@@ -186,8 +195,8 @@ class MyWindow(QtGui.QMainWindow):
         self.group_box.hide()
         self.expa_widget = QtGui.QWidget(self)
         self.expa_box = QtGui.QGridLayout(self.expa_widget)
-        self.expa_box.addWidget(self.treeView,0,0,10,10)
-        self.expa_box.addWidget(self.group_box,0,9,1,1)
+        self.expa_box.addWidget(self.treeView,1,0,21,21)
+        self.expa_box.addWidget(self.group_box,0,20,2,1)
 
         self.splitter = QtGui.QSplitter(self)
         self.splitter.addWidget(self.expa_widget)
@@ -297,7 +306,7 @@ class MyWindow(QtGui.QMainWindow):
         self.save_widget.setDisabled(blocked)
 
     def set_menu_properties(self):
-        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\a5.png' % project_path), WName.exit_main_1, self)
+        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\add.png' % project_path), WName.exit_main_1, self)
         main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_path), WName.exit_main_2, self)
         main_exit1.setShortcut(u'Ctrl+O')
         main_exit1.setStatusTip(ToolTip.exit_main_1)
@@ -330,13 +339,12 @@ class MyWindow(QtGui.QMainWindow):
         if not load_session:
             self.e_db_file = None
         self.hide_props(False)
-        self.btn_a_all.setHidden(True)
-        self.btn_a_tree.setHidden(True)
-        self.treeView.setHidden(True)
+        self.btn_a_all.hide()
+        self.btn_a_tree.hide()
+        self.treeView.hide()
         self.treeView.reset()
-        if load_session:
-            self.convert_btn.setEnabled(False)
         self.control_btn.setDisabled(load_session)
+        self.convert_btn.setDisabled(True)
         self.exp_a_btn.setEnabled(load_session)
         self.exp_b_btn.setEnabled(load_session)
         self.export_frame.hide()
@@ -346,7 +354,8 @@ class MyWindow(QtGui.QMainWindow):
         self.group_box.setHidden(not load_session)
 
     def open_file(self):
-        self.db_file = unicode(QtGui.QFileDialog.getOpenFileName(self, WName.open_file))
+        self.open_file_dialog = QtGui.QFileDialog(self)
+        self.db_file = unicode(self.open_file_dialog.getOpenFileName(self, WName.open_file, project_path))
         if self.db_file:
             if self.db_file[-4:] == u'.pkl':
                 self.load_session()
@@ -356,11 +365,28 @@ class MyWindow(QtGui.QMainWindow):
                     self.show_error(message)
                 else:
                     self.__session_flag = False
-                    self.reset_parameters()
                     self.add_event_log(Message.opened_file % self.db_file)
                     self.add_event_log(Message.db_has_data % self.db_file.split(u'/')[-1], False)
+                    self.reset_parameters()
             else:
                 self.show_error(Message.wrong_file)
+
+    @staticmethod
+    def prepare_control(file_path):
+        contr = Control.DataControl(file_path)
+        if not contr.try_to_connect:
+            return u'Не удалось соединиться с базой данных'
+        need_table = contr.contr_tables()
+        table_message = u'Отсутствуют таблицы '
+        tab_err = 0
+        for tabl in need_table:
+            if not tabl[1]:
+                tab_err = 1
+                table_message+= tabl[0] + u', '
+        if tab_err == 1:
+            return table_message
+        else:
+            return False
 
     def load_session(self):
         try:
@@ -397,13 +423,13 @@ class MyWindow(QtGui.QMainWindow):
                 self.add_event_log(Message.session_saved % self.db_file)
             except:
                 self.show_error(Message.bad_session)
-
     def set_xls_mode(self):
         self.__exp_to_xls= True
+
     def set_mdb_mode(self):
         self.__exp_to_xls = False
 
-    def ask_question(self, messag):
+    def ask_to_exit(self, messag):
         reply = QtGui.QMessageBox.question(self, Message.ask_exit,messag,
                                            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
@@ -411,28 +437,16 @@ class MyWindow(QtGui.QMainWindow):
         else:
             sys.exit()
 
-    @staticmethod
-    def prepare_control(file_path):
-        contr = Control.DataControl(file_path)
-        if not contr.try_to_connect:
-            return u'Не удалось соединиться с базой данных'
-        need_table = contr.contr_tables()
-        table_message = u'Отсутствуют таблицы '
-        tab_err = 0
-        for tabl in need_table:
-            if not tabl[1]:
-                tab_err = 1
-                table_message+= tabl[0] + u', '
-        if tab_err == 1:
-            return table_message
-        else:
-            return False
-
     def enable_convert(self):
-        self.convert_table.show()
+        self.add_event_log(Message.control_passed)
+        self.control_table.hide()
         self.convert_btn.setEnabled(True)
 
     def enable_explications(self):
+        self.control_thr.terminate()
+        self.convert_thr.terminate()
+        self.on_finished()
+        self.add_event_log(Message.convert_passed)
         self.convert_table.hide()
         self.exp_a_btn.setEnabled(True)
         self.exp_b_btn.setEnabled(True)
@@ -441,7 +455,6 @@ class MyWindow(QtGui.QMainWindow):
         self.show_first_combo()
 
     def show_first_combo(self):
-        self.group_box.show()
         soato_names_d = self.explication_data[2]
         group_soatos = self.make_soato_group(soato_names_d.keys())
         ate_expl_data = dict.fromkeys(group_soatos.keys(), None)
@@ -478,14 +491,14 @@ class MyWindow(QtGui.QMainWindow):
                 # This exception raised when soato ends '000'
 
         self.second_expl_data_dict = expl_data
-        names = []
-        try:
-            c_c_len = len(soato_names_d[ate_soato + u'000'])
-        except KeyError:
-            c_c_len = 0
+        ate_names = []
         for s in soatos:
-            names.append((soato_names_d[s][c_c_len:], s))
-        cmb2_data, self.cmb2_recover_d, ate_len = self._count_cmb_data_recovery(names, u'Вся АТЕ')
+            try:
+                ate_name = soato_names_d[s]
+            except KeyError:
+                ate_name=u'-'
+            ate_names.append((ate_name, s))
+        cmb2_data, self.cmb2_recover_d, ate_len = self._count_cmb_data_recovery(ate_names, u'Вся АТЕ')
         self.group_box.change_second_cmb(cmb2_data)
         # self.group_box.second_cmb.set_width(ate_len*7)
         self.group_box.second_cmb.show()
@@ -607,12 +620,11 @@ class MyWindow(QtGui.QMainWindow):
         self.add_loading(Message.loading_convert)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'convertpassed'), self.enable_explications)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'conv_failed(PyQt_PyObject)'), self.add_convert_protocol)
-        self.connect(self.convert_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.convert_thr.start()
         self.statusBar().showMessage(Message.status_busy)
 
     def get_edbf_name(self):
-        exp_dir = unicode(QtGui.QFileDialog.getExistingDirectory(self, Message.save_exp_dialog))
+        exp_dir = unicode(QtGui.QFileDialog.getExistingDirectory(self, Message.save_exp_dialog), project_path)
         if exp_dir:
             if self.__session_flag:
                 e_dbf = exp_dir + u'\\' + self.e_db_file.split(u'\\')[-1]
@@ -624,7 +636,7 @@ class MyWindow(QtGui.QMainWindow):
             self.e_db_file = e_dbf
 
     def try_create_edb_file(self, e_dbf):
-        templ = u"%s\\template.mdb" % Control.workDir
+        templ = u"%s\\template.mdb" % Control.work_dir
         if not os.path.isfile(e_dbf):
             if os.path.isfile(templ):
                 try:
@@ -645,8 +657,8 @@ class MyWindow(QtGui.QMainWindow):
             if self.export_frame.isHidden():
                 self.export_frame.show()
                 self.save_widget.show()
+                self.group_box.show()
             self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.__exp_to_xls)
-            # self.connect(self.exp_a_thr, QtCore.SIGNAL(u'IOError'))
             self.btn_a_all.setHidden(False)
             self.btn_a_tree.setHidden(False)
             self.exp_a_btn.hide()
@@ -654,7 +666,7 @@ class MyWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_clicked_btn_a_all(self):
-        if self.try_connect_edbf():
+        if self.try_has_edbf():
             self.add_loading(Message.wait_exp_a)
             self.add_event_log(Message.run_exp_a)
             if self.__a_thr_reinit:
@@ -717,7 +729,7 @@ class MyWindow(QtGui.QMainWindow):
 
         if not self.e_db_file:
             self.get_edbf_name()
-        if self.e_db_file and self.try_connect_edbf():
+        if self.e_db_file and self.try_has_edbf():
             if self.export_frame.isHidden():
                 self.export_frame.show()
                 self.save_widget.show()
@@ -735,6 +747,7 @@ class MyWindow(QtGui.QMainWindow):
         else: self.event_table.table.add_action_row([text],u'- // -')
 
     def add_control_protocol(self, data_li):
+        self.control_thr.terminate()
         self.control_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.add_event_log(Message.control_failed)
@@ -744,6 +757,7 @@ class MyWindow(QtGui.QMainWindow):
             self.control_table.table.add_row([row[0],row[1], u'OBJECTID in %s' % errors, row[3]])
 
     def add_convert_protocol(self, data_di):
+        self.on_finished()
         self.convert_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.add_event_log(Message.convert_failed)
@@ -753,7 +767,7 @@ class MyWindow(QtGui.QMainWindow):
             self.convert_table.table.add_row([u'UserN_%s' % unicode(key), errors, u'OBJECTID in %s' % errors])
 
 
-    def try_connect_edbf(self):
+    def try_has_edbf(self):
         if self.__exp_to_xls or self.try_to_connect(self.e_db_file):
             return True
         self.try_create_edb_file(self.e_db_file)
@@ -886,7 +900,7 @@ class Table(QtGui.QTableWidget):
         # self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.horizontalHeader().setCascadingSectionResizes(True)
         self.horizontalHeader().setMinimumSectionSize(130)
-        header_css = u'border-radius: 7px; border: 1px dashed blue;'
+        header_css = u'border-radius: 1px; border: 1px dashed blue;'
         self.horizontalHeader().setStyleSheet(header_css)
         self.verticalHeader().setStyleSheet(header_css+u'padding:-2px')
         self.horizontalHeader().setOffsetToSectionPosition(1)
@@ -914,7 +928,9 @@ class Table(QtGui.QTableWidget):
             time_label.setMinimumHeight(20)
             self.setSpan(self.__row_count-1,0,1,self.columnCount())
 
-    def add_action_row(self, row_li, time_ = time.strftime(u"%H:%M:%S  \n%d.%m.%y")):
+    def add_action_row(self, row_li, time_ = True):
+        if time_:
+            time_ = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
         self.add_span_row(time_, False)
         for i, cell in enumerate(row_li):
             self.setCellWidget(self.__row_count-1,i+1, TableLabel(cell))
@@ -948,8 +964,9 @@ class StyledButton(QtGui.QPushButton):
     def __init__(self, title, parent = None):
         QtGui.QPushButton.__init__(self,title, parent)
         self.setMaximumHeight(30)
-        self.setStyleSheet(u'background-color: #A0A0A0; border: 1.5px dotted #C10000; margin:4px;'
-                           u'border-top-left-radius: 17%;border-top-right-radius: 17%; padding:0px;'
+        self.setStyleSheet(u'background-color: #A0A0A0; border: 1.5px dotted #C10000; margin:2px;'
+                           u'border-top-left-radius: 20%;border-top-right-radius: 20%; padding:0px;'
+                           u'border-bottom-left-radius: 1%;border-bottom-right-radius: 1%;'
                            u'padding-right: 20px; padding-left: 20px;font-size: 12px;')
 
 class TableWidget(QtGui.QWidget):
@@ -966,3 +983,4 @@ if __name__ == u'__main__':
     app = QtGui.QApplication(sys.argv)
     exp_maker = MyWindow()
     app.exec_()
+    rm_temp_db()

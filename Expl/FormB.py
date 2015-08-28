@@ -3,11 +3,11 @@
 import os
 import pyodbc
 import time
-from Control import workDir
+from Control import work_dir
 from ExpA import round_row_data
 
 def select_sprav(query):
-    __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
+    __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % work_dir
     conn = pyodbc.connect(__bgd, autocommit = True, unicode_results = True)
     dbc = conn.cursor()
     sel_result = [row for row in dbc.execute(query).fetchall()]
@@ -63,7 +63,6 @@ class ExpFormaB(object):
                                     f_state07 text(20) NULL ,
                                     f_state08 text(20) NULL ,
                                     PRIMARY KEY(ID));''' % self.__exp_name
-        self.create_exp_table()
         self.row_codes = self.make_row_codes()
 
     def make_row_codes(self):
@@ -256,7 +255,12 @@ class ExpFormaB(object):
         self.__connect_exp()
         if self.__expconnected == 1:
             self.try_drop_table()
-            self.__edbc.execute(self.sql_exp_create)
+            try:
+                self.__edbc.execute(self.sql_exp_create)
+            except pyodbc.ProgrammingError:
+                return False
+                #TODO: When btn B clicked 2 more times a minute and edb.mdb already opened
+            return True
             self.__disconnect_exp()
 
 

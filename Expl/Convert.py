@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pyodbc
-from Control import workDir
+from Control import work_dir
 
 ct = u'crostab_razv'
 def add_column(connection, tabname, colname, coltype=u'int Null'):
@@ -14,7 +14,7 @@ def add_column(connection, tabname, colname, coltype=u'int Null'):
 
 
 def load_npt_sprav():
-    sprav = u'%s\\Spravochnik.mdb' % workDir
+    sprav = u'%s\\Spravochnik.mdb' % work_dir
     sprav_db = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % sprav
     selectrows = u'select znak1,znak2,znak57min,znak57max,znak810min,znak810max,TypeNP from SOATO'
     nptcon = pyodbc.connect(sprav_db, autocommit=True, unicode_results=True)
@@ -79,23 +79,23 @@ def add_utype_partn(connection):
 def convert_soato(connection):
     add_column(connection, u'SOATO', u'NameSov', u'varchar(80) NULL')
     add_column(connection, u'SOATO', u'NameNasp', u'varchar(80) NULL')
-    add_column(connection, u'SOATO', u'NameSNp', u'varchar(150) NULL')
-    sqlsoato = u'''select mid(KOD,1,7), [NAME], PREF from SOATO where mid(KOD,8,3) = '000' and mid(KOD,5,1) = '8';'''
-    updnamesov = u'''update SOATO set NameSov = ?+' '+?+' ' where mid(KOD,1,7) = ? ;'''
+    # add_column(connection, u'SOATO', u'NameSNp', u'varchar(150) NULL')
+    # sqlsoato = u'''select mid(KOD,1,7), [NAME], PREF from SOATO where mid(KOD,8,3) = '000';'''
+    # updnamesov = u'''update SOATO set NameSov = ?+' '+?+' ' where mid(KOD,1,7) = ? ;'''
     updnamenasp1 = u'''update SOATO set NameNasp = NAME +' '+PREF where PREF in ('р-н','с/с');'''
     updnamenasp2 = u'''update SOATO set NameNasp = PREF +' '+ NAME where  NameNasp is Null;'''
-    updnamesnp = u'''update SOATO set NameSNp = IIF(NPType in (0,1), NameNasp, NameSov + NameNasp)'''
-    connection.execute(sqlsoato)
-    sov_kods = [row for row in connection.fetchall()]
-    for i in sov_kods:
-        connection.execute(updnamesov, (i[1], i[2], i[0]))
+    # updnamesnp = u'''update SOATO set NameSNp = IIF(isNull(NameSov), NameNasp, NameSov + NameNasp)'''
+    # connection.execute(sqlsoato)
+    # sov_kods = [row for row in connection.fetchall()]
+    # for i in sov_kods:
+    #     connection.execute(updnamesov, (i[1], i[2], i[0]))
     connection.execute(updnamenasp1)
     connection.execute(updnamenasp2)
-    add_column(connection, u'SOATO', u'NPType')
-    for row in npt_sprav:
-        sqltnp = upd_soato_tnp(u'SOATO', u'KOD', *row)
-        connection.execute(sqltnp)
-    connection.execute(updnamesnp)
+    # add_column(connection, u'SOATO', u'NPType')
+    # for row in npt_sprav:
+    #     sqltnp = upd_soato_tnp(u'SOATO', u'KOD', *row)
+    #     connection.execute(sqltnp)
+    # connection.execute(updnamesnp)
 
 def bgd_to_dicts(bgd_li):
     """
@@ -221,10 +221,8 @@ def convert(soursedbf, bgd2e_li):
     global bgd_1, bgd_2
     bgd_1 = bgd_to_dicts(bgd2e_li[0])
     bgd_2 = bgd_to_dicts(bgd2e_li[2])
-    db_file = u'%s\\tempDbase.mdb' % workDir
+    db_file = soursedbf
     load_npt_sprav()
-    # import shutil`
-    # shutil.copyfile(soursedbf, dbf_file)
     dbc_ctr,conn_ctr = connect_crtab(db_file)
     n_max = add_utype_partn(dbc_ctr)
     convert_soato(dbc_ctr)
@@ -260,19 +258,9 @@ def convert(soursedbf, bgd2e_li):
                     err_dict[n+1] = [err.object_id,]
         whats_err[err.has_err].append(err.object_id)
     print whats_err
-    # f22_dict = dict()
-    # for row in rows_ok:
-    #     for n in range(row.n):
-    #         row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
-    #                     # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
-    #         try:
-    #             f22_dict[row.f22[n]].append(row_params)
-    #         except KeyError:
-    #             f22_dict[row.f22[n]] = [row_params,]
-    # print err_dict
     users_d, soato_d = data_users_soato(db_file)
     save_info = [rows_ok, users_d, soato_d]
-    return err_dict, save_info
+    return {}, save_info  #err_dict
 
 def connect_crtab(db_f):
     try:
@@ -299,7 +287,7 @@ def data_users_soato(db_f):
         ct_dbc.execute(u'select UserN, UsName from Users')
         sel_result = [row for row in ct_dbc.fetchall()]
         users_dict = dict(sel_result)
-        ct_dbc.execute(u'select KOD, NameSNp from SOATO')
+        ct_dbc.execute(u'select KOD, NameNasp from SOATO')
         sel_result = [row for row in ct_dbc.fetchall()]
         soato_dict = dict(sel_result)
         disconnect_crtab(ct_dbc,conn_ct)
@@ -326,7 +314,7 @@ def make_soato_group(s_kods):
     return soato_group
 
 if __name__ == '__main__':
-    dbf_file = u'%s\\tempDbase.mdb' % workDir
+    dbf_file = u'%s\\tempDbase.mdb' % work_dir
     load_npt_sprav()
     print npt_sprav
 

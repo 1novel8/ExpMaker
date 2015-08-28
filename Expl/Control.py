@@ -5,15 +5,15 @@ import os
 import pyodbc
 import shutil
 
-workDir = unicode(os.path.dirname(os.path.abspath(__file__)))
-
+work_dir = unicode(os.path.dirname(os.path.abspath(__file__)))
+tempDB_path = u'%s\\tempDbase.mdb' % work_dir
 
 class DataControl(object):
     def __init__(self, filepath):
         self.tableNames = []
         self.fieldTypes = []
         self.work_file = filepath
-        self.__db_file = u'%s\\tempDbase.mdb' % workDir
+        self.__db_file = tempDB_path
         try:
             shutil.copyfile(self.work_file, self.__db_file)
         except shutil.Error:
@@ -312,7 +312,7 @@ class DataControl(object):
 
     @staticmethod
     def __selectbgd(query):
-        __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
+        __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % work_dir
         conn = pyodbc.connect(__bgd, autocommit = True, unicode_results = True)
         dbc = conn.cursor()
         selresult = [str(row[0]) if type(row[0]) == unicode else row[0] for row in dbc.execute(query).fetchall()]
@@ -350,10 +350,6 @@ class DataControl(object):
             self.__conn.close()
         else:
             print u'Error. Database already disconnected'
-
-    @property
-    def drop_temp_dbf(self):
-        os.remove(self.__db_file)
 
 
 if __name__ == u'__main__':

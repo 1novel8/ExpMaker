@@ -4,9 +4,9 @@ import os
 
 import pyodbc
 import time
-from Control import workDir
+from Control import work_dir
 # template_db = u'%s\\template.mdb' % workDir
-access_dbf = u"%s\\tempDbase.mdb" % workDir
+access_dbf = u"%s\\tempDbase.mdb" % work_dir
 dependOfCodes = dict(f_3=1, f_4=1, f_5=1, f_6=1, f_8 =1, f_9=1, f_10=1, f_11 =1, f_12=1, f_13 =1,f_15=1, f_16 =1,
                      f_melio1=2, f_melio2=2, f_servtype=3,
                      f_state02=4, f_state03=4, f_state04 =4, f_state05=4, f_state06=4, f_state07=4, f_state08 =4)
@@ -42,7 +42,7 @@ def make_expa_params(rowslist):
     return fa_params
 
 def select_sprav(query):
-    __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
+    __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % work_dir
     conn = pyodbc.connect(__bgd, autocommit = True, unicode_results = True)
     dbc = conn.cursor()
     selresult = [row for row in dbc.execute(query).fetchall()]
@@ -187,6 +187,7 @@ class ExpFA(object):
         xl_f22_dict = {}
         return_xl_matrix = []
         n = 1
+        total_row = [0]*100
         for f22_k  in sorted(self.expsdict.keys()):
             itogo_row = [0]*100
             data_matrix = []
@@ -207,10 +208,13 @@ class ExpFA(object):
                 f22_row_num+=1
                 n+=1
                 xl_f22_dict[f22_k].append(li)
-            itogo_row[0:0] = [n, u'%s. i' % f22_k, u'Итого']
+            total_row = map(lambda x: sum(x), zip(itogo_row,total_row))
+            itogo_row[0:0] = [n, u'%s. i' % f22_k, u'Итого:']
             n+=1
             xl_f22_dict[f22_k].append(itogo_row)
             return_xl_matrix.extend(list(xl_f22_dict[f22_k]))
+        total_row[0:0] = [n, u'', u'Всего:']
+        return_xl_matrix.append(total_row)
         return return_xl_matrix
 
 
