@@ -10,27 +10,33 @@ def add_values_cells(data, cells):
         for v,c in zip(row[0], row[1]):
             c.value = v
 
+def get_max_xl_letter(row_len):
+    if row_len<17:      return u'U'
+    elif row_len<27:    return u'AE'
+    else:               return u'AZ'
+
 def exp_svodn_fa(matrix, save_as):
     w_book = openpyxl.load_workbook(u'XL_forms\\FA_svod.xlsx')
     sheet = w_book.active
-    cells_tmp =  tuple(sheet.iter_rows(u'A3:AC%s' % unicode(len(matrix)+3)))
+    max_letter = get_max_xl_letter(len(matrix[0]))
+    cells_tmp =  tuple(sheet.iter_rows(u'A3:%s%d' % (max_letter,len(matrix)+3)))
     add_values_cells(matrix,cells_tmp)
     w_book.save(save_as)
     os.system(u'start excel.exe %s' % save_as)
 
-def exp_single_fa(fa_data, f22, obj_ind, obj_name, expl_file):
+def exp_single_fa(fa_data, f22_ind, obj_name, expl_file):
     excel_path = os.path.dirname(expl_file)+ u'\\%s_xlsx_files' % os.path.basename(expl_file)[4:-4]
     if not os.path.exists(excel_path): os.makedirs(excel_path)
-    dest_filename = u'%s\\%s_%s.xlsx'%(excel_path, f22, obj_ind+1)
+    dest_filename = u'%s\\%s.xlsx'%(excel_path, f22_ind)
     w_book = openpyxl.load_workbook(u'XL_forms\\FA.xlsx')
     sheet = w_book.active
     sheet.title = u'Выборочная экспликация'
     sheet[u'M4'] = obj_name
-    cells_temp =  tuple(sheet.iter_rows(u'F15:U25'))
+    xl_letter = get_max_xl_letter(len(fa_data[0]))
+    cells_temp =  tuple(sheet.iter_rows(u'F15:%s%d' % (xl_letter, 14+len(fa_data))))
     add_values_cells(fa_data,cells_temp)
     w_book.save(dest_filename)
     os.system(u'start excel.exe %s' %  dest_filename)
-
 
 def export_toxl_fb(data_dict, save_as):
     list_1_fields = [u'f_1', u'f_2', u'f_3', u'f_4', u'f_5', u'f_6',u'f_7', u'f_row09', u'f_row10']
