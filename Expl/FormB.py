@@ -45,7 +45,8 @@ class ExpFormaB(object):
                 for row in self.ctr_rows:   #(row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
                     for n in range(row.n):
                         if row.has_code(n, fb_row[u's_by'], fb_row[u's_p']):
-                            need_params = (row.area[n], row.lc, row.mc, row.st08, row.state)
+                            need_params = [row.area[n], row.lc, row.mc, row.st08, row.state]
+                            need_params.extend(row.dop_args)
                             passed_rows.append(need_params)
             fbrow_dict[key] = passed_rows
         return fbrow_dict

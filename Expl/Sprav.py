@@ -2,10 +2,22 @@
 # -*- coding: utf-8 -*-
 import pyodbc
 import os.path
+
+'''
+settings for .exe
+work_dir, tempDB_path used in other modules
+'''
+
+# work_dir = unicode(os.path.abspath(''))+u'\\Spr'
+# tempDB_path = u'%s\\tempDbase.mdb' % work_dir
+# sprav_path = u'%s\\Spravochnik.mdb' % work_dir
+
+'''
+settings for develop
+'''
 work_dir = unicode(os.path.dirname(os.path.abspath(__file__)))
 tempDB_path = u'%s\\tempDbase.mdb' % work_dir
 sprav_path = u'%s\\Spravochnik.mdb' % work_dir
-
 class DBConn(object):
     def __init__(self, db_pass, do_conn = True):
         self.db_pass = db_pass
@@ -45,8 +57,14 @@ class DBConn(object):
         if self.__dbc:
             try:
                 return self.__dbc.columns(table= table_name)
-            except: pass
-        return []
+            except:
+                return []
+
+    def get_f_names(self, table_name):
+        f_names = []
+        for f_info in self.get_columns(table_name):
+            f_names.append(f_info[3])
+        return f_names
 
     def insert_row(self, tab_name, fields, vals):
         if self.__dbc:
@@ -154,13 +172,15 @@ def remake_list(li):
     return zip(minli,maxli)
 
 class SpravError(Exception):
-    def __init__(self, table, row):
-        self.text = u'Не корректные данные справочника! Проверьте строку %s в таблице %s' % (table, row)
+    def __init__(self, table = None, row = None):
+        self.text = u'Не смог подключиться'
+        if row:
+            self.text = u'Не корректные данные справочника! Проверьте строку %s в таблице %s' % (table, row)
+        super(SpravError, self).__init__(self.text)
 
 class SpravHolder(object):
-    def __init__(self, pkl_source = False):
-        self.load_from = u'pkl' if pkl_source else u'mdb'
-        self.s_conn = DBConn(sprav_path, False)
+    def __init__(self):
+        self.s_conn = None
         self.expa_f_str = None
         self.expa_r_str = None
         self.expb_f_str = None
@@ -168,24 +188,24 @@ class SpravHolder(object):
         self.soato_npt = None
         self.bgd2ekp =   None
         self.f22_notes = None
-        if pkl_source:
-            #TODO: Something like load_pkl()
-            pass
-        else:
-            self.sprav_dict = self.get_data_from_db()
-            self.set_parameters()
 
-    def set_parameters(self):
-        self.expa_f_str = self.sprav_dict[u'expa_f_str']
-        self.expa_r_str = self.sprav_dict[u'expa_r_str']
-        self.expb_f_str = self.sprav_dict[u'expb_f_str']
-        self.expb_r_str = self.sprav_dict[u'expb_r_str']
-        self.soato_npt = self.sprav_dict[u'soato_npt']
-        self.bgd2ekp_1 = self.bgd_to_dicts(self.sprav_dict[u'bgd2ekp'][0])
-        self.bgd2ekp_2 = self.bgd_to_dicts(self.sprav_dict[u'bgd2ekp'][2])
-        self.f22_notes = self.sprav_dict[u'f22_notes']
 
-    def get_data_from_db(self):
+    def set_parameters(self, sprav_dict):
+        try:
+            self.expa_f_str = sprav_dict[u'expa_f_str']
+            self.expa_r_str = sprav_dict[u'expa_r_str']
+            self.expb_f_str = sprav_dict[u'expb_f_str']
+            self.expb_r_str = sprav_dict[u'expb_r_str']
+            self.soato_npt = sprav_dict[u'soato_npt']
+            self.bgd2ekp_1 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][0])
+            self.bgd2ekp_2 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][2])
+            self.f22_notes = sprav_dict[u'f22_notes']
+            return True
+        except KeyError:
+            return False
+
+    def get_data_from_db(self, spr_path):
+        self.s_conn = DBConn(spr_path, False)
         data_dict = {}
         self.s_conn.make_connection()
         if self.s_conn.has_dbc:
@@ -197,7 +217,8 @@ class SpravHolder(object):
             data_dict[u'bgd2ekp'] = self.remake_bgd2()
             data_dict[u'f22_notes'] = self.get_f22_notes()
         else:
-            pass #load_default
+            raise SpravError
+            #TODO: Work with exception
         self.s_conn.close_conn()
         return data_dict
 
@@ -389,6 +410,7 @@ class SpravHolder(object):
 
     @staticmethod
     def select_bgd(query):
+        #TODO: rewrite this method
         spr_conn = DBConn(sprav_path)
         selresult = [str(row[0]) if type(row[0]) == unicode else row[0] for row in spr_conn.exec_sel_query(query)]
         return selresult
@@ -462,22 +484,24 @@ class SpravHolder(object):
         return bgd_dict
 
 class SpravControl(object):
-    def __init__(self):
+    def __init__(self,db_path, fullcontr = True):
+        self.db_path = db_path
         self.tabs_fields = dict()
-        self.tabs_fields[u'BGDToEkp1'] = [(u'F22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'STATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
-        self.tabs_fields[u'BGDToEkp2'] = [(u'F22', u'VARCHAR'), (u'NEWF22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'LCODE_MIN', u'SMALLINT'), (u'LCODE_MAX', u'SMALLINT'), (u'NewLCODE', u'SMALLINT'), (u'STATE', u'VARCHAR'), (u'NewSTATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
         self.tabs_fields[u'LandCodes'] = [(u'OBJECTID', u'COUNTER'), (u'LandCode', u'SMALLINT'), (u'Notes', u'VARCHAR'), (u'field_Num', u'SMALLINT'), (u'ValueF22', u'VARCHAR')]
         self.tabs_fields[u'ExpA_r_Structure'] = [(u'RowID', u'INTEGER'), (u'Code', u'VARCHAR'), (u'Notes', u'VARCHAR'), (u'RowName', u'VARCHAR'), (u'SortIndex', u'SMALLINT')]
         self.tabs_fields[u'ExpA_f_Structure'] = [(u'f_num', u'INTEGER'), (u'f_name', u'VARCHAR'), (u'sum_fields', u'VARCHAR')]
         self.tabs_fields[u'ExpB_f_Structure'] = [(u'f_num', u'INTEGER'), (u'f_name', u'VARCHAR'), (u'sort_key', u'VARCHAR'), (u'sum_fields', u'VARCHAR')]
         self.tabs_fields[u'ExpB_r_Structure'] = [(u'row_key', u'VARCHAR'), (u'val_f22', u'VARCHAR'), (u'sort_by', u'VARCHAR'), (u'ConditionSum', u'VARCHAR')]
-        self.tabs_fields[u'S_Forma22'] = [(u'OBJECTID', u'COUNTER'), (u'F22Code', u'VARCHAR'), (u'Notes', u'VARCHAR')]
-        self.tabs_fields[u'S_MelioCode'] = [(u'OBJECTID', u'COUNTER'), (u'MelioCode', u'SMALLINT'), (u'Notes', u'VARCHAR'), (u'NumberStrEkp', u'VARCHAR'), (u'ValueFormEkp', u'VARCHAR'), (u'NumberGrF22_1', u'VARCHAR'), (u'ValueFormF22_1', u'VARCHAR')]
-        self.tabs_fields[u'S_SlNad'] = [(u'OBJECTID', u'COUNTER'), (u'SLNADCode', u'BYTE'), (u'Notes', u'VARCHAR')]
-        self.tabs_fields[u'S_State'] = [(u'OBJECTID', u'COUNTER'), (u'StateCode', u'SMALLINT'), (u'Notes', u'VARCHAR')]
-        self.tabs_fields[u'S_Usertype'] = [(u'OBJECTID', u'COUNTER'), (u'UsertypeCode', u'BYTE'), (u'Notes', u'VARCHAR')]
-        self.tabs_fields[u'SOATO'] = [(u'OBJECTID', u'COUNTER'), (u'znak1', u'VARCHAR'), (u'znak2', u'SMALLINT'), (u'znak57min', u'SMALLINT'), (u'znak57max', u'SMALLINT'), (u'znak810max', u'SMALLINT'), (u'znak810min', u'SMALLINT'), (u'TypeNP', u'SMALLINT'), (u'NPTypeNotes', u'VARCHAR'), (u'SovType', u'VARCHAR')]
-        self.s_conn = DBConn(sprav_path)
+        if fullcontr:
+            self.tabs_fields[u'BGDToEkp1'] = [(u'F22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'STATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
+            self.tabs_fields[u'BGDToEkp2'] = [(u'F22', u'VARCHAR'), (u'NEWF22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'LCODE_MIN', u'SMALLINT'), (u'LCODE_MAX', u'SMALLINT'), (u'NewLCODE', u'SMALLINT'), (u'STATE', u'VARCHAR'), (u'NewSTATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
+            self.tabs_fields[u'SOATO'] = [(u'OBJECTID', u'COUNTER'), (u'znak1', u'VARCHAR'), (u'znak2', u'SMALLINT'), (u'znak57min', u'SMALLINT'), (u'znak57max', u'SMALLINT'), (u'znak810max', u'SMALLINT'), (u'znak810min', u'SMALLINT'), (u'TypeNP', u'SMALLINT'), (u'NPTypeNotes', u'VARCHAR'), (u'SovType', u'VARCHAR')]
+            self.tabs_fields[u'S_State'] = [(u'OBJECTID', u'COUNTER'), (u'StateCode', u'SMALLINT'), (u'Notes', u'VARCHAR')]
+            self.tabs_fields[u'S_Forma22'] = [(u'OBJECTID', u'COUNTER'), (u'F22Code', u'VARCHAR'), (u'Notes', u'VARCHAR')]
+            self.tabs_fields[u'S_MelioCode'] = [(u'OBJECTID', u'COUNTER'), (u'MelioCode', u'SMALLINT'), (u'Notes', u'VARCHAR'), (u'NumberStrEkp', u'VARCHAR'), (u'ValueFormEkp', u'VARCHAR'), (u'NumberGrF22_1', u'VARCHAR'), (u'ValueFormF22_1', u'VARCHAR')]
+            self.tabs_fields[u'S_SlNad'] = [(u'OBJECTID', u'COUNTER'), (u'SLNADCode', u'BYTE'), (u'Notes', u'VARCHAR')]
+            self.tabs_fields[u'S_Usertype'] = [(u'OBJECTID', u'COUNTER'), (u'UsertypeCode', u'BYTE'), (u'Notes', u'VARCHAR')]
+        self.s_conn = DBConn(self.db_path)
         if self.s_conn.has_dbc:
             self.losttables = self.contr_tables()
             self.badfields = dict.fromkeys(self.tabs_fields.keys())

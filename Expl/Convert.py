@@ -84,11 +84,20 @@ def bgd_to_dicts(bgd_li):
     return bgd_dict
 
 class CtrRow(object):
-    def __init__(self, r_args, nm, sprav):  #r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, F22_*, UserN_*,Usertype_*, Area_*,
+    def __init__(self, r_args, n_dop_args, nm, sprav):
+        """
+        :param r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, F22_*, UserN_*,Usertype_*, Area_*, *dop_params
+        :param n_dop_args: len of dop params array in the end of r_args
+        :param nm: max number of parts in crostab table
+        :param sprav: SpravHolder instance
+        """
         self.has_err = False                # False - контроль пройден,
                                             # 1 - ошибки при доле 100%,
                                             # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
                                             # 3 - сброс всех параметров,ошибка new_state при долях
+
+        if n_dop_args:self.dop_args = r_args[-n_dop_args:]
+        else: self.dop_args = []
         self.spr_bgd_1 = sprav.bgd2ekp_1
         self.spr_bgd_2   = sprav.bgd2ekp_2
         self.object_id = r_args[0]
@@ -128,6 +137,12 @@ class CtrRow(object):
                 if self.slnad in codes: return True
             if param == u'state':
                 if self.state in codes: return True
+            if u'dop_f' in param:
+                param = param[5:]
+                try:
+                    param = int(param)
+                    if self.dop_args[param] in codes: return True
+                except (ValueError, IndexError): return False
             else: return False
 
     def bgd_control(self):
@@ -210,26 +225,35 @@ def convert(sprav_holder):
     convert_soato(ctr_conn)
     n_max = add_utype_partn(ctr_conn)
 
-    def many_fields_str(f_name, col = n_max):
+    def make_fields_str(f_name, col = n_max):
         s = u''
         for n in range(col):
             s+=u'%s%d,' % (f_name, n+1)
         return s[:-1]
-    select_ctr_all = u'''select OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08,
-    %s, %s, %s, %s from %s''' % (many_fields_str(u'F22_'),many_fields_str(u'UserN_'),many_fields_str(u'Usertype_'),many_fields_str(u'Area_'),ct)
-    rows_ok = []
-    rows_failed = []
-    save_rows = []
+
+    cr_tab_fields = ctr_conn.get_f_names(ct)
+    select_ctr_all = u'select OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, %s, %s, %s, %s' % \
+                     (make_fields_str(u'F22_'),make_fields_str(u'UserN_'),make_fields_str(u'Usertype_'),make_fields_str(u'Area_'))
+    dop_fields = []
+    for field in sorted(cr_tab_fields):
+        if 'Dop' in field:
+            dop_fields.append(field)
+    #dop_fields.remove(u'ServType08')
+    dop_f_count = len(dop_fields)
+    if dop_f_count:
+        dop_fields = u','.join(dop_fields)
+        select_ctr_all+=u','+dop_fields
+    select_ctr_all += u' from %s' % ct
+    rows_ok, rows_failed, = [],[]
     select_result = ctr_conn.exec_sel_query(select_ctr_all)
     if select_result:
         for row in select_result:
-            new_row = CtrRow(row, n_max, sprav_holder)       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
+            new_row = CtrRow(row, dop_f_count,  n_max, sprav_holder )       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
             new_row.bgd_control()
             if new_row.has_err:
                 rows_failed.append(new_row)
             else:
                 rows_ok.append(new_row)
-                save_rows.append(row)
         del ctr_conn
 
         err_dict = dict()
@@ -245,8 +269,13 @@ def convert(sprav_holder):
         print whats_err
         users_d, soato_d = data_users_soato(tempDB_path)
         save_info = [rows_ok, users_d, soato_d]
-        return {}, save_info  #err_dict
-    else: return u'empty crtab'
+        # if err_dict:
+        #     return err_dict
+        # else:
+        #     return save_info
+        return save_info
+    else:
+        return u'empty crtab'
 
 
 def data_users_soato(db_f):

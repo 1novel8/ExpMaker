@@ -25,11 +25,13 @@ class DataComb(object):
         """
         :param sprav: sprav_holder instance
         Makes ordered list of explication rows
+        work with expa_row_structure
+
         """
         self.exp_a_rows = []
         for key in sorted(sprav.expa_r_str):
             r_params = sprav.expa_r_str[key]
-            if r_params[2] in (0,1):
+            if r_params[2] in (0,1):            #index of the sort parameter, by which row is filtered
                 e_row = self.sum_by_lc(self.data, sprav.expa_f_str)
             else:
                 r_par = r_params[1]
@@ -113,8 +115,10 @@ class ExpFA(object):
         f22_dict = dict()
         for row in rows_ok:
             for n in range(row.n):
-                row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.dopname[n])
+                row_params = [row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state]
                             # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
+                row_params.extend(row.dop_args)
+                row_params.append(row.dopname[n])
                 try:
                     f22_dict[row.f22[n]].append(row_params)
                 except KeyError:
@@ -130,7 +134,7 @@ class ExpFA(object):
     def make_dict_of_dict(self, rows):
         """
         :param rows : rows instances (f22, UserN_n, SOATO, NEWUSNAME_n, Area_n,LANDCODE, MELIOCODE, ServType08, State, DOPNAME_n)
-        :return: dict with dicts, keys: f22 >> usern | soato >> rows(newusname_n, dopname_n, (Area_n,LANDCODE, MELIOCODE, ServType08, State))
+        :return: dict with dicts, keys: f22 >> usern | soato >> rows(newusname_n, dopname_n, (Area_n,LANDCODE, MELIOCODE, ServType08, State, *dop_args))
         """
         f22_groups = self.make_f22_dict(rows)
         ct_dict = dict()
@@ -223,38 +227,6 @@ class ExpFA(object):
                     if not row_insert: break
                 self.__exp_conn.close_conn()
             self.__exp_conn.run_db()
-    #
-    # def transfer_to_ins(self):
-    #     self.__expname = u'ExpA_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
-    #     if self.create_edb_table(True):
-    #         final_dict = self.expsdict
-    #         self.__connect_exp()
-    #         fdk = final_dict.keys()
-    #         fdk.sort()
-    #         for f22key in fdk:
-    #             itogo_row = [0]*len(self.sprav_holder.exp_f_str)
-    #             for us_so_key in final_dict[f22key].keys():
-    #                 li = final_dict[f22key][us_so_key].exp_a_rows
-    #                 data = final_dict[f22key][us_so_key].info
-    #                 for i in range(1, len(li)+1):
-    #                     if i == 1:
-    #                         self.add_row_exp_a(f22key, data, i, li[i-1])
-    #                         itogo_row = map(lambda x: sum(x), zip(itogo_row, li[i-1]))
-    #                     else:
-    #                         self.add_row_exp_a(f22key, us_so_key, i, li[i-1])
-    #             self.add_row_exp_a(f22key, u'Итого:', 0, itogo_row)
-    #         self.__disconnect_exp()
-    #         os.system(u'start %s' % self.__expfile)
-    #     else: self.__errors.append(1)
-    #
-    # def add_row_exp_a(self, f_f22, f_us_n, f_r_n, params):
-    #     if self.__expconnected ==1:
-    #         ins_args = params
-    #         sql_ins = u'''insert into %s (f_F22, f_UsN, f_RowNumber, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10,
-    #                     f_11, f_12, f_13, f_14, f_15, f_16) values ( ?, ?, ?, %s);''' % (self.__expname, unicode(ins_args)[1:-1])
-    #         try:
-    #             self.__edbc.execute(sql_ins, (f_f22, f_us_n, f_r_n))
-    #         except pyodbc.DataError: pass
 
     def create_edb_table(self, razv = False):
         """
