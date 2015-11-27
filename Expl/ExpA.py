@@ -20,13 +20,13 @@ class DataComb(object):
         self.obj_name = inform
         info_is_null = lambda x: x if x else ''
         self.info = info_is_null(datali[0])+u' '+inform
+        self.errors = {}
 
     def add_data(self, sprav):
         """
         :param sprav: sprav_holder instance
         Makes ordered list of explication rows
         work with expa_row_structure
-
         """
         self.exp_a_rows = []
         for key in sorted(sprav.expa_r_str):
@@ -38,7 +38,12 @@ class DataComb(object):
                 if not hasattr(r_par, '__iter__'): continue
                 try:
                     e_row = self.sum_by_lc([row for row in self.data if row[r_params[2]] in r_par], sprav.expa_f_str)
-                except (IndexError, TypeError): continue
+                except (IndexError, TypeError):
+                    try:
+                        self.errors[1]+= u', %s' % r_params[0]
+                    except KeyError:
+                        self.errors[1] = r_params[0]
+                    e_row = [0]*len(sprav.expa_f_str)
             self.exp_a_rows.append(round_row_data(e_row))
 
     def prepare_svodn_data(self):
@@ -46,7 +51,6 @@ class DataComb(object):
             try:
                 temp = list(self.exp_a_rows[0])
                 for row in self.exp_a_rows[1:]:
-                    # row.pop(-2)
                     temp.append(row[0])
                 return temp
             except IndexError:
@@ -101,11 +105,18 @@ class ExpFA(object):
     def __init__(self, expdb, input_data, sprav_holder):
         self.sprav_holder = sprav_holder
         self.__errors = []
-
         self.__exp_conn =  DBConn(expdb, False)
         self.datadict = self.make_dict_of_dict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
         self.usersInfo, self.soatoInfo = input_data[-2:]
-        self.expsdict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
+        self.exps_dict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
+        self.cc_soato_d = self.get_cc_soato_d()
+
+    def get_cc_soato_d(self):
+        cc_soato_d = {}
+        for soato in self.soatoInfo:
+            if soato[-3:] == u'000':
+                cc_soato_d[soato[:-3]] = self.soatoInfo[soato]
+        return cc_soato_d
 
     @staticmethod
     def make_f22_dict(rows_ok):
@@ -153,11 +164,11 @@ class ExpFA(object):
         """ Returns dictionary:
             keys: F22, values: combdata instanses
         """
-        tree_dict = dict.fromkeys(self.expsdict)
-        for key1 in self.expsdict:
+        tree_dict = dict.fromkeys(self.exps_dict)
+        for key1 in self.exps_dict:
             tree_dict[key1] = []
-            for key2 in self.expsdict[key1]:
-                tree_dict[key1].append(self.expsdict[key1][key2])
+            for key2 in self.exps_dict[key1]:
+                tree_dict[key1].append(self.exps_dict[key1][key2])
         return tree_dict
 
     def make_comb_data(self):
@@ -172,23 +183,41 @@ class ExpFA(object):
         return comb_dicts
 
     def calc_all_exps(self):
-        for key1 in self.expsdict:
-            for key2 in self.expsdict[key1]:
-                self.expsdict[key1][key2].add_data(self.sprav_holder)
+        ask_err = True
+        if self.exps_dict:
+            for key1 in self.exps_dict:
+                for key2 in self.exps_dict[key1]:
+                    self.exps_dict[key1][key2].add_data(self.sprav_holder)
+                    if ask_err:
+                        ask_err = False
+                        errors = self.exps_dict[key1][key2].errors
+            return errors
+        return {1: u'Lost Data!'}
 
     def prepare_svodn_xl(self):
         xl_f22_dict = {}
         return_xl_matrix = []
         n = 1
-        total_row = [0]*100
-        for f22_k  in sorted(self.expsdict.keys()):
-            itogo_row = [0]*100
+        total_row = [0]*150
+        for f22_k  in sorted(self.exps_dict.keys()):
+            itogo_row = [0]*150
             data_matrix = []
-            for group_k in self.expsdict[f22_k]:
-                zem_obj = self.expsdict[f22_k][group_k]
+            for group_k in self.exps_dict[f22_k]:
+                zem_obj = self.exps_dict[f22_k][group_k]
                 row_data = zem_obj.prepare_svodn_data()
                 itogo_row = map(lambda x: sum(x), zip(itogo_row,row_data))
-                row_data.insert(0, zem_obj.info)
+        #   Add cc name to zem_obj.info
+                cc_kod = unicode(group_k)[:-3]
+                if len(cc_kod)>6:
+                    try:
+                        cc_name = self.cc_soato_d[cc_kod] +u' '
+                    except KeyError:
+                        cc_name = u''
+                else:
+                    cc_name = u''
+                cc_name += zem_obj.info
+        #   --------------------------------
+                row_data.insert(0, cc_name)
                 data_matrix.append(row_data)
 
             f22_head = [n, f22_k, self.sprav_holder.f22_notes[f22_k]]
@@ -214,11 +243,11 @@ class ExpFA(object):
         self.__expname = u'ExpA_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
         created_fields = self.create_edb_table(True)
         if created_fields:
-            if len(created_fields) == len(matrix[0])-1:
+            if len(created_fields) == len(matrix[0]):
                 self.__exp_conn.make_connection()
                 joined_f = u','.join(created_fields)
                 for row in matrix:
-                    row = row[1:]
+                    # row = row[1:]
                     row = map(lambda x: u"'%s'" % x if isinstance(x, unicode) else x, row)
                     row = map(lambda x: (u'Null' if x is None else unicode(x)), row)
                     f_values = u','.join(row)
@@ -234,7 +263,7 @@ class ExpFA(object):
         :return: list of created fields if create table operation finished with success, else returns false
         """
         create_fa = u'create table %s(ID AUTOINCREMENT, f_F22 text(8) Null, f_UsN text(100), ' % self.__expname
-        created_fields = [u'f_F22', u'f_UsN']
+        created_fields = [u'ID', u'f_F22', u'f_UsN']
         def add_fields(f_dict, f_name_ki):
             query_part = u''
             for f_k, f_v in sorted(f_dict.items()):

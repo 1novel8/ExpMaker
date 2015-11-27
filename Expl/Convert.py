@@ -238,7 +238,6 @@ def convert(sprav_holder):
     for field in sorted(cr_tab_fields):
         if 'Dop' in field:
             dop_fields.append(field)
-    #dop_fields.remove(u'ServType08')
     dop_f_count = len(dop_fields)
     if dop_f_count:
         dop_fields = u','.join(dop_fields)

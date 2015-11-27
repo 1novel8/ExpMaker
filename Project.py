@@ -7,13 +7,12 @@ import sys
 import shutil
 import os.path
 import cPickle as pickle
-
 import pyodbc
+
 from PyQt4 import QtGui, QtCore
 
+from Expl import Control, Convert, ExpA, FormB, Sprav, SaveToXL
 from Titles import Events, ToolTip, WName, ErrMessage, LoadMessg
-from Expl import Control, Convert, ExpA, FormB, Sprav
-from Expl.SaveToXL import exp_single_fa, exp_matrix
 
 project_path = os.getcwd()
 spr_default_path = project_path+u'\\Expl\\DefaultSpr.pkl'
@@ -64,21 +63,34 @@ class ExpAThread(QtCore.QThread):
 
     def set_output_mode(self, is_xls):
         self.output_mode = is_xls
+
     def run(self):
-        self.expsA.calc_all_exps()
+        err_in_count = self.expsA.calc_all_exps()
+        if err_in_count:
+
+            for key in err_in_count:
+                msg = ErrMessage.expa_errors[key] % err_in_count[key]
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), msg)
         xl_matrix = self.expsA.prepare_svodn_xl()
         exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
         if self.output_mode:
             try:
-                exp_matrix(xl_matrix,exl_file_path)
-            except IOError:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
+                SaveToXL.exp_matrix(xl_matrix, save_as = exl_file_path, start_f = u'A', start_r = 3)
+            except SaveToXL.XlsIOError as err:
+                if err.err_type == 1:
+                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
+                elif err.err_type == 2:
+                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
+            else:
+                self.emit(QtCore.SIGNAL(u'success()'))
         else:
             self.expsA.fill_razv_edb(xl_matrix)
             err_message = self.expsA.has_error()
-            if err_message: self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.e_table_exist % err_message)
-
+            if err_message:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.e_table_exist % err_message)
+            else:
+                self.emit(QtCore.SIGNAL(u'success()'))
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, sprav, parent = None):
         super(ExpBThread, self).__init__(parent)
@@ -113,15 +125,21 @@ class ExpBThread(QtCore.QThread):
             exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
             b_rows_dict = self.prepare_b_matr(b_rows_dict)
             try:
-                exp_matrix(b_rows_dict, exl_file_path, u'E', 5, u'FB')
-            except IOError:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
-        else:
-            created_fs = ExpB.create_e_table()
-            if created_fs:
-                ExpB.run_mdb_exp(b_rows_dict, created_fs)
+                SaveToXL.exp_matrix(b_rows_dict, exl_file_path, u'E', 5, u'FB')
+            except SaveToXL.XlsIOError as err:
+                if err.err_type == 1:
+                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
+                elif err.err_type == 2:
+                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
             else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % self.exp_file)
+                self.emit(QtCore.SIGNAL(u'success()'))
+        else:
+            created_fields = ExpB.create_e_table()
+            if created_fields:
+                ExpB.run_mdb_exp(b_rows_dict, created_fields)
+                self.emit(QtCore.SIGNAL(u'success()'))
+            else:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.table_add_failed)
 
 
 class SpravContrThread(QtCore.QThread):
@@ -250,7 +268,7 @@ class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
         self.setWindowTitle(WName.main_name)
-        self.resize(1400, 700)
+        self.resize(1300, 640)
         self.central_widget = QtGui.QFrame(self)
         self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
         self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
@@ -360,6 +378,7 @@ class MyWindow(QtGui.QMainWindow):
             self.e_db_file = None
             self.explication_data = None
         self.current_exp_data = None
+        self.ate_expl_data_dict = None
         self.control_thr =None
         self.convert_thr = None
         self.exp_a_thr = None
@@ -609,13 +628,16 @@ class MyWindow(QtGui.QMainWindow):
         soato_names_d = self.explication_data[2]
         soatos = self.group_soatos[ate_soato]
         expl_data = dict.fromkeys(soatos, None)
+        u'''
+        Далее заполняем словарь expl_data(keys: SOATO codes) экземплярами класса CtrRow
+        '''
         for expl in self.current_exp_data[0]:
             try:
                 expl_data[expl.soato].append(expl)
             except AttributeError:
                 expl_data[expl.soato] = [expl,]
             except KeyError:
-                print u"This exception raised when soato ends '000'"
+                self.show_error(u'Ошибка в коде SOATO')
 
         self.second_expl_data_dict = expl_data
         ate_names = []
@@ -679,19 +701,17 @@ class MyWindow(QtGui.QMainWindow):
     @staticmethod
     def make_soato_group(s_kods):
         soato_group = {}
-        ate_soato = []
         for s in s_kods:
             ate_key = s[:-3]
-            if not s[-3:] == u'000':
-                try:
-                    soato_group[ate_key].append(s)
-                except KeyError:
-                    soato_group[ate_key] = [s]
-            else:
-                ate_soato.append(ate_key)
-            for soato in ate_soato:
-                if soato not in soato_group.keys():
-                    soato_group[soato] = []
+            if s[-3:] == u'000':
+                soato_group[ate_key] = []
+        for s in s_kods:
+            ate_key = s[:-3]
+            try:
+                soato_group[ate_key].append(s)
+            except KeyError:
+                #TODO : wrong soato!
+                raise
         return soato_group
 
     def on_finished(self):
@@ -817,8 +837,9 @@ class MyWindow(QtGui.QMainWindow):
                 self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data,  self.sprav_holder)
             else: self.__a_thr_reinit = True
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), lambda: self.add_event_log(Events.finish_exp_a))
+            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'success()'), lambda: self.add_event_log(Events.finish_exp_a))
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
+            self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda: self.add_event_log(Events.exp_a_finished_with_err))
             self.exp_a_thr.set_output_mode(self.__is_xls_mode)
             self.exp_a_thr.start()
 
@@ -866,10 +887,10 @@ class MyWindow(QtGui.QMainWindow):
             exp_index = indexes_before_sort[pressed_exp]
             pressed_exp = data[pressed_f22][exp_index]
             pressed_exp.add_data(self.sprav_holder)
-            exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file)
+            SaveToXL.exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file)
 
     @QtCore.pyqtSlot()
-    def click_exp_a_btn(self, first_time = True):
+    def click_exp_a_btn(self, after_click = True):
         self.block_btns()
         self.__a_thr_reinit = False
         if not self.e_db_file:
@@ -883,13 +904,12 @@ class MyWindow(QtGui.QMainWindow):
             self.btn_a_all.setHidden(False)
             self.btn_a_tree.setHidden(False)
             self.exp_a_btn.setHidden(True)
-            if first_time:
+            if after_click:
                 self.show_first_combo()
         self.block_btns(False)
 
     @QtCore.pyqtSlot()
     def click_exp_b_btn(self):
-
         if not self.e_db_file:
             self.get_edbf_name()
         if self.e_db_file and self.try_has_edbf():
@@ -900,8 +920,9 @@ class MyWindow(QtGui.QMainWindow):
             self.add_event_log(Events.run_exp_b)
             self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0], self.sprav_holder)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
+            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(Events.exp_b_finished_with_err))
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
-            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), lambda:self.add_event_log(Events.finish_exp_b))
+            self.connect(self.exp_b_thr, QtCore.SIGNAL(u'success()'), lambda:self.add_event_log(Events.finish_exp_b))
             self.exp_b_thr.set_output_mode(self.__is_xls_mode)
             self.exp_b_thr.start()
 
