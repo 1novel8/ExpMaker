@@ -14,36 +14,226 @@ from PyQt4 import QtGui, QtCore
 from Expl import Control, Convert, ExpA, FormB, Sprav, SaveToXL
 from Titles import Events, ToolTip, WName, ErrMessage, LoadMessg
 
-project_path = os.getcwd()
-spr_default_path = project_path+u'\\Expl\\DefaultSpr.pkl'
 
-def rm_temp_db(file_rm = Control.tempDB_path):
+# '''
+# settings for .exe
+# work_dir, tempDB_path used in other modules
+# '''
+
+# work_dir = unicode(os.path.abspath(''))+u'\\Spr'
+# tempDB_path = u'%s\\tempDbase.mdb' % work_dir
+# sprav_path = u'%s\\Spravochnik.mdb' % work_dir
+
+# '''
+# settings for develop
+# '''
+# work_dir = unicode(os.path.dirname(os.path.abspath(__file__))) + u'\\'
+
+
+
+project_dir = os.getcwd()
+spr_dir = u'%s\\Spr\\'% project_dir
+spr_default_path = u'%sDefaultSpr.pkl'%spr_dir
+tempDB_path = u'%stempDbase.mdb' % spr_dir
+xls_templates_dir = u'%sxls_forms' % spr_dir
+
+def rm_temp_db(file_rm = tempDB_path):
     if os.path.isfile(file_rm):
         os.remove(file_rm)
 
+class MainActiveThread(QtCore.QThread):
+    def __init__(self, parent = None):
+        super(MainActiveThread, self).__init__(parent)
+        self.sh = Sprav.SpravHolder()
+        self.current_sprav_dict = None
+        self.__op = None
+        self.__file_path = None
+        self.spr_path_info = None
+        self.__args = []
+
+    def change_op(self, file_path, num_op, *args):
+        """
+        :param file_path:
+        :param num_op: int num of sprav menu exits
+        :param args: if need
+        """
+        self.__op = num_op
+        self.__file_path = file_path
+        self.__args = args
+
+    def run(self):
+        """
+        You should call change_op before thread starts
+        """
+        if self.__op == 0:
+            self.load_work_db()
+        elif self.__op in [1,2]:      #loading .pkl sprav
+            self.load_pkl_op1_2()
+        elif self.__op == 3:        # loading .mdb sprav
+            self.load_mdb_op3()
+        elif self.__op == 4:        # saving .mdb sprav
+            self.save_pkl_op4()
+        elif self.__op == 5:
+            self.load_work_pkl()
+        elif self.__op == 6:
+            self.save_work_pkl()
+        else:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Operation not found')
+
+    def save_work_pkl(self):
+        try:
+            with open(self.__file_path,u'wb') as output:
+                pickle.dump(self.__args[0], output, 2)
+            self.__args = []
+            self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'),Events.session_saved % self.__file_path)
+        except:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'),ErrMessage.bad_session)
+
+    def load_work_db(self):
+        message = self.pre_control()
+        if message:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
+        else:
+            self.emit(QtCore.SIGNAL(u'db_file_opened()'))
+
+    def pre_control(self):
+        try:
+            contr = Control.DbControl(self.__file_path, tempDB_path)
+        except shutil.Error:
+            return ErrMessage.shutil_err
+        if not contr.can_connect():
+            return ErrMessage.no_db_conn % self.__file_path
+        try:
+            failed_table = contr.is_tables_exist()
+            if failed_table:
+                failed_table = ', '.join(failed_table)
+                return ErrMessage.empty_tables%failed_table
+            failed_table = contr.is_tables_empty()
+            if failed_table:
+                failed_table = ', '.join(failed_table)
+                return ErrMessage.empty_table_data % failed_table
+
+            if contr.is_empty_f_pref():
+                self.emit(QtCore.SIGNAL(u'control_warning(const QString&)'), ErrMessage.warning_no_pref)
+            return False
+        except Exception as err:
+            return err
+
+
+    def set_spr_changes(self, change_di):
+        if self.sh.set_parameters(change_di):
+            self.current_sprav_dict = change_di
+            if self.__op == 1:
+                self.spr_path_info = u'Default'
+            else:
+                self.spr_path_info = self.__file_path
+            self.emit(QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.sh)
+        else:
+            if self.current_sprav_dict:
+                self.sh.set_parameters(self.current_sprav_dict)
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.sh_not_changed)
+            else:
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_wrong_default)
+
+    def load_pkl_op1_2(self):
+        try:
+            with open(self.__file_path, 'rb') as inp:
+                loaded_data = pickle.load(inp)
+                inp.close()
+            loading_password = loaded_data.pop()
+            if loading_password == u'Sprav':
+                new_spr_di = loaded_data[0]
+                self.set_spr_changes(new_spr_di)
+            else:
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'),ErrMessage.spr_not_valid)
+        except IOError:
+            if self.__op == 1:
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_default_io_error)
+            else:
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_io_error)
+        except Exception as ex:
+            #TODO: rename error message and add exceptions
+            print ex
+            self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_err_in_data)
+
+
+    def load_mdb_op3(self):
+        try:
+            self.control_db()
+            sprav_data = self.sh.get_data_from_db(self.__file_path)
+            sprav_data[u"create_time"] = time.strftime(u"%H:%M__%d.%m.%Y")
+            self.set_spr_changes(sprav_data)
+        except Sprav.SpravError as se:
+            print se.text
+            self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), unicode(se.text))
+
+    def save_pkl_op4(self):
+        if self.__file_path:
+            if self.__file_path[-4:] != u'.pkl':
+                self.__file_path+= u'.pkl'
+            try:
+                with open(self.__file_path,u'wb') as output:
+                    pickle.dump([self.current_sprav_dict, u"Sprav"], output, 2)
+                    self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'), Events.spr_saved)
+            except:
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_saved)
+
+    def load_work_pkl(self):
+        try:
+            with open(self.__file_path, 'rb') as inp:
+                exp_data = pickle.load(inp)
+                inp.close()
+            loading_password = exp_data.pop()
+        except Exception as err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session+err.message)
+        else:
+            if loading_password == u'Salt':
+                self.emit(QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), exp_data)
+            else:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session)
+
+
+
+    def control_db(self, full=True):
+        sprav_contr = Sprav.SpravControl(self.__file_path, full)
+        if sprav_contr.s_conn.has_dbc:
+            if sprav_contr.losttables:
+                pos = u'ет таблица' if len(sprav_contr.losttables) == 1 else u'ют таблицы'
+                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.bdg_lost_tables % (pos,unicode(sprav_contr.losttables)[1:-1]))
+            elif sprav_contr.badfields:
+                for key in sprav_contr.badfields:
+                    pos1, pos2 = (u'ет',u'е') if len(sprav_contr.badfields[key]) == 1 else (u'ют',u'я')
+                    self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.bgd_lost_fields % (key,pos1,pos1,pos2,unicode(sprav_contr.badfields[key])[1:-1],key))
+            else:
+                pass
+                #TODO: make exp structure control. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
+        else:
+            self.emit(QtCore.SIGNAL(u'failure_conn(const QString&)'), ErrMessage.no_db_conn % self.__file_path)
+
 class ControlThread(QtCore.QThread):
-    def __init__(self, dbf, sprav, parent = None):
+    def __init__(self, sprav, db_path, parent = None):
         super(ControlThread, self).__init__(parent)
-        self.db_file = dbf
+        self.db_file = db_path
         self.sprav_holder = sprav
 
     def run(self):
-        contr = Control.DataControl(self.db_file, self.sprav_holder)
-        if not contr.shutil_err:
+        try:
+            contr = Control.DataControl(self.sprav_holder, self.db_file, tempDB_path)
+        except Exception as Err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), Err.message)
+        else:
             err_li = contr.run_field_control()
-            contr.close_conn()
             if err_li:
                 self.emit(QtCore.SIGNAL(u'contr_failed(PyQt_PyObject)'), err_li)
             else:
-                self.emit(QtCore.SIGNAL(u'controlpassed'))
-        else: self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'),ErrMessage.shutil_err)
+                self.emit(QtCore.SIGNAL(u'control_passed()'))
 
 class ConvertThread(QtCore.QThread):
     def __init__(self, sprav, parent = None):
         super(ConvertThread, self).__init__(parent)
         self.sprav_holder = sprav
     def run(self):
-        converted_data = Convert.convert(self.sprav_holder)
+        converted_data = Convert.convert(self.sprav_holder, tempDB_path)
         if isinstance(converted_data, dict):
             self.emit(QtCore.SIGNAL(u'conv_failed(PyQt_PyObject)'), converted_data)
         elif isinstance(converted_data, list):
@@ -54,29 +244,29 @@ class ConvertThread(QtCore.QThread):
         rm_temp_db()
 
 class ExpAThread(QtCore.QThread):
-    def __init__(self, edbf, rows, sprav_holder, parent = None):
+    def __init__(self, edbf, rows, sprav_holder, xl_settings, parent = None):
         super(ExpAThread, self).__init__(parent)
         self.exp_file = edbf
         self.expsA = ExpA.ExpFA(self.exp_file, rows, sprav_holder)
         self.exp_tree = self.expsA.make_exp_tree()
         self.output_mode = True
+        self.xl_settings = xl_settings
 
     def set_output_mode(self, is_xls):
         self.output_mode = is_xls
 
     def run(self):
-        err_in_count = self.expsA.calc_all_exps()
-        if err_in_count:
-
-            for key in err_in_count:
-                msg = ErrMessage.expa_errors[key] % err_in_count[key]
+        errs_occured = self.expsA.calc_all_exps()
+        if errs_occured:
+            for key in errs_occured:
+                msg = ErrMessage.expa_errors[key] % errs_occured[key]
                 self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), msg)
         xl_matrix = self.expsA.prepare_svodn_xl()
         exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
         if self.output_mode:
             try:
-                SaveToXL.exp_matrix(xl_matrix, save_as = exl_file_path, start_f = u'A', start_r = 3)
+                SaveToXL.exp_matrix(xl_matrix, save_as = exl_file_path, start_f = self.xl_settings[u'a_sv_l'], start_r = self.xl_settings[u'a_sv_n'],templ_path = self.xl_settings[u'a_sv_path'])
             except SaveToXL.XlsIOError as err:
                 if err.err_type == 1:
                     self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
@@ -91,13 +281,16 @@ class ExpAThread(QtCore.QThread):
                 self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.e_table_exist % err_message)
             else:
                 self.emit(QtCore.SIGNAL(u'success()'))
+
+
 class ExpBThread(QtCore.QThread):
-    def __init__(self, edbf, rows, sprav, parent = None):
+    def __init__(self, edbf, rows, sprav, xl_settings, parent = None):
         super(ExpBThread, self).__init__(parent)
         self.sprav = sprav
         self.exp_file = edbf
         self.rows = rows
         self.out_xl_mode = True
+        self.xl_settings = xl_settings
 
     def set_output_mode(self, is_xls):
         self.out_xl_mode = is_xls
@@ -125,7 +318,7 @@ class ExpBThread(QtCore.QThread):
             exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
             b_rows_dict = self.prepare_b_matr(b_rows_dict)
             try:
-                SaveToXL.exp_matrix(b_rows_dict, exl_file_path, u'E', 5, u'FB')
+                SaveToXL.exp_matrix(b_rows_dict, save_as = exl_file_path, start_f = self.xl_settings[u'b_l'], start_r = self.xl_settings[u'b_n'],templ_path = self.xl_settings[u'b_path'])
             except SaveToXL.XlsIOError as err:
                 if err.err_type == 1:
                     self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
@@ -141,111 +334,6 @@ class ExpBThread(QtCore.QThread):
             else:
                 self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.table_add_failed)
 
-
-class SpravContrThread(QtCore.QThread):
-    def __init__(self, parent = None):
-        super(SpravContrThread, self).__init__(parent)
-        self.sh = Sprav.SpravHolder()
-        self.current_sprav_dict = None
-        self.__op = None
-        self.__file_path = None
-        self.spr_path_info = None
-        #TODO: ADD main save snd load
-
-    def change_op(self, file_path, num_op):
-        """
-        :param file_path:
-        :param num_op: int num of sprav menu exits
-        """
-        self.__op = num_op
-        self.__file_path = file_path
-
-    def run(self):
-        """
-        You should call change_op before thread starts
-        """
-        if self.__op in [1,2]:      #loading .pkl sprav
-            self.load_pkl_op1_2()
-        elif self.__op == 3:        # loading .mdb sprav
-            self.load_mdb_op3()
-        elif self.__op == 4:        # saving .mdb sprav
-            self.save_pkl_op4()
-        else:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Operation not found')
-
-    def set_spr_changes(self, change_di):
-        if self.sh.set_parameters(change_di):
-            self.current_sprav_dict = change_di
-            if self.__op == 1:
-                self.spr_path_info = u'Default'
-            else:
-                self.spr_path_info = self.__file_path
-            self.emit(QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.sh)
-        else:
-            if self.current_sprav_dict:
-                self.sh.set_parameters(self.current_sprav_dict)
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.sh_not_changed)
-            else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.spr_wrong_default)
-
-    def load_pkl_op1_2(self):
-        try:
-            with open(self.__file_path, 'rb') as inp:
-                loaded_data = pickle.load(inp)
-                inp.close()
-            loading_password = loaded_data.pop()
-            if loading_password == u'Sprav':
-                new_spr_di = loaded_data[0]
-                self.set_spr_changes(new_spr_di)
-            else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'),ErrMessage.spr_not_valid)
-        except IOError:
-            if self.__op == 1:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.spr_default_io_error)
-            else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.spr_io_error)
-        except Exception as ex:
-            #TODO: rename error message and add exceptions
-            print ex
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.spr_err_in_data)
-
-
-    def load_mdb_op3(self):
-        try:
-            self.control_db()
-            sprav_data = self.sh.get_data_from_db(self.__file_path)
-            sprav_data[u"create_time"] = time.strftime(u"%H:%M__%d.%m.%Y")
-            self.set_spr_changes(sprav_data)
-        except Sprav.SpravError as se:
-            print se.text
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), unicode(se.text))
-
-    def save_pkl_op4(self):
-        if self.__file_path:
-            if self.__file_path[-4:] != u'.pkl':
-                self.__file_path+= u'.pkl'
-            try:
-                with open(self.__file_path,u'wb') as output:
-                    pickle.dump([self.current_sprav_dict, u"Sprav"], output, 2)
-                    self.emit(QtCore.SIGNAL(u'spr_saved(const QString&)'), Events.spr_saved)
-            except:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.spr_not_saved)
-
-    def control_db(self, full=True):
-        sprav_contr = Sprav.SpravControl(full)
-        if sprav_contr.s_conn.has_dbc:
-            if sprav_contr.losttables:
-                pos = u'ет таблица' if len(sprav_contr.losttables) == 1 else u'ют таблицы'
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.bdg_lost_tables % (pos,unicode(sprav_contr.losttables)[1:-1]))
-            elif sprav_contr.badfields:
-                for key in sprav_contr.badfields:
-                    pos1, pos2 = (u'ет',u'е') if len(sprav_contr.badfields[key]) == 1 else (u'ют',u'я')
-                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.bgd_lost_fields % (key,pos1,pos1,pos2,unicode(sprav_contr.badfields[key])[1:-1],key))
-            else:
-                pass
-            #TODO: make exp structure control. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
-        else:
-            self.emit(QtCore.SIGNAL(u'failure_conn(const QString&)'), ErrMessage.no_db_conn % self.__file_path)
 
 class LoadingThread(QtCore.QThread):
     def __init__(self, parent = None):
@@ -336,7 +424,7 @@ class MyWindow(QtGui.QMainWindow):
         self.gridLayout.addWidget(self.exp_b_btn, 7, 1, 1, 1)
         self.gridLayout.addWidget(self.tree_text_widg, 0, 2, 15, 11)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
-        self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_path))
+        self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
         self.setCentralWidget(self.central_widget)
         self.setFocus()
         self.set_menu_properties()
@@ -358,16 +446,33 @@ class MyWindow(QtGui.QMainWindow):
         self.load_thr = LoadingThread()
         self.db_file = None
 
-        self.main_load_save_thr = SpravContrThread()
+        self.main_load_save_thr = MainActiveThread()
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.set_sprav_holder)
-        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_sprav_error)
-        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'spr_saved(const QString&)'), self.say_sprav_saved)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'spr_error_occured(const QString&)'), self.show_sprav_error)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.load_save_db_err)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'control_warning(const QString&)'), self.show_error)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'successfully_saved(const QString&)'), self.say_saved)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), self.session_loaded)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'db_file_opened()'), self.db_file_opened)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.__is_xls_mode = True
         self.show()
         self.run_main_thr()
+        self.xls_settings_d = {
+            'a_sv_l':u'A',
+            'a_sv_n':1,
+            'a_l':u'F',
+            'a_n':15,
+            'a_obj_l':u'M',
+            'a_obj_n':22,
+            'b_l':u'C',
+            'b_n':3,
+            'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
+            'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
+            'b_path': u'%s\\FB.xlsx' % xls_templates_dir
+        }
         try:
-            self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_path).read()))
+            self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_dir).read()))
         except IOError:
             self.show_error(ErrMessage.no_css)
 
@@ -396,8 +501,8 @@ class MyWindow(QtGui.QMainWindow):
         self.exp_b_btn.setEnabled(self.__is_session)
         self.export_frame.hide()
         self.save_widget.hide()
-        self.src_widget.lbl.setText(self.db_file)
-        self.src_widget.lbl.repaint()
+        self.src_widget.set_lbl_text(self.db_file)
+        # self.src_widget.lbl.repaint()
         self.group_box.setHidden(not self.__is_session)
 
     def set_sources_widgets(self):
@@ -458,27 +563,28 @@ class MyWindow(QtGui.QMainWindow):
         self.save_widget.setDisabled(blocked)
 
     def set_menu_properties(self):
-        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\add.png' % project_path), WName.exit_main_1, self)
-        main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_path), WName.exit_main_2, self)
+        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\add.png' % project_dir), WName.exit_main_1, self)
+        main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_dir), WName.exit_main_2, self)
         main_exit1.setShortcut(u'Ctrl+O')
         main_exit1.setStatusTip(ToolTip.exit_main_1)
         main_exit2.setShortcut(u'Ctrl+Q')
         main_exit2.setStatusTip(ToolTip.exit_main_2)
 
-        spr_default = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_path), WName.exit_spr_1, self)
-        spr_choose_pkl = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_path), WName.exit_spr_2, self)
-        spr_choose_mdb = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_path), WName.exit_spr_3, self)
-        spr_save_spr = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_path), WName.exit_spr_4, self)
-        spr_info = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_path), WName.exit_spr_6, self)
+        spr_default = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WName.exit_spr_1, self)
+        spr_choose_pkl = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WName.exit_spr_2, self)
+        spr_choose_mdb = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_3, self)
+        spr_save_spr = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_4, self)
+        spr_info = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_6, self)
         spr_default.setStatusTip(ToolTip.exit_spr_1)
         spr_choose_pkl.setStatusTip(ToolTip.exit_spr_2)
         spr_choose_mdb.setStatusTip(ToolTip.exit_spr_3)
         spr_save_spr.setStatusTip(ToolTip.exit_spr_4)
         spr_info.setStatusTip(ToolTip.exit_spr_5)
-        # spr_default.setShortcut(u'Ctrl+D')
-        # spr_choose_pkl.setShortcut(u'Ctrl+P')
-        # spr_choose_mdb.setShortcut(u'Ctrl+M')
-        # spr_save_spr.setShortcut(u'Ctrl+S')
+
+        spr_default.setShortcut(u'Ctrl+D')
+        spr_choose_pkl.setShortcut(u'Ctrl+P')
+        spr_choose_mdb.setShortcut(u'Ctrl+M')
+        spr_save_spr.setShortcut(u'Ctrl+S')
 
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
@@ -500,62 +606,52 @@ class MyWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_info)
 
     def open_file(self):
-        self.db_file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.open_file, project_path, options=QtGui.QFileDialog.DontUseNativeDialog))
+        self.db_file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.open_file, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
         if self.db_file:
-            if self.db_file[-4:] == u'.pkl':
-                self.load_session()
-            elif self.db_file[-4:] == u'.mdb':
-                message = self.prepare_control()
-                if message:
-                    self.show_error(message)
-                else:
-                    self.__is_session = False
-                    self.set_default_params()
-                    self.reset_parameters()
-                    self.add_event_log(Events.opened_file % self.db_file)
-                    self.add_event_log(Events.db_has_data % self.db_file.split(u'/')[-1], False)
+            if self.db_file[-4:] == u'.mdb':
+                self.run_main_thr(self.db_file, op = 0)
+            elif self.db_file[-4:] == u'.pkl':
+                self.run_main_thr(self.db_file, op = 5)
             else:
                 self.show_error(ErrMessage.wrong_file)
 
-    def prepare_control(self):
-        contr = Control.DataControl(self.db_file, self.sprav_holder)
-        if not contr.can_connect():
-            return ErrMessage.no_db_conn % self.db_file
-        need_table = contr.contr_tables()
-        contr.close_conn()
-        table_message = u'Отсутствуют таблицы '
-        tab_err = 0
-        for tabl in need_table:
-            if not tabl[1]:
-                tab_err = 1
-                table_message+= tabl[0] + u', '
-        if tab_err == 1:
-            return table_message
-        else:
-            return False
+    def db_file_opened(self):
+        self.__is_session = False
+        self.set_default_params()
+        self.reset_parameters()
+        self.add_event_log(Events.opened_file % self.db_file)
+        self.add_event_log(Events.db_has_data % self.db_file.split(u'/')[-1], False)
 
-    def load_session(self):
-        try:
-            with open(self.db_file, 'rb') as inp:
-                exp_data = pickle.load(inp)
-                inp.close()
-            loading_password = exp_data.pop()
-            if loading_password == u'Salt':
-                self.__is_session = True
-                self.set_default_params()
-                self.reset_parameters()
-                self.e_db_file = exp_data.pop()
-                e_src_text =  u'\\'.join(self.e_db_file.split(u'\\')[:-1])
-                self.export_frame.e_src_widget.set_lbl_text(e_src_text)
-                self.add_event_log(Events.session_loaded % self.db_file)
-                self.explication_data = exp_data
-                self.current_exp_data = exp_data[:]
-                self.show_first_combo()
-            else:
-                self.show_error(ErrMessage.wrong_session)
-        except:
-            #TODO: rename error message and add exceptions
-            self.show_error(ErrMessage.wrong_session)
+    # def load_session(self):
+    #     try:
+    #         with open(self.db_file, 'rb') as inp:
+    #             exp_data = pickle.load(inp)
+    #             inp.close()
+    #         loading_password = exp_data.pop()
+    #         if loading_password == u'Salt':
+    #             self.session_loaded(exp_data)
+    #         else:
+    #             self.show_error(ErrMessage.wrong_session)
+    #     except:
+    #         #TODO: rename error message and add exceptions
+    #         self.show_error(ErrMessage.wrong_session)
+    #
+    def session_loaded(self, exp_data):
+        self.__is_session = True
+        self.set_default_params()
+        self.reset_parameters()
+        loaded_path = exp_data.pop()
+        self.explication_data = exp_data
+        self.current_exp_data = exp_data[:]
+        self.add_event_log(Events.session_loaded % self.db_file)
+        self.e_db_file = loaded_path
+        e_src_dir =  u'\\'.join(self.e_db_file.split(u'\\')[:-1])
+        if os.path.isdir(e_src_dir):
+            self.export_frame.e_src_widget.set_lbl_text(e_src_dir)
+        else:
+            self.show_error(ErrMessage.session_path_not_found%loaded_path)
+            self.get_edbf_name()
+        self.show_first_combo()
 
     def save_session(self):
         default_name = self.e_db_file.split(u'\\')[-1][4:-4]+time.strftime(u'_%d_%m_%y') + u'.pkl'
@@ -563,14 +659,16 @@ class MyWindow(QtGui.QMainWindow):
         if save_file:
             if save_file[-4:] != u'.pkl':
                 save_file+= u'.pkl'
-            try:
-                with open(save_file,u'wb') as output:
-                    exp_data = self.explication_data[:]
-                    exp_data.extend([self.e_db_file, u'Salt'])
-                    pickle.dump(exp_data, output, 2)
-                self.add_event_log(Events.session_saved % self.db_file)
-            except:
-                self.show_error(ErrMessage.bad_session)
+            exp_data = self.explication_data[:]
+            exp_data.extend([self.e_db_file, u'Salt'])
+            self.run_main_thr(save_file, 6, exp_data)
+            # try:
+            #     with open(save_file,u'wb') as output:
+            #         pickle.dump(exp_data, output, 2)
+            #     self.add_event_log(Events.session_saved % self.db_file)
+            # except:
+            #     self.show_error(ErrMessage.bad_session)
+
     def set_xls_mode(self):
         self.__is_xls_mode= True
 
@@ -586,14 +684,13 @@ class MyWindow(QtGui.QMainWindow):
             sys.exit()
 
     def enable_convert(self):
-        self.control_thr.terminate()
+        self.control_thr = None
         self.add_event_log(Events.control_passed)
         self.control_table.hide()
         self.convert_btn.setEnabled(True)
 
     def enable_explications(self, converted_data):
-        self.convert_thr.terminate()
-        del self.convert_thr
+        self.convert_thr = None
         self.on_finished()
         self.add_event_log(Events.convert_passed)
         self.convert_table.hide()
@@ -603,8 +700,8 @@ class MyWindow(QtGui.QMainWindow):
         self.current_exp_data = self.explication_data[:]
 
     def show_first_combo(self):
+        group_soatos = self.make_soato_group(self.explication_data[2].keys())
         soato_names_d = self.explication_data[2]
-        group_soatos = self.make_soato_group(soato_names_d.keys())
         ate_expl_data = dict.fromkeys(group_soatos.keys(), None)
         for expl in self.current_exp_data[0]:
             try:
@@ -612,7 +709,14 @@ class MyWindow(QtGui.QMainWindow):
             except AttributeError:
                 ate_expl_data[expl.soato[:-3]] = [expl,]
             except KeyError:
-                print u'This exception can be raised'
+                try:
+                    ate_expl_data[nongrouped].append(expl)
+                except AttributeError:
+                    ate_expl_data[nongrouped] = [expl,]
+        for k, v in ate_expl_data.items():
+            if v is None:
+                del ate_expl_data[k]
+                del group_soatos[k]
         self.ate_expl_data_dict = ate_expl_data
         names = []
         for key in group_soatos:
@@ -626,28 +730,25 @@ class MyWindow(QtGui.QMainWindow):
 
     def show_second_combo(self, ate_soato):
         soato_names_d = self.explication_data[2]
-        soatos = self.group_soatos[ate_soato]
-        expl_data = dict.fromkeys(soatos, None)
+        # soatos = self.group_soatos[ate_soato]
+        expl_data = {}
         u'''
         Далее заполняем словарь expl_data(keys: SOATO codes) экземплярами класса CtrRow
         '''
         for expl in self.current_exp_data[0]:
             try:
                 expl_data[expl.soato].append(expl)
-            except AttributeError:
-                expl_data[expl.soato] = [expl,]
             except KeyError:
-                self.show_error(u'Ошибка в коде SOATO')
-
+                expl_data[expl.soato] = [expl,]
         self.second_expl_data_dict = expl_data
         ate_names = []
-        for s in soatos:
+        for s in expl_data:
             try:
                 ate_name = soato_names_d[s]
             except KeyError:
                 ate_name=u'-'
             ate_names.append((ate_name, s))
-        cmb2_data, self.cmb2_recover_d, ate_len = self._count_cmb_data_recovery(ate_names, u'Вся АТЕ')
+        cmb2_data, self.cmb2_recover_d, ate_len = self._count_cmb_data_recovery(ate_names, u'Вся АТЕ', ate_kod = ate_soato)
         self.group_box.change_second_cmb(cmb2_data)
         # self.group_box.second_cmb.set_width(ate_len*7)
         self.group_box.second_cmb.show()
@@ -683,11 +784,14 @@ class MyWindow(QtGui.QMainWindow):
             self.click_a_tree_btn()
 
     @staticmethod
-    def _count_cmb_data_recovery(names, first_combo_row = u'Весь район'):
+    def _count_cmb_data_recovery(names, first_combo_row = u'Весь район', ate_kod = None):
         """ Input: names - list of tuples (name, soato)
             returns combo_box data , recovery dictionary to catch, which combo row was checked , max item length
         """
-        recovery_soato_d = {0:names[0][1][:-3]}
+        if ate_kod:
+            recovery_soato_d = {0:ate_kod}
+        else:
+            recovery_soato_d = {0:names[0][1][:-3]}
         combo_data = [u'* ' + first_combo_row]
         sorted_names = sorted(names)
         max_len = 0
@@ -698,25 +802,30 @@ class MyWindow(QtGui.QMainWindow):
             recovery_soato_d[sorted_names.index(i)+1] = i[1]
         return combo_data, recovery_soato_d, max_len
 
-    @staticmethod
-    def make_soato_group(s_kods):
+    def make_soato_group(self, s_kods):
         soato_group = {}
         for s in s_kods:
             ate_key = s[:-3]
             if s[-3:] == u'000':
                 soato_group[ate_key] = []
+        nongrouped_soatos = []
         for s in s_kods:
             ate_key = s[:-3]
             try:
                 soato_group[ate_key].append(s)
             except KeyError:
-                #TODO : wrong soato!
-                raise
+                nongrouped_soatos.append(s)
+        if nongrouped_soatos:
+            self.show_error(u'WARNING! \nДанные коды не возможно сгруппировать  %s\nУчастки с такими кодами будут размещены в NonGrouped'% unicode(nongrouped_soatos))
+            global nongrouped
+            nongrouped = u'xxxxxxx'
+            soato_group[nongrouped] = nongrouped_soatos
+            self.explication_data[2][u'%s000'%nongrouped ]= u'NonGrouped!'
         return soato_group
 
     def on_finished(self):
-        self.block_btns(False)
         self.load_thr.terminate()
+        self.block_btns(False)
         self.statusBar().showMessage(LoadMessg.ready)
 
     def add_loading(self, load_message):
@@ -728,30 +837,43 @@ class MyWindow(QtGui.QMainWindow):
         self.load_thr.start()
 
     def show_sprav_error(self, err_text):
-        self.main_load_save_thr.terminate()
-        self.load_thr.terminate()
-        self.show_error(err_text)
-        self.statusBar().showMessage(LoadMessg.ready)
+        self.show_main_thr_error(err_text)
         if self.sprav_holder:
             self.add_event_log(Events.set_previous_spr)
         else:
             self.add_event_log(Events.spr_default_failed)
 
+    def load_save_db_err(self, err_text):
+        self.show_main_thr_error(err_text)
+        self.add_event_log(err_text)
+
+    def show_main_thr_error(self, err_msg):
+        self.main_load_save_thr.terminate()
+        self.load_thr.terminate()
+        self.show_error(err_msg)
+        self.statusBar().showMessage(LoadMessg.ready)
+
     def load_sprav(self, from_pkl = False):
         if from_pkl:
-            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.pkl', project_path, options=QtGui.QFileDialog.DontUseNativeDialog))
+            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.pkl', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
             op = 2
         else:
-            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.mdb', project_path, options=QtGui.QFileDialog.DontUseNativeDialog))
+            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.mdb', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
             op = 3
         if file:
             self.run_main_thr(file, op)
 
-    def run_main_thr(self, sprav_path = spr_default_path, op = 1):
+    def run_main_thr(self, sprav_path = spr_default_path, op = 1, *dop_args):
         if sprav_path:
-            if op <= 3:
+            if op == 0:
+                self.add_loading(LoadMessg.load_db)
+            elif op <= 3:
                 self.add_loading(LoadMessg.spr_loading)
-            self.main_load_save_thr.change_op(sprav_path,op)
+            elif op == 5:
+                self.add_loading(LoadMessg.load_session_pkl)
+            elif op == 6:
+                self.add_loading(LoadMessg.save_session_pkl)
+            self.main_load_save_thr.change_op(sprav_path, op, dop_args)
             self.main_load_save_thr.start()
 
     def set_sprav_holder(self, sprav):
@@ -766,7 +888,7 @@ class MyWindow(QtGui.QMainWindow):
             self.add_loading(LoadMessg.spr_saving)
             self.run_main_thr(save_file,4)
 
-    def say_sprav_saved(self, msg):
+    def say_saved(self, msg):
         self.load_thr.terminate()
         self.add_event_log(msg)
         self.statusBar().showMessage(LoadMessg.ready)
@@ -779,18 +901,18 @@ class MyWindow(QtGui.QMainWindow):
             message = Events.spr_info(s_date, s_file)
         else:
             message = ErrMessage.spr_not_loaded
-        QtGui.QMessageBox.information(self, u'Информация об используемом справочнике',message, u'Ok')
+        QtGui.QMessageBox.information(self, WName.sprav_info_box,message, u'Ok')
 
 
     @QtCore.pyqtSlot()
     def click_control_btn(self):
         self.add_event_log(Events.run_control)
         self.add_loading(LoadMessg.loading_control)
-        self.control_thr = ControlThread(self.db_file, self.sprav_holder)
-        self.connect(self.control_thr, QtCore.SIGNAL(u'controlpassed'), self.enable_convert)
+        self.control_thr = ControlThread(self.sprav_holder, self.db_file)
+        self.connect(self.control_thr, QtCore.SIGNAL(u'control_passed()'), self.enable_convert)
         self.connect(self.control_thr, QtCore.SIGNAL(u'contr_failed(PyQt_PyObject)'), self.add_control_protocol)
-        self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.connect(self.control_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
+        self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.control_thr.start()
 
     @QtCore.pyqtSlot()
@@ -804,7 +926,7 @@ class MyWindow(QtGui.QMainWindow):
         self.convert_thr.start()
 
     def get_edbf_name(self):
-        exp_dir = unicode(QtGui.QFileDialog(self).getExistingDirectory(self, WName.save_exp_dialog, project_path, options=QtGui.QFileDialog.DontUseNativeDialog))
+        exp_dir = unicode(QtGui.QFileDialog(self).getExistingDirectory(self, WName.save_exp_dialog, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
         if exp_dir:
             if self.__is_session:
                 e_dbf = exp_dir + u'\\' + self.e_db_file.split(u'\\')[-1]
@@ -816,7 +938,7 @@ class MyWindow(QtGui.QMainWindow):
             self.e_db_file = e_dbf
 
     def try_create_edb_file(self, e_dbf):
-        templ = u"%s\\template.mdb" % Sprav.work_dir
+        templ = u"%s\\template.mdb" % spr_dir
         if not os.path.isfile(e_dbf):
             if os.path.isfile(templ):
                 try:
@@ -834,7 +956,7 @@ class MyWindow(QtGui.QMainWindow):
             self.add_loading(LoadMessg.wait_exp_a)
             self.add_event_log(Events.run_exp_a)
             if self.__a_thr_reinit:
-                self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data,  self.sprav_holder)
+                self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data,  self.sprav_holder, self.xls_settings_d)
             else: self.__a_thr_reinit = True
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'success()'), lambda: self.add_event_log(Events.finish_exp_a))
@@ -842,6 +964,7 @@ class MyWindow(QtGui.QMainWindow):
             self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda: self.add_event_log(Events.exp_a_finished_with_err))
             self.exp_a_thr.set_output_mode(self.__is_xls_mode)
             self.exp_a_thr.start()
+
 
     @QtCore.pyqtSlot()
     def click_a_tree_btn(self):
@@ -887,7 +1010,7 @@ class MyWindow(QtGui.QMainWindow):
             exp_index = indexes_before_sort[pressed_exp]
             pressed_exp = data[pressed_f22][exp_index]
             pressed_exp.add_data(self.sprav_holder)
-            SaveToXL.exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file)
+            SaveToXL.exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file, **self.xls_settings_d)
 
     @QtCore.pyqtSlot()
     def click_exp_a_btn(self, after_click = True):
@@ -896,7 +1019,7 @@ class MyWindow(QtGui.QMainWindow):
         if not self.e_db_file:
             self.get_edbf_name()
         if self.e_db_file:
-            self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.sprav_holder)
+            self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.sprav_holder, self.xls_settings_d)
             if self.export_frame.isHidden():
                 self.export_frame.show()
                 self.save_widget.show()
@@ -918,7 +1041,7 @@ class MyWindow(QtGui.QMainWindow):
                 self.save_widget.show()
             self.add_loading(LoadMessg.wait_exp_b)
             self.add_event_log(Events.run_exp_b)
-            self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0], self.sprav_holder)
+            self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0], self.sprav_holder, self.xls_settings_d)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(Events.exp_b_finished_with_err))
             self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
@@ -932,7 +1055,7 @@ class MyWindow(QtGui.QMainWindow):
         else: self.event_table.table.add_action_row([text],u'- // -')
 
     def add_control_protocol(self, data_li):
-        self.control_thr.terminate()
+        self.control_thr = None
         self.control_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.add_event_log(Events.control_failed)
@@ -949,7 +1072,7 @@ class MyWindow(QtGui.QMainWindow):
         self.convert_table.table.add_span_row(event_time)
         for key in data_di:
             errors = unicode(tuple(data_di[key]))
-            self.convert_table.table.add_row([u'UserN_%s' % unicode(key), errors, u'OBJECTID in %s' % errors])
+            self.convert_table.table.add_row([unicode(key), u'OBJECTID in %s' % errors, ErrMessage.convert_errors[key]])
 
 
     def try_has_edbf(self):
@@ -983,11 +1106,11 @@ class ExportFrame(QtGui.QFrame):
         self.color = u'#D3D120'
         self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
         self.rbtn_xls = QtGui.QRadioButton(u'*.xls',self)
-        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_path))
+        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir))
         self.rbtn_xls.setChecked(True)
         self.rbtn_xls.setFont(QtGui.QFont('Verdana',10))
         self.rbtn_mdb = QtGui.QRadioButton(u'*.mdb',self)
-        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\access.ico' % project_path))
+        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\access.ico' % project_dir))
         self.rbtn_mdb.setFont(QtGui.QFont('Verdana',10))
         self.rbtn_style = u'background-color: white; color: green;' \
                           u' border-top-right-radius: 3%;' \
@@ -1031,8 +1154,26 @@ class SrcFrame(QtGui.QFrame):
     def change_border_color(self, color):
         self.btn.setStyleSheet(u'border: 1px solid %s;' % color)
         self.lbl.setStyleSheet(u'border: 2px solid %s;' % color)
+
     def set_lbl_text(self, text):
+        """
+        В строке text делается перенос относительно / если длина превышает 40 символов
+        """
+        path_parts = text.split(u'/')
+        text = path_parts.pop(0)
+        if path_parts:
+            text+=u''
+            temp_text = u''
+            for part in path_parts:
+                part = u'\\%s' % part
+                if len(part) + len(temp_text) >40:
+                    text+=u'%s\n'% temp_text
+                    temp_text = part
+                else:
+                    temp_text+=part
+            text+=temp_text
         self.lbl.setText(text)
+        self.lbl.repaint()
 
 class CombBox(QtGui.QComboBox):
     def __init__(self, parent = None, width = 160, data = u'A'):

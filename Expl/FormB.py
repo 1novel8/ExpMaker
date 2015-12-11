@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import pyodbc
 import time
 from ExpA import round_row_data
 from Sprav import DBConn
@@ -178,6 +177,7 @@ class ExpFormaB(object):
             if not inserted: break
         self.__exp_conn.close_conn()
         os.system(u'start %s' % self.exp_db)
+
     def insert_row(self, fields, vals):
         fields = u','.join(fields)
         vals = map(lambda x: u"'%s'" % x if isinstance(x, unicode) else unicode(x), vals)

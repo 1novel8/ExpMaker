@@ -13,11 +13,13 @@ exit_spr_2 = u'Загрузить файл *.pkl'
 exit_spr_3 = u'Загрузить файл *.mdb'
 exit_spr_4 = u'Сохранить текущий справочник как *.pkl'
 exit_spr_6 = u'Информация о текущем справочнике'
+sprav_info_box = u'Используемый справочник...'
+xl_settings_box = u'Настройки шаблонов Excel'
 
 l1_title = u"   1. Контроль"
 l2_title = u"   2. Конвертация"
 l3_title = u"   3. Расчет экспликации A"
-l4_title = u"   4. Расчет экспликации B"
+l4_title = u"   4. Расчет Формы 22.зем."
 lbl_group = u'Группировка данных'
 btn_control = u"Запустить"
 btn_exp = u"Расчитать"
@@ -30,7 +32,7 @@ save_dialog = u'Сохранить сессию как...'
 tree_header = u"Набор экспликаций А"
 event_table_head = [u'Время',u'Событие']
 control_table_head = [u'Таблица',u'Поле', u'ID ошибки', u'Пояснение']
-convert_table_head = [u'UserN_(*)', u'ID ошибки', u'Условие выборки']
+convert_table_head = [u'ID ошибки', u'Условие выборки', u'Сообщение']
 
 open_file = u'Укажите путь к базе данных...'
 save_exp_dialog = u'Выберите путь для сохранения файла Exp_*.mdb'

@@ -3,7 +3,6 @@
 
 import os
 import openpyxl
-from Sprav import work_dir
 
 def get_xl_letter(row_len, start_letter = u'A'):
     """
@@ -37,12 +36,11 @@ class XlsIOError(Exception):
         self.err_type  = err_type
         super(XlsIOError, self).__init__(args, kwargs)
 
-def exp_matrix(matrix, start_f, start_r, save_as = False,  templ_name = u'FA_svod'):
-    xl_templ = u'%s\\XL_forms\\%s.xlsx'%(work_dir,templ_name)
+def exp_matrix(matrix, start_f, start_r, templ_path, save_as = False ):
     try:
-        w_book = openpyxl.load_workbook(xl_templ)
+        w_book = openpyxl.load_workbook(templ_path)
     except IOError:
-        raise XlsIOError(1, xl_templ)
+        raise XlsIOError(1, templ_path)
     sheet = w_book.active
     max_letter = get_xl_letter(len(matrix[0]), start_f)
     cells_tmp =  tuple(sheet.iter_rows(u'%s%d:%s%d' % (start_f, start_r, max_letter,len(matrix)+start_r)))
@@ -55,14 +53,14 @@ def exp_matrix(matrix, start_f, start_r, save_as = False,  templ_name = u'FA_svo
             raise XlsIOError(2)
     else: return w_book
 
-def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, start_f = u'F', start_r = 15):
+def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_obj_n, a_path, **kwargs):
     excel_path = os.path.dirname(expl_file)+ u'\\%s_xlsx_files' % os.path.basename(expl_file)[4:-4]
     if not os.path.exists(excel_path): os.makedirs(excel_path)
     dest_filename = u'%s\\%s.xlsx'%(excel_path, f22_ind)
-    w_book = exp_matrix(fa_data, start_f, start_r, templ_name = u'FA')
+    w_book = exp_matrix(fa_data, start_f = a_l, start_r = a_n, templ_path=a_path)
     sheet = w_book.active
-    sheet.title = u'Выборочная экспликация'
-    sheet[u'M4'] = obj_name
+    # sheet.title = u'Выборочная экспликация'
+    sheet[u'%s%s'%(a_obj_l, a_obj_n)] = obj_name
     w_book.save(dest_filename)
     os.system(u'start excel.exe %s' %  dest_filename)
 

@@ -3,68 +3,83 @@
 
 import pyodbc
 import shutil
-from Sprav import DBConn, tempDB_path
+from Sprav import DBConn
 
+crs_tab = u'crostab_razv'
+soato_tab =u'SOATO'
+users_tab = u'Users'
 
-class DataControl(object):
-    def __init__(self, filepath, sprav_holder):
-        self.sprav_holder = sprav_holder
-        self.tableNames = []
-        self.fieldTypes = []
-        work_file = filepath
+class DbControl(object):
+    def __init__(self, file_path, tempDB_path):
+        self.need_tabs = [crs_tab,soato_tab,users_tab]
         self.db_file = tempDB_path
-        self.need_tabs = [u'crostab_razv',u'SOATO',u'Users']
         self.tempdb_conn = DBConn(self.db_file, False)
-        self.shutil_err = False
-        try:
-            shutil.copyfile(work_file, self.db_file)
-        except shutil.Error:
-            self.shutil_err = True
-
-    def __del__(self):
-        self.close_conn()
-    @property
-    def get_dbc(self):
-        return self.tempdb_conn.get_dbc()
+        shutil.copyfile(file_path, tempDB_path)
 
     def can_connect(self):
         self.tempdb_conn.make_connection()
-        if self.get_dbc:
+        if self.temp_dbc:
             self.close_conn()
             return True
         else: return False
 
+    def __del__(self):
+        self.close_conn()
+
+    @property
+    def temp_dbc(self):
+        return self.tempdb_conn.get_dbc()
+
     def close_conn(self):
         self.tempdb_conn.close_conn()
 
-    def contr_tables(self, try_mkconn = True):
-        if self.get_dbc:
+    def is_tables_exist(self, try_mkconn = True):
+        if self.temp_dbc:
+            table_names = []
             for row in self.tempdb_conn.get_tables():
-                self.tableNames.append(row[2])
-            new_list = zip(self.need_tabs, map(lambda x: x in self.tableNames, self.need_tabs))
-            return new_list
+                table_names.append(row[2])
+            tab_not_found = []
+            for tab in self.need_tabs:
+                if tab not in table_names:
+                    tab_not_found.append(tab)
+            return tab_not_found
         elif try_mkconn:
             self.tempdb_conn.make_connection()
-            return self.contr_tables(False)
+            return self.is_tables_exist(False)
         else:
             self.err_connect()
 
-    def is_data_in_tables(self, try_mkconn = True):
+    def is_tables_empty(self, try_mkconn = True):
         """
         :return: Tables from __need_tabs that has no any data
         """
-        if self.get_dbc:
+        if self.temp_dbc:
             no_data_in = []
             for tab in self.need_tabs:
-                self.get_dbc.execute(u'select * from %s' % tab)
-                if not self.get_dbc.fetchall():
+                if not self.tempdb_conn.exec_sel_query(u'select * from %s' % tab):
                     no_data_in.append(tab)
-            return no_data_in
+            if no_data_in:
+                return no_data_in
+            else: return False
         elif try_mkconn:
             self.tempdb_conn.make_connection()
-            return self.is_data_in_tables(False)
+            return self.is_tables_empty(False)
         else:
             self.err_connect()
+
+    def is_empty_f_pref(self):
+        failed_obj = self.tempdb_conn.exec_sel_query(u'select OBJECTID from %s where Pref is Null' % soato_tab)
+        if failed_obj:
+            failed_obj = [row[0] for row in failed_obj]
+            failed_obj = unicode(tuple(failed_obj))
+            self.tempdb_conn.exec_query(u'delete from %s where OBJECTID in %s' %(soato_tab, failed_obj))
+            return failed_obj
+        else:
+            return False
+
+    @staticmethod
+    def err_connect():
+        raise Exception(u'Не удалось соединиться')
 
     def contr_field_types(self, tab_name, try_mkconn = True):
         """
@@ -73,16 +88,24 @@ class DataControl(object):
         TODO:
         Remake return as Dictionary
         """
-        if self.get_dbc:
-            for row in self.get_dbc.columns(table= tab_name):
-                self.fieldTypes.append((row[3],row[5]))
-            return self.fieldTypes
+        field_types = []
+        if self.temp_dbc:
+            for row in self.temp_dbc.columns(table= tab_name):
+                field_types.append((row[3],row[5]))
+            return field_types
         elif try_mkconn:
             self.tempdb_conn.make_connection()
             return self.contr_field_types(False)
         else: self.err_connect()
 
-    def contr_field(self, bgd_table, bgd_code_field,  table, field, isnull = 0, try_mkconn = True):
+class DataControl(DbControl):
+    def __init__(self, sprav_holder, file_path, tempDB_path):
+        self.sprav_holder = sprav_holder
+        super(DataControl,self).__init__(file_path, tempDB_path)
+        self.is_empty_f_pref()
+        self.f22_string = self.get_f22_string()
+
+    def contr_field(self, in_str,  table, field, can_be_null = False, try_mkconn = True):
         """
         Makes dictionary with OBJECTID rows with errors
         :param bgd_table: Name of S_'TableName' in BGDtoEKP in unicode format
@@ -91,26 +114,25 @@ class DataControl(object):
         :param field: control field name, unicode
         :return: dictionary with keys notin,isnull, [field] and values - OBJECTID with errors
         """
-        if self.get_dbc:
-            codes_str = self.make_li_by_bgd(bgd_code_field, bgd_table)
-            self.get_dbc.execute(u'select OBJECTID from %s where %s not in %s and %s is not Null' % (table, field, codes_str, field))
-            not_in_code = [row[0] for row in self.get_dbc.fetchall()]
-            if isnull == 0:
-                self.get_dbc.execute(u'select OBJECTID from %s where %s is Null' % (table, field))
-                rows_is_null = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'select OBJECTID from %s where %s not in (%s) and %s is not Null' % (table, field, in_str, field))
+            not_in_code = [row[0] for row in self.temp_dbc.fetchall()]
+            if not can_be_null:
+                self.temp_dbc.execute(u'select OBJECTID from %s where %s is Null' % (table, field))
+                rows_is_null = [row[0] for row in self.temp_dbc.fetchall()]
                 return dict(notin = not_in_code, isnull = rows_is_null, fieldname = field)
             else: return not_in_code
         elif try_mkconn:
             self.tempdb_conn.make_connection()
-            return self.contr_field(bgd_table, bgd_code_field,  table, field, isnull = 0, try_mkconn =  False)
+            return self.contr_field(in_str, table, field, try_mkconn =  False)
         else: self.err_connect()
 
     def contr_soato(self, try_mkconn = True):
-        if self.get_dbc:
-            self.get_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN SOATO b ON a.SOATO = b.KOD WHERE b.KOD Is Null')
-            not_in_soato_code = [row[0] for row in self.get_dbc.fetchall()]
-            self.get_dbc.execute(u'select OBJECTID from crostab_razv where SOATO is Null')
-            soato_is_null = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN SOATO b ON a.SOATO = b.KOD WHERE b.KOD Is Null')
+            not_in_soato_code = [row[0] for row in self.temp_dbc.fetchall()]
+            self.temp_dbc.execute(u'select OBJECTID from crostab_razv where SOATO is Null')
+            soato_is_null = [row[0] for row in self.temp_dbc.fetchall()]
             return dict(isnull = list(set(soato_is_null)-set(not_in_soato_code)), notin = not_in_soato_code)
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -118,11 +140,11 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_user_1(self, try_mkconn = True):
-        if self.get_dbc:
-            self.get_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_1 = b.UserN WHERE b.UserN Is Null and UserN_Sad is NULL')
-            notin_user_n1 = [row[0] for row in self.get_dbc.fetchall()]
-            self.get_dbc.execute(u'select OBJECTID from crostab_razv where UserN_1 is Null')
-            usern1_is_null = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_1 = b.UserN WHERE b.UserN Is Null and UserN_Sad is NULL')
+            notin_user_n1 = [row[0] for row in self.temp_dbc.fetchall()]
+            self.temp_dbc.execute(u'select OBJECTID from crostab_razv where UserN_1 is Null')
+            usern1_is_null = [row[0] for row in self.temp_dbc.fetchall()]
             return dict(isnull = list(set(usern1_is_null)-set(notin_user_n1)), notin = notin_user_n1)
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -130,11 +152,11 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_part_1(self, try_mkconn = True):
-        if self.get_dbc:
-            self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE not Part_1 between 0.0001 and 100')
-            part1err = [row[0] for row in self.get_dbc.fetchall()]
-            self.get_dbc.execute(u'select OBJECTID from crostab_razv where Part_1 is Null')
-            part1isnull = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE not Part_1 between 0.0001 and 100')
+            part1err = [row[0] for row in self.temp_dbc.fetchall()]
+            self.temp_dbc.execute(u'select OBJECTID from crostab_razv where Part_1 is Null')
+            part1isnull = [row[0] for row in self.temp_dbc.fetchall()]
             return dict(isnull = list(set(part1isnull)-set(part1err)), notin = part1err)
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -142,14 +164,14 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_part(self, try_mkconn = True):
-        if not self.get_dbc:
+        if not self.temp_dbc:
             self.tempdb_conn.make_connection()
-        if self.get_dbc:
+        if self.temp_dbc:
             part_sum = u'Part_1'
             for i in range(self.__n):
                 if i>1: part_sum += u'+Part_%s' % unicode(i)
-            self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE round(%s,3) <> 100' % part_sum)
-            parterr = [row[0] for row in self.get_dbc.fetchall()]
+            self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE round(%s,3) <> 100' % part_sum)
+            parterr = [row[0] for row in self.temp_dbc.fetchall()]
             return parterr
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -157,9 +179,9 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_user_n_sad(self, try_mkconn = True):
-        if self.get_dbc:
-            self.get_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_Sad = b.UserN WHERE b.UserN Is Null and UserN_Sad is not NULL')
-            not_in_user_n1 = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_Sad = b.UserN WHERE b.UserN Is Null and UserN_Sad is not NULL')
+            not_in_user_n1 = [row[0] for row in self.temp_dbc.fetchall()]
             return not_in_user_n1
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -167,9 +189,9 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_soato_table(self, try_mkconn = True):
-        if self.get_dbc:
-            self.get_dbc.execute(u'SELECT OBJECTID FROM SOATO WHERE KOD Is Null or Name is Null')
-            is_null = [row[0] for row in self.get_dbc.fetchall()]
+        if self.temp_dbc:
+            self.temp_dbc.execute(u'SELECT OBJECTID FROM SOATO WHERE KOD Is Null or Name is Null')
+            is_null = [row[0] for row in self.temp_dbc.fetchall()]
             return is_null
         elif try_mkconn:
             self.tempdb_conn.make_connection()
@@ -177,25 +199,25 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_us_f22part(self, try_mkconn = True):
-        if self.get_dbc:
+        if self.temp_dbc:
             n=1
             user_err = {}
             f22_err = {}
             part_err = {}
             while True:
                 u_n = unicode(n)
-                self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE UserN_%(nn)s is NOT Null and (F22_%(nn)s is Null or Part_%(nn)s = 0)' % {u'nn': u_n})
-                errin_user_n = [row[0] for row in self.get_dbc.fetchall()]
-                self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE F22_%(nn)s is NOT Null and (UserN_%(nn)s is Null or Part_%(nn)s = 0)' % {u'nn': u_n})
-                errin_f22 = [row[0] for row in self.get_dbc.fetchall()]
-                self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE Part_%(nn)s <> 0 and (UserN_%(nn)s is Null or F22_%(nn)s is Null)' % {u'nn': u_n})
-                errin_part_n = [row[0] for row in self.get_dbc.fetchall()]
+                self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE UserN_%(nn)s is NOT Null and (F22_%(nn)s is Null or Part_%(nn)s = 0)' % {u'nn': u_n})
+                errin_user_n = [row[0] for row in self.temp_dbc.fetchall()]
+                self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE F22_%(nn)s is NOT Null and (UserN_%(nn)s is Null or Part_%(nn)s = 0)' % {u'nn': u_n})
+                errin_f22 = [row[0] for row in self.temp_dbc.fetchall()]
+                self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE Part_%(nn)s <> 0 and (UserN_%(nn)s is Null or F22_%(nn)s is Null)' % {u'nn': u_n})
+                errin_part_n = [row[0] for row in self.temp_dbc.fetchall()]
                 if errin_user_n: user_err[n] = errin_user_n
                 if errin_f22: f22_err[n] = errin_f22
                 if errin_part_n: part_err[n] = errin_part_n
                 try:
                     n+=1
-                    self.get_dbc.execute(u'SELECT F22_%s FROM crostab_razv;' % unicode(n))
+                    self.temp_dbc.execute(u'SELECT F22_%s FROM crostab_razv;' % unicode(n))
                 except pyodbc.Error :
                     return dict(UserN_ = user_err, F22_ = f22_err, Part_ = part_err)
         elif try_mkconn:
@@ -204,18 +226,18 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_user_n(self, try_mkconn = True):
-        if self.get_dbc:
+        if self.temp_dbc:
             n=2
             not_in_usern = {}
             while True:
                 u_n = unicode(n)
-                self.get_dbc.execute(u'''SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_%s = b.UserN
+                self.temp_dbc.execute(u'''SELECT a.OBJECTID FROM crostab_razv a LEFT JOIN Users b ON a.UserN_%s = b.UserN
                                         WHERE b.UserN Is Null and a.UserN_%s is not Null and UserN_Sad is Null''' % (u_n,u_n))
-                notin = [row[0] for row in self.get_dbc.fetchall()]
+                notin = [row[0] for row in self.temp_dbc.fetchall()]
                 if notin: not_in_usern[n] = notin
                 try:
                     n+=1
-                    self.get_dbc.execute(u'SELECT UserN_%s FROM crostab_razv;' % unicode(n))
+                    self.temp_dbc.execute(u'SELECT UserN_%s FROM crostab_razv;' % unicode(n))
                 except pyodbc.Error :
                     return not_in_usern
         elif try_mkconn:
@@ -224,17 +246,17 @@ class DataControl(object):
         else: self.err_connect()
 
     def contr_part_n(self, try_mkconn = True):
-        if self.get_dbc:
+        if self.temp_dbc:
             n=2
             error_part_n = {}
             while True:
                 u_n = unicode(n)
-                self.get_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE not Part_%s between 0 and 99.9999 or Part_%s is Null' % (u_n, u_n))
-                errors = [row[0] for row in self.get_dbc.fetchall()]
+                self.temp_dbc.execute(u'SELECT OBJECTID FROM crostab_razv WHERE not Part_%s between 0 and 99.9999 or Part_%s is Null' % (u_n, u_n))
+                errors = [row[0] for row in self.temp_dbc.fetchall()]
                 if errors: error_part_n[n] = errors
                 try:
                     n+=1
-                    self.get_dbc.execute(u'SELECT Part_%s FROM crostab_razv;' % unicode(n))
+                    self.temp_dbc.execute(u'SELECT Part_%s FROM crostab_razv;' % unicode(n))
                 except pyodbc.Error :
                     self.__n = n
                     return error_part_n
@@ -243,51 +265,54 @@ class DataControl(object):
             return self.contr_part_n(False)
         else: self.err_connect()
 
+    def get_f22_string(self):
+        f22_str = []
+        for key in self.sprav_holder.f22_notes:
+            f22_str.append('\'%s\''%key)
+        f22_str = ','.join(f22_str)
+        return f22_str
+
     def contr_f22_n(self, try_mkconn = True):
-        if self.get_dbc:
+        if self.temp_dbc:
             n=2
             notinf22n = {}
+            columns = self.tempdb_conn.get_f_names(crs_tab)
+            f22_fields = [f_name for f_name in columns if 'F22' in f_name]
             while True:
-                u_n = unicode(n)
-                notin = self.contr_field(u'S_Forma22', u'F22Code', u'crostab_razv', u'F22_%s' % u_n, 1)
-                if notin: notinf22n[n] = notin
-                try:
+                if u'F22_%d'%n in f22_fields:
+                    notin = self.contr_field(self.f22_string, crs_tab, u'F22_%d' % n, can_be_null = True)
+                    if notin: notinf22n[n] = notin
                     n+=1
-                    self.get_dbc.execute(u'SELECT F22_%s FROM crostab_razv;' % unicode(n))
-                except pyodbc.Error :
+                else:
                     return notinf22n
         elif try_mkconn:
             self.tempdb_conn.make_connection()
             return self.contr_f22_n(False)
         else: self.err_connect()
 
+    def contr_f22_1(self):
+        return self.contr_field(self.f22_string, u'crostab_razv', u'F22_1')
 
     def contr_users(self):
-        return self.contr_field(u'S_Usertype', u'UsertypeCode', u'Users', u'UserType')
+        return self.contr_field(self.sprav_holder.user_types, u'Users', u'UserType')
 
     def contr_slnad(self):
-        return self.contr_field(u'S_SlNad', u'SLNADCode', u'crostab_razv', u'SLNAD')
+        return self.contr_field(self.sprav_holder.slnad_codes, u'crostab_razv', u'SLNAD')
 
     def contr_state(self):
-        return self.contr_field(u'S_State', u'StateCode', u'crostab_razv', u'State_1')
-
-    def contr_f22_1(self):
-        return self.contr_field(u'S_Forma22', u'F22Code', u'crostab_razv', u'F22_1')
+        return self.contr_field(self.sprav_holder.state_codes, u'crostab_razv', u'State_1')
 
     def contr_lc(self):
-        return self.contr_field(u'LandCodes', u'LandCode', u'crostab_razv', u'LANDCODE')
+        lc = []
+        lc_sprav = self.sprav_holder.land_codes
+        for key in lc_sprav:
+            lc.extend(lc_sprav[key])
+        lc = set(lc)
+        lc = ','.join(map(lambda x: str(x), lc))
+        return self.contr_field(lc, u'crostab_razv', u'LANDCODE')
 
     def contr_melio_code(self):
-        return self.contr_field(u'S_MelioCode', u'MelioCode', u'crostab_razv', u'MELIOCODE')
-
-    @staticmethod
-    def err_connect():
-        print u'Произошла ошибка соединения с базой данных'
-
-    def make_li_by_bgd(self, codesfield, tablename):
-        codes_list = self.__selectbgd(u'select %s from %s' % (codesfield, tablename))
-        codes = tuple(codes_list)
-        return unicode(codes)
+        return self.contr_field(self.sprav_holder.melio_codes, u'crostab_razv', u'MELIOCODE')
 
     def run_field_control(self):
         descript1 = u'Найдены несоответствия с проверочной таблицей'
@@ -338,10 +363,3 @@ class DataControl(object):
                         return_list.append((ctr, u'%s%d' % (key,n), fields_us_part_f22[key][n], descript3(n)))
         return_list.append((ctr, u'Part_1..Part_N', self.contr_part(), u'Сумма полей Part_* должна быть равна 100'))
         return filter(lambda x: x[2] != [], return_list)
-
-    def __selectbgd(self, query):
-        return self.sprav_holder.select_bgd(query)
-
-if __name__ == u'__main__':
-    import time
-    print time.ctime(), u'Run ends'

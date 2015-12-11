@@ -268,8 +268,8 @@ class ExpFA(object):
             query_part = u''
             for f_k, f_v in sorted(f_dict.items()):
                 if f_v[f_name_ki]:
-                    query_part+= u'%s DOUBLE NULL, ' % f_v[f_name_ki]
-                    created_fields.append(u'%s' % f_v[f_name_ki])
+                    query_part+= u'f_%s DOUBLE NULL, ' % f_v[f_name_ki]
+                    created_fields.append(u'f_%s' % f_v[f_name_ki])
             return query_part
         create_fa += add_fields(self.sprav_holder.expa_f_str, u'f_name')
         if razv:

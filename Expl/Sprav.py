@@ -3,21 +3,6 @@
 import pyodbc
 import os.path
 
-'''
-settings for .exe
-work_dir, tempDB_path used in other modules
-'''
-
-# work_dir = unicode(os.path.abspath(''))+u'\\Spr'
-# tempDB_path = u'%s\\tempDbase.mdb' % work_dir
-# sprav_path = u'%s\\Spravochnik.mdb' % work_dir
-
-'''
-settings for develop
-'''
-work_dir = unicode(os.path.dirname(os.path.abspath(__file__)))
-tempDB_path = u'%s\\tempDbase.mdb' % work_dir
-sprav_path = u'%s\\Spravochnik.mdb' % work_dir
 class DBConn(object):
     def __init__(self, db_pass, do_conn = True):
         self.db_pass = db_pass
@@ -29,6 +14,7 @@ class DBConn(object):
             self.make_connection()
     def get_dbc(self):
         return self.__dbc
+
     def make_connection(self):
         if not self.__dbc:
             try:
@@ -65,6 +51,12 @@ class DBConn(object):
         for f_info in self.get_columns(table_name):
             f_names.append(f_info[3])
         return f_names
+
+    def get_f_names_types(self, table_name):
+        f_name_type = {}
+        for f_info in self.get_columns(table_name):
+            f_name_type[f_info[3]] = f_info[5]
+        return f_name_type
 
     def insert_row(self, tab_name, fields, vals):
         if self.__dbc:
@@ -172,11 +164,31 @@ def remake_list(li):
     return zip(minli,maxli)
 
 class SpravError(Exception):
-    def __init__(self, table = None, row = None):
-        self.text = u'Не смог подключиться'
-        if row:
-            self.text = u'Не корректные данные справочника! Проверьте строку %s в таблице %s' % (table, row)
+    def __init__(self, e_type, *args):
+        self.text = u'Unexpected error!'
+        if e_type == 1:
+            if len(args) == 2:
+                row, table  = args
+                self.text = u'Не корректные данные справочника! Проверьте строку %s в таблице %s' % (table, row)
+            else: self.text+=u'wrong args.'
+        elif e_type==0:
+            self.text = u'Не удалось соединиться с базой данных справочников'
+        elif e_type == 2:
+            self.text = u'не удалось выполнить запрос %s. Проверьте корректность базы данных' % unicode(args)
         super(SpravError, self).__init__(self.text)
+
+def catch_sprav_err(decor_method):
+    def wrapper(*args, **kwargs):
+        try:
+            return decor_method(*args, **kwargs)
+        except SpravError:
+            raise
+        except:
+            if len(args) == 1:
+                raise SpravError(2, args)
+            else:
+                raise SpravError(3)
+    return wrapper
 
 class SpravHolder(object):
     def __init__(self):
@@ -188,7 +200,13 @@ class SpravHolder(object):
         self.soato_npt = None
         self.bgd2ekp =   None
         self.f22_notes = None
-
+        self.bgd2ekp_1 = None
+        self.bgd2ekp_2 = None
+        self.user_types = None
+        self.slnad_codes =None
+        self.state_codes =None
+        self.melio_codes =None
+        self.land_codes =None
 
     def set_parameters(self, sprav_dict):
         try:
@@ -197,9 +215,14 @@ class SpravHolder(object):
             self.expb_f_str = sprav_dict[u'expb_f_str']
             self.expb_r_str = sprav_dict[u'expb_r_str']
             self.soato_npt = sprav_dict[u'soato_npt']
+            self.f22_notes = sprav_dict[u'f22_notes']
             self.bgd2ekp_1 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][0])
             self.bgd2ekp_2 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][2])
-            self.f22_notes = sprav_dict[u'f22_notes']
+            self.user_types = sprav_dict[u'user_types']
+            self.slnad_codes = sprav_dict[u'slnad_codes']
+            self.state_codes = sprav_dict[u'state_codes']
+            self.melio_codes = sprav_dict[u'melio_codes']
+            self.land_codes = sprav_dict[u'land_codes']
             return True
         except KeyError:
             return False
@@ -209,25 +232,41 @@ class SpravHolder(object):
         data_dict = {}
         self.s_conn.make_connection()
         if self.s_conn.has_dbc:
-            data_dict[u'expa_f_str'] = self.mdb_get_f_str()
-            data_dict[u'expa_r_str'] = self.mdb_get_ra_str()
-            data_dict[u'expb_f_str'] = self.mdb_eb_f_sructure()
-            data_dict[u'expb_r_str'] = self.mdb_get_rb_str(data_dict[u'expb_f_str'].keys())
-            data_dict[u'soato_npt'] = self.mdb_get_npt()
-            data_dict[u'bgd2ekp'] = self.remake_bgd2()
-            data_dict[u'f22_notes'] = self.get_f22_notes()
+            try:
+                data_dict[u'land_codes'] = self.get_l_codes()
+                data_dict[u'expa_f_str'] = self.get_expa_f_str(data_dict[u'land_codes'])
+                data_dict[u'expa_r_str'] = self.get_expa_r_str()
+                data_dict[u'expb_f_str'] = self.get_expb_f_str(data_dict[u'land_codes'])
+                data_dict[u'expb_r_str'] = self.get_expb_r_str(data_dict[u'expb_f_str'].keys())
+                data_dict[u'soato_npt'] = self.get_np_type()
+                data_dict[u'bgd2ekp'] = self.remake_bgd2()
+                data_dict[u'f22_notes'] = self.get_f22_notes()
+                data_dict[u'user_types'] = self.select_to_str(u'select UsertypeCode from S_Usertype')
+                data_dict[u'slnad_codes'] = self.select_to_str(u'select SLNADCode from S_Slnad')
+                data_dict[u'state_codes'] = self.select_to_str(u'select StateCode from S_State')
+                data_dict[u'melio_codes'] = self.select_to_str(u'select MelioCode from S_MelioCode')
+            except SpravError:
+                raise
+            except Exception:
+                raise SpravError(3)
         else:
-            raise SpravError
-            #TODO: Work with exception
+            raise SpravError(0)
         self.s_conn.close_conn()
         return data_dict
 
+    @catch_sprav_err
     def select_sprav(self, query):
-        return self.s_conn.get_tab_list(query)
+        res = self.s_conn.get_tab_list(query)
+        return res
 
-    def mdb_get_f_str(self):
+    @catch_sprav_err
+    def select_to_str(self, query):
+        codes_list = self.s_conn.exec_sel_query(query)
+        codes_list = map(lambda x : u'\'%s\'' % x[0] if isinstance(x[0], unicode) else str(x[0]), codes_list)
+        codes_list = ', '.join(codes_list)
+        return codes_list
+    def get_expa_f_str(self,l_codes):
         f_structure = self.s_conn.get_tab_dict(u'select f_num, f_name, sum_fields from ExpA_f_Structure')
-        l_codes = self.mdb_get_lc()
         for key in f_structure:
             f_props = f_structure[key]
             sum_f = self.eval_to_list(f_props[1]) if f_props[1] else []
@@ -238,26 +277,28 @@ class SpravHolder(object):
                 f_structure[key][u'codes'] = []
         return f_structure
 
-    def mdb_eb_f_sructure(self):
+    def get_expb_f_str(self, l_codes):
         f_structure = self.s_conn.get_tab_dict(u'select f_name, f_num, sort_key, sum_fields from ExpB_f_Structure')
-        l_codes = self.mdb_get_lc()
         r_codes = self.s_conn.get_tab_dict(u'select RowName, Code, SortIndex from ExpA_r_Structure')
         for key in f_structure:
             f_props = f_structure[key]
             sum_f = self.eval_to_list(f_props[2]) if f_props[2] else []
             f_structure[key] = {u'f_num':f_props[0], u'sum_f':sum_f}
-            srt_keys = self.split_line(f_props[1], u';')
-            if not srt_keys:
-                raise SpravError(u'ExpB_f_Structure', key)
+            srt_cases = self.split_line(f_props[1], u';')
+            if not srt_cases:
+                continue
             sort_codes = []
             indexes = []
-            for srt in srt_keys:
+            for srt in srt_cases:
                 if u'(' in srt:
                     s_by = srt[:srt.index('(')]
                     substr = srt[srt.index('(')+1:-1]
-                    if s_by == u'lc': srt_ind = 1
-                    elif s_by in r_codes: srt_ind = r_codes[srt][1]
-                    else: continue
+                    if s_by == u'lc':
+                        srt_ind = 1
+                    elif s_by in r_codes:
+                        srt_ind = r_codes[srt][1]
+                    else:
+                        raise SpravError(1, u'ExpB_f_Structure', key)
                     params = self.split_line(substr, u',')
                     temp_li = []
                     for i in params:
@@ -266,14 +307,14 @@ class SpravHolder(object):
                             try:
                                 i = int(i)
                             except ValueError:
-                                raise SpravError(u'ExpB_f_Structure', key)
+                                raise SpravError(1, u'ExpB_f_Structure', key)
                             if i in l_codes:
                                 temp_li.extend(l_codes[i])
                         else:
                             try:
                                 temp_li.append(int(i))
                             except ValueError:
-                                raise SpravError(u'ExpB_f_Structure', key)
+                                raise SpravError(1, u'ExpB_f_Structure', key)
                     sort_codes.append(temp_li)
                     indexes.append(srt_ind)
                 elif srt == u'lc':
@@ -285,6 +326,8 @@ class SpravHolder(object):
                     if codes:
                         sort_codes.append(codes)
                         indexes.append(r_codes[srt][1])
+                else:
+                    raise SpravError(1, u'ExpB_f_Structure', key)
             if sort_codes:
                 f_structure[key][u'codes'] = sort_codes
                 f_structure[key][u'sort_i'] = indexes
@@ -310,7 +353,8 @@ class SpravHolder(object):
             return split_l
         else:
             return []
-    def mdb_get_lc(self):
+
+    def get_l_codes(self):
         lc_d = {}
         l_codes = self.select_sprav(u'select Field_num, LandCode from LandCodes')
         for (key, kod) in l_codes:
@@ -318,24 +362,24 @@ class SpravHolder(object):
             except KeyError: lc_d[key] = [kod,]
         return lc_d
 
-    def mdb_get_ra_str(self):
+    def get_expa_r_str(self):
         query = u'select RowID, RowName, Code, SortIndex from ExpA_r_Structure'
         params = self.s_conn.get_tab_dict(query)
         for key in params:
             if params[key][1]:
                 cods = self.eval_to_list(params[key][1])
                 if not cods:
-                    raise SpravError(u'ExpA_r_Structure', key)
+                    raise SpravError(1, u'ExpA_r_Structure', key)
             else: cods = []
             params[key][1] = cods
         return  params
 
 
-    def mdb_get_rb_str(self, f_names):
+    def get_expb_r_str(self, f_names):
         query = u'select row_key, val_f22, sort_by, ConditionSum from ExpB_r_Structure'
         r_params = self.s_conn.get_tab_dict(query)
         def r_err(r_k):
-            raise SpravError(u'ExpB_r_Structure', r_k)
+            raise SpravError(1, u'ExpB_r_Structure', r_k)
         for key in r_params:
             start_params = r_params[key]
             r_params[key] = {u'row_name':start_params[0]}       #work with val_f22
@@ -408,14 +452,7 @@ class SpravHolder(object):
             return True
         else: return False
 
-    @staticmethod
-    def select_bgd(query):
-        #TODO: rewrite this method
-        spr_conn = DBConn(sprav_path)
-        selresult = [str(row[0]) if type(row[0]) == unicode else row[0] for row in spr_conn.exec_sel_query(query)]
-        return selresult
-
-    def mdb_get_npt(self):
+    def get_np_type(self):
         query = u'select znak1, znak2, znak57min, znak57max, znak810min,znak810max,TypeNP from SOATO'
         return self.s_conn.exec_sel_query(query)
 
@@ -427,7 +464,7 @@ class SpravHolder(object):
         selectbgd1 = u'select F22,UTYPE,NPTYPE,STATE,SLNAD,NEWUSNAME,DOPUSNAME from BGDtoEkp1'
         newbgd = []
         if self.s_conn:
-            for row in self.s_conn.get_tab_list(selectbgd1):
+            for row in self.select_sprav(selectbgd1):
                 utypelist = u_to_int(row[1].split(','))
                 nptypelist = u_to_int(row[2].split(','))
                 stateli = u_to_int(row[3].split(','))
@@ -438,16 +475,19 @@ class SpravHolder(object):
                             newbgd.append((row[0], utype, state, int(row[4]), npt[0], npt[1],  row[5],row[6]))
         return newbgd
 
-    def remake_bgd2(self, upd_lc_st = False):
+    def remake_bgd2(self, upd_lc_st = True):
         selectbgd2 = u'select F22,NEWF22,UTYPE,NPTYPE,LCODE_MIN,LCODE_MAX,NewLCODE,STATE,NewSTATE,SLNAD, NEWUSNAME,DOPUSNAME from BGDtoEkp2'
         bgd2 = []
         if self.s_conn:
-            for row in self.s_conn.get_tab_list(selectbgd2):
+            for row in self.select_sprav(selectbgd2):
                 utypelist = u_to_int(row[2].split(u','))
                 nptypelist = u_to_int(row[3].split(u','))
                 stateli = u_to_int(row[7].split(u','))
                 nptypeliremaked = remake_list(nptypelist)
-                nlc, nst = row[6],row[8] if upd_lc_st else 0
+                if upd_lc_st:
+                    nlc, nst = row[6],row[8]
+                else:
+                    nlc, nst = None, None
                 for state in stateli:
                     for utype in utypelist:
                         for npt in nptypeliremaked:
@@ -484,11 +524,11 @@ class SpravHolder(object):
         return bgd_dict
 
 class SpravControl(object):
-    def __init__(self,db_path, fullcontr = True):
+    def __init__(self, db_path, fullcontr = True):
         self.db_path = db_path
         self.tabs_fields = dict()
-        self.tabs_fields[u'LandCodes'] = [(u'OBJECTID', u'COUNTER'), (u'LandCode', u'SMALLINT'), (u'Notes', u'VARCHAR'), (u'field_Num', u'SMALLINT'), (u'ValueF22', u'VARCHAR')]
-        self.tabs_fields[u'ExpA_r_Structure'] = [(u'RowID', u'INTEGER'), (u'Code', u'VARCHAR'), (u'Notes', u'VARCHAR'), (u'RowName', u'VARCHAR'), (u'SortIndex', u'SMALLINT')]
+        self.tabs_fields[u'LandCodes'] = [(u'OBJECTID', u'COUNTER'), (u'LandCode', u'SMALLINT'), (u'field_Num', u'SMALLINT'), (u'ValueF22', u'VARCHAR')]
+        self.tabs_fields[u'ExpA_r_Structure'] = [(u'RowID', u'INTEGER'), (u'Code', u'VARCHAR'), (u'RowName', u'VARCHAR'), (u'SortIndex', u'SMALLINT')]
         self.tabs_fields[u'ExpA_f_Structure'] = [(u'f_num', u'INTEGER'), (u'f_name', u'VARCHAR'), (u'sum_fields', u'VARCHAR')]
         self.tabs_fields[u'ExpB_f_Structure'] = [(u'f_num', u'INTEGER'), (u'f_name', u'VARCHAR'), (u'sort_key', u'VARCHAR'), (u'sum_fields', u'VARCHAR')]
         self.tabs_fields[u'ExpB_r_Structure'] = [(u'row_key', u'VARCHAR'), (u'val_f22', u'VARCHAR'), (u'sort_by', u'VARCHAR'), (u'ConditionSum', u'VARCHAR')]
@@ -496,11 +536,11 @@ class SpravControl(object):
             self.tabs_fields[u'BGDToEkp1'] = [(u'F22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'STATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
             self.tabs_fields[u'BGDToEkp2'] = [(u'F22', u'VARCHAR'), (u'NEWF22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'LCODE_MIN', u'SMALLINT'), (u'LCODE_MAX', u'SMALLINT'), (u'NewLCODE', u'SMALLINT'), (u'STATE', u'VARCHAR'), (u'NewSTATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
             self.tabs_fields[u'SOATO'] = [(u'OBJECTID', u'COUNTER'), (u'znak1', u'VARCHAR'), (u'znak2', u'SMALLINT'), (u'znak57min', u'SMALLINT'), (u'znak57max', u'SMALLINT'), (u'znak810max', u'SMALLINT'), (u'znak810min', u'SMALLINT'), (u'TypeNP', u'SMALLINT'), (u'NPTypeNotes', u'VARCHAR'), (u'SovType', u'VARCHAR')]
-            self.tabs_fields[u'S_State'] = [(u'OBJECTID', u'COUNTER'), (u'StateCode', u'SMALLINT'), (u'Notes', u'VARCHAR')]
+            self.tabs_fields[u'S_State'] = [(u'OBJECTID', u'COUNTER'), (u'StateCode', u'SMALLINT')]
             self.tabs_fields[u'S_Forma22'] = [(u'OBJECTID', u'COUNTER'), (u'F22Code', u'VARCHAR'), (u'Notes', u'VARCHAR')]
             self.tabs_fields[u'S_MelioCode'] = [(u'OBJECTID', u'COUNTER'), (u'MelioCode', u'SMALLINT'), (u'Notes', u'VARCHAR'), (u'NumberStrEkp', u'VARCHAR'), (u'ValueFormEkp', u'VARCHAR'), (u'NumberGrF22_1', u'VARCHAR'), (u'ValueFormF22_1', u'VARCHAR')]
-            self.tabs_fields[u'S_SlNad'] = [(u'OBJECTID', u'COUNTER'), (u'SLNADCode', u'BYTE'), (u'Notes', u'VARCHAR')]
-            self.tabs_fields[u'S_Usertype'] = [(u'OBJECTID', u'COUNTER'), (u'UsertypeCode', u'BYTE'), (u'Notes', u'VARCHAR')]
+            self.tabs_fields[u'S_SlNad'] = [(u'OBJECTID', u'COUNTER'), (u'SLNADCode', u'BYTE')]
+            self.tabs_fields[u'S_Usertype'] = [(u'OBJECTID', u'COUNTER'), (u'UsertypeCode', u'BYTE')]
         self.s_conn = DBConn(self.db_path)
         if self.s_conn.has_dbc:
             self.losttables = self.contr_tables()
@@ -510,7 +550,7 @@ class SpravControl(object):
                 if not self.badfields[key]:
                     del self.badfields[key]
         else:
-            pass#TODO: can't connect to spr
+            raise SpravError(0)
 
     def __del__(self):
         del self.s_conn
@@ -531,10 +571,5 @@ class SpravControl(object):
                 returnlist.append(field)
         return returnlist
 
-
-
-
-if __name__=='__main__':
-    bgd = SpravControl()
     
     

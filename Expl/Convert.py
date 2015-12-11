@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pyodbc
-from Sprav import DBConn, tempDB_path
+from Sprav import DBConn
 
 ct = u'crostab_razv'
 def add_column(connection, tabname, colname, coltype=u'int Null'):
@@ -19,7 +19,7 @@ def make_nptype(kod, npt_sprav):
                     if row[4] <= int(kod[7:10]) <= row[5] or row[4] is None:
                         return row[6]
 
-def  upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
+def upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
     sqlupdnp = u'update %s set NPType = %s where mid(%s, 1, 1) in (%s)'%(table, typenp, f_kod, zn1)
     if zn2 is not  None:
         sqlupdnp += u' and mid(%s, 2, 1) = %s' % (f_kod, zn2)
@@ -91,18 +91,20 @@ class CtrRow(object):
         :param nm: max number of parts in crostab table
         :param sprav: SpravHolder instance
         """
-        self.has_err = False                # False - контроль пройден,
-                                            # 1 - ошибки при доле 100%,
-                                            # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
-                                            # 3 - сброс всех параметров,ошибка new_state при долях
+        self.has_err = False                # отанется False - контроль пройден,
+        # 1 - ошибки при доле 100%,
+        # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
+        # 3 - сброс всех параметров,ошибка new_state при долях
+        # 4 - не сформирован soato
 
-        if n_dop_args:self.dop_args = r_args[-n_dop_args:]
-        else: self.dop_args = []
-        self.spr_bgd_1 = sprav.bgd2ekp_1
-        self.spr_bgd_2   = sprav.bgd2ekp_2
         self.object_id = r_args[0]
         self.soato = r_args[1]
         self.np_type = make_nptype(self.soato, sprav.soato_npt)
+        if self.np_type is None:
+            self.has_err = 4
+            return
+        self.spr_bgd_1 = sprav.bgd2ekp_1
+        self.spr_bgd_2   = sprav.bgd2ekp_2
         self.slnad = r_args[2]
         self.state = r_args[3]
         self.lc = r_args[4]
@@ -116,12 +118,16 @@ class CtrRow(object):
         self.usern = list(r_args[nm+7:nm+7+self.n])
         self.utype = list(r_args[2*nm+7:2*nm+7+self.n])
         self.area = list(r_args[3*nm+7:3*nm+7+self.n])
-        self.new_state = False
-        self.new_lc = False
-        self.state_changed = False
-        self.lc_changed = False
+        if n_dop_args:self.dop_args = r_args[-n_dop_args:]
+        else:
+            self.dop_args = []
+        self.new_state = None
+        self.new_lc = None
+        self.old_changed_state = None
+        self.old_changed_lc = None
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
+        self.bgd_control()
 
     def has_code(self, n, param, codes):
         if param == u'f22':
@@ -150,9 +156,9 @@ class CtrRow(object):
             if self.bgd1_control(0):
                 pass
             elif self.bgd2_control(0):
-                if self.new_state:
+                if self.new_state is not None:
                     self.change_state()
-                if self.new_lc:
+                if self.new_lc is not None:
                     self.change_lc()
             else:
                 self.has_err = 1
@@ -164,24 +170,22 @@ class CtrRow(object):
             if bgd1_failed:
                 for n in bgd1_failed:
                     if self.bgd2_control(n):
-                        if self.new_lc:
+                        if self.new_lc is not None:
                             self.change_lc()
-                        if self.new_state:
-                            self.reset_bgd_args()
+                        if self.new_state is not None:
+                            self.has_err = 3
                             break
                     else:
                         self.has_err = 2
+                        break
 
     def change_lc(self):
-        self.lc_changed = self.lc
+        self.old_changed_lc = self.lc
         self.lc = self.new_lc
+
     def change_state(self):
-        self.state_changed = self.state
+        self.old_changed_state = self.state
         self.state = self.new_state
-    def reset_bgd_args(self):
-        self.dopname = [None]*self.n
-        self.nusname = [None]*self.n
-        self.has_err = 3
 
     def bgd1_control(self, nn):
         try:
@@ -190,7 +194,6 @@ class CtrRow(object):
                 if b_row[0] <= self.np_type <= b_row[1]:
                     self.nusname[nn] = b_row[2]
                     self.dopname[nn] = b_row[3]
-                    # self.after_control = 1
                     return True
         except KeyError:
             pass
@@ -205,7 +208,8 @@ class CtrRow(object):
                     self.f22[nn]  = b_row[0]
                     self.nusname[nn] = b_row[7]
                     self.dopname[nn] = b_row[8]
-                    self.new_lc, self.new_state = b_row[5],b_row[6]
+
+                    self.new_lc, self.new_state = b_row[5], b_row[6]
                     return True
         except KeyError:
             pass
@@ -217,11 +221,8 @@ def for_query(field, count):
         fields += u'%s%s, ' % field, i
     return fields[:-2]
 
-def convert(sprav_holder):
-    global bgd_1, bgd_2
-    bgd_1 = sprav_holder.bgd2ekp
-    bgd_2 = sprav_holder.bgd2ekp
-    ctr_conn = DBConn(tempDB_path)
+def convert(sprav_holder, temp_db_path):
+    ctr_conn = DBConn(temp_db_path)
     convert_soato(ctr_conn)
     n_max = add_utype_partn(ctr_conn)
 
@@ -245,10 +246,11 @@ def convert(sprav_holder):
     select_ctr_all += u' from %s' % ct
     rows_ok, rows_failed, = [],[]
     select_result = ctr_conn.exec_sel_query(select_ctr_all)
+
+    whats_err = {}
     if select_result:
         for row in select_result:
             new_row = CtrRow(row, dop_f_count,  n_max, sprav_holder )       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
-            new_row.bgd_control()
             if new_row.has_err:
                 rows_failed.append(new_row)
             else:
@@ -256,25 +258,23 @@ def convert(sprav_holder):
         del ctr_conn
 
         err_dict = dict()
-        whats_err = {1 : [], 2 : [], 3 : []}
-        for err in rows_failed:
-            for n in range(err.n):
-                if not err.nusname[n]:
-                    try:
-                        err_dict[n+1].append(err.object_id)
-                    except KeyError:
-                        err_dict[n+1] = [err.object_id,]
-            whats_err[err.has_err].append(err.object_id)
+
+        for err_row in rows_failed:
+            try:
+                whats_err[err_row.has_err].append(err_row.object_id)
+            except KeyError:
+                whats_err[err_row.has_err] = [err_row.object_id, ]
+
         print whats_err
-        users_d, soato_d = data_users_soato(tempDB_path)
+        users_d, soato_d = data_users_soato(temp_db_path)
         save_info = [rows_ok, users_d, soato_d]
-        # if err_dict:
-        #     return err_dict
-        # else:
-        #     return save_info
-        return save_info
+        if whats_err:
+            return whats_err
+        else:
+            return save_info
+        # return save_info
     else:
-        return u'empty crtab'
+        raise Exception('Ошибка при загрузке данных из crostab. Connection failed')
 
 
 def data_users_soato(db_f):
@@ -310,7 +310,17 @@ def make_soato_group(s_kods):
                 soato_group[soato] = []
     return soato_group
 
-
-
-
-
+if __name__ == u'__main__':
+    npt_sprav = [(u'1,2,3,4,6,7', 2, 801, 900, 900, 999, 2),
+                 (u'5', None, None, None, None, None, 1),
+                 (u'1,2,3,4,6,7', 4, 0, 550, None, None, 1),
+                 (u'1,2,3,4,6,7', 4, 551, 750, None, None, 2),
+                 (u'1,2,3,4,6,7', 4, 751, 999, None, None, 3),
+                 (u'1,2,3,4,6,7', 2, 0, 0, None, None, 0),
+                 (u'1,2,3,4,6,7', 2, 1, 550, None, None, 1),
+                 (u'1,2,3,4,6,7', 2, 551, 700, None, None, 2),
+                 (u'1,2,3,4,6,7', 2, 701, 900, 1, 999, 3),
+                 (u'1,2,3,4,6,7', 2, 701, 800, 0, 0, 0),
+                 (u'1,2,3,4,6,7', 2, 801, 900, 0, 0, 0)]
+    res = make_nptype(u'3223904003', npt_sprav)
+    print res
