@@ -50,11 +50,11 @@ class ExpFormaB(object):
             fbrow_dict[key] = passed_rows
         return fbrow_dict
 
-    @staticmethod
-    def make_fbr_params(rows, f_str):
+    def make_fbr_params(self, rows):
+        f_str = self.sprav_holder.expb_f_str
         r_params_d = dict.fromkeys(f_str.keys(), 0)
         if rows:
-            loaded_f_nums = {}
+            ready_f_nums = {}
             for f_key, f_val in f_str.items():
                 if f_val.has_key(u'codes'):
                     sort_rows = rows[:]
@@ -75,28 +75,28 @@ class ExpFormaB(object):
                             sort_rows = new_srt_li
                         r_params_d[f_key] = s
                     if not f_val[u'sum_f']:
-                        loaded_f_nums[f_val[u'f_num']] = f_key
-            while len(f_str)>len(loaded_f_nums):
-                l = len(loaded_f_nums)
+                        ready_f_nums[f_val[u'f_num']] = f_key
+            while len(f_str)>len(ready_f_nums):
+                l = len(ready_f_nums)
                 for key, value in f_str.items():
-                    if value[u'f_num'] in loaded_f_nums:
+                    if value[u'f_num'] in ready_f_nums:
                         continue
                     elif value[u'sum_f']:
-                        check_li = loaded_f_nums.keys()
+                        check_li = ready_f_nums.keys()
                         check_li.extend(value[u'sum_f'])
-                        if len(loaded_f_nums) == len(set(check_li)):        #проверка входят ли все элементы value[u'sum_f'] в число уже сформированных полей
-                            loaded_f_nums[value[u'f_num']] = key
+                        if len(ready_f_nums) == len(set(check_li)):        #проверка входят ли все элементы value[u'sum_f'] в число уже сформированных полей
+                            ready_f_nums[value[u'f_num']] = key
                             for i in value[u'sum_f']:
-                                add_f_key = loaded_f_nums[i]
+                                add_f_key = ready_f_nums[i]
                                 r_params_d[key]+=r_params_d[add_f_key]
-                if len(loaded_f_nums) == l: break
+                if len(ready_f_nums) == l: break
         return r_params_d
 
     def create_exp_dict(self):
         exp_dict = self.sort_for_fbrows()
         count_ready = 0
         for key in exp_dict:
-            exp_dict[key] = self.make_fbr_params(exp_dict[key],self.sprav_holder.expb_f_str)
+            exp_dict[key] = self.make_fbr_params(exp_dict[key])
             if self.sprav_holder.expb_r_str[key].has_key(u'conds'):
                 exp_dict[key][u'ready'] = False
             else:
@@ -140,9 +140,18 @@ class ExpFormaB(object):
                         exp_dict[key][u'ready'] = True
                         count_ready += 1
             if cr_old == count_ready: break
-        self.round_fb(exp_dict)
         for key in exp_dict:
             exp_dict[key].pop(u'ready')
+        # Add Itogo row to explication
+        all_rows = []
+        for row in self.ctr_rows:   #(row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.slnad, row.np_type, row.dopname[n])
+            for n in range(row.n):
+                need_params = [row.area[n], row.lc, row.mc, row.st08, row.state]
+                need_params.extend(row.dop_args)
+                all_rows.append(need_params)
+        exp_dict[u'by_SHAPE'] = self.make_fbr_params(all_rows)
+
+        self.round_fb(exp_dict)
         return exp_dict
 
     @staticmethod
@@ -167,12 +176,15 @@ class ExpFormaB(object):
         r_str = self.sprav_holder.expb_r_str
         self.__exp_conn.make_connection()
         for key in sorted(exp_dict.keys()):
-            f_values = [key, r_str[key][u'row_name']]
-            for i in cr_fields[2:]:
-                if i in exp_dict[key]:
-                    f_v = exp_dict[key][i]
-                    f_values.append(f_v if f_v else 0)
-                else: f_values.append(0)
+            try:
+                f_values = [key, r_str[key][u'row_name']]
+            except KeyError as err:
+                if key == u'by_SHAPE':
+                    f_values = [key, u'Всего:']
+                else: raise err
+            for field_name in cr_fields[2:]:
+                f_v = exp_dict[key][field_name]
+                f_values.append(f_v if f_v else 0)
             inserted = self.insert_row(cr_fields, f_values)
             if not inserted: break
         self.__exp_conn.close_conn()

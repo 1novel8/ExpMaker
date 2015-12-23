@@ -59,9 +59,9 @@ def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_ob
     dest_filename = u'%s\\%s.xlsx'%(excel_path, f22_ind)
     w_book = exp_matrix(fa_data, start_f = a_l, start_r = a_n, templ_path=a_path)
     sheet = w_book.active
-    # sheet.title = u'Выборочная экспликация'
-    sheet[u'%s%s'%(a_obj_l, a_obj_n)] = obj_name
-    w_book.save(dest_filename)
+    # sheet.title = u'Активный'
+    sheet.cell(u'%s%s'%(a_obj_l, a_obj_n)).value = obj_name
+    w_book.save(filename=dest_filename)
     os.system(u'start excel.exe %s' %  dest_filename)
 
 

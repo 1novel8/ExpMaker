@@ -14,23 +14,6 @@ from PyQt4 import QtGui, QtCore
 from Expl import Control, Convert, ExpA, FormB, Sprav, SaveToXL
 from Titles import Events, ToolTip, WName, ErrMessage, LoadMessg
 
-
-# '''
-# settings for .exe
-# work_dir, tempDB_path used in other modules
-# '''
-
-# work_dir = unicode(os.path.abspath(''))+u'\\Spr'
-# tempDB_path = u'%s\\tempDbase.mdb' % work_dir
-# sprav_path = u'%s\\Spravochnik.mdb' % work_dir
-
-# '''
-# settings for develop
-# '''
-# work_dir = unicode(os.path.dirname(os.path.abspath(__file__))) + u'\\'
-
-
-
 project_dir = os.getcwd()
 spr_dir = u'%s\\Spr\\'% project_dir
 spr_default_path = u'%sDefaultSpr.pkl'%spr_dir
@@ -51,7 +34,7 @@ class MainActiveThread(QtCore.QThread):
         self.spr_path_info = None
         self.__args = []
 
-    def change_op(self, file_path, num_op, *args):
+    def change_op(self, file_path, num_op, args):
         """
         :param file_path:
         :param num_op: int num of sprav menu exits
@@ -79,6 +62,20 @@ class MainActiveThread(QtCore.QThread):
             self.save_work_pkl()
         else:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Operation not found')
+
+    def load_work_pkl(self):
+        try:
+            with open(self.__file_path, 'rb') as inp:
+                exp_data = pickle.load(inp)
+                inp.close()
+            loading_password = exp_data.pop()
+        except Exception as err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session+err.message)
+        else:
+            if loading_password == u'Salt':
+                self.emit(QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), exp_data)
+            else:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session)
 
     def save_work_pkl(self):
         try:
@@ -112,7 +109,12 @@ class MainActiveThread(QtCore.QThread):
             if failed_table:
                 failed_table = ', '.join(failed_table)
                 return ErrMessage.empty_table_data % failed_table
-
+            failed_fields = contr.contr_field_types()
+            if failed_fields:
+                for tab, fields in failed_fields.items():
+                    msg=ErrMessage.bgd_lost_fields(tab, fields)
+                    self.emit(QtCore.SIGNAL(u'control_warning(const QString&)'), msg)
+                return ErrMessage.field_control_failed
             if contr.is_empty_f_pref():
                 self.emit(QtCore.SIGNAL(u'control_warning(const QString&)'), ErrMessage.warning_no_pref)
             return False
@@ -178,20 +180,6 @@ class MainActiveThread(QtCore.QThread):
             except:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_saved)
 
-    def load_work_pkl(self):
-        try:
-            with open(self.__file_path, 'rb') as inp:
-                exp_data = pickle.load(inp)
-                inp.close()
-            loading_password = exp_data.pop()
-        except Exception as err:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session+err.message)
-        else:
-            if loading_password == u'Salt':
-                self.emit(QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), exp_data)
-            else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session)
-
 
 
     def control_db(self, full=True):
@@ -201,12 +189,11 @@ class MainActiveThread(QtCore.QThread):
                 pos = u'ет таблица' if len(sprav_contr.losttables) == 1 else u'ют таблицы'
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.bdg_lost_tables % (pos,unicode(sprav_contr.losttables)[1:-1]))
             elif sprav_contr.badfields:
-                for key in sprav_contr.badfields:
-                    pos1, pos2 = (u'ет',u'е') if len(sprav_contr.badfields[key]) == 1 else (u'ют',u'я')
-                    self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.bgd_lost_fields % (key,pos1,pos1,pos2,unicode(sprav_contr.badfields[key])[1:-1],key))
+                for key, failes in sprav_contr.badfields.items():
+                    self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.bgd_lost_fields(key, failes))
             else:
                 pass
-                #TODO: make exp structure control. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
+                #TODO: make exp structure control here. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
         else:
             self.emit(QtCore.SIGNAL(u'failure_conn(const QString&)'), ErrMessage.no_db_conn % self.__file_path)
 
@@ -233,15 +220,17 @@ class ConvertThread(QtCore.QThread):
         super(ConvertThread, self).__init__(parent)
         self.sprav_holder = sprav
     def run(self):
-        converted_data = Convert.convert(self.sprav_holder, tempDB_path)
-        if isinstance(converted_data, dict):
-            self.emit(QtCore.SIGNAL(u'conv_failed(PyQt_PyObject)'), converted_data)
-        elif isinstance(converted_data, list):
-            self.emit(QtCore.SIGNAL(u'convert_passed(PyQt_PyObject)'), converted_data)
+        try:
+            converted_data = Convert.convert(self.sprav_holder, tempDB_path)
+        except Exception as err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
         else:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.empty_crostab)
-    def __del__(self):
-        rm_temp_db()
+            if isinstance(converted_data, dict):
+                self.emit(QtCore.SIGNAL(u'conv_failed(PyQt_PyObject)'), converted_data)
+            elif isinstance(converted_data, list):
+                self.emit(QtCore.SIGNAL(u'convert_passed(PyQt_PyObject)'), converted_data)
+            else:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.empty_crostab)
 
 class ExpAThread(QtCore.QThread):
     def __init__(self, edbf, rows, sprav_holder, xl_settings, parent = None):
@@ -461,10 +450,10 @@ class MyWindow(QtGui.QMainWindow):
         self.xls_settings_d = {
             'a_sv_l':u'A',
             'a_sv_n':1,
-            'a_l':u'F',
-            'a_n':15,
-            'a_obj_l':u'M',
-            'a_obj_n':22,
+            'a_l':u'A',
+            'a_n':2,
+            'a_obj_l':u'A',
+            'a_obj_n':1,
             'b_l':u'C',
             'b_n':3,
             'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
@@ -475,7 +464,6 @@ class MyWindow(QtGui.QMainWindow):
             self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_dir).read()))
         except IOError:
             self.show_error(ErrMessage.no_css)
-
 
     def set_default_params(self):
         self.__a_thr_reinit = False
@@ -496,7 +484,7 @@ class MyWindow(QtGui.QMainWindow):
         self.treeView.hide()
         self.treeView.reset()
         self.control_btn.setDisabled(self.__is_session)
-        # self.convert_btn.setDisabled(True)
+        self.convert_btn.setDisabled(True)            # !!! Here you can enable or disable convert button
         self.exp_a_btn.setEnabled(self.__is_session)
         self.exp_b_btn.setEnabled(self.__is_session)
         self.export_frame.hide()
@@ -622,20 +610,6 @@ class MyWindow(QtGui.QMainWindow):
         self.add_event_log(Events.opened_file % self.db_file)
         self.add_event_log(Events.db_has_data % self.db_file.split(u'/')[-1], False)
 
-    # def load_session(self):
-    #     try:
-    #         with open(self.db_file, 'rb') as inp:
-    #             exp_data = pickle.load(inp)
-    #             inp.close()
-    #         loading_password = exp_data.pop()
-    #         if loading_password == u'Salt':
-    #             self.session_loaded(exp_data)
-    #         else:
-    #             self.show_error(ErrMessage.wrong_session)
-    #     except:
-    #         #TODO: rename error message and add exceptions
-    #         self.show_error(ErrMessage.wrong_session)
-    #
     def session_loaded(self, exp_data):
         self.__is_session = True
         self.set_default_params()
@@ -662,12 +636,6 @@ class MyWindow(QtGui.QMainWindow):
             exp_data = self.explication_data[:]
             exp_data.extend([self.e_db_file, u'Salt'])
             self.run_main_thr(save_file, 6, exp_data)
-            # try:
-            #     with open(save_file,u'wb') as output:
-            #         pickle.dump(exp_data, output, 2)
-            #     self.add_event_log(Events.session_saved % self.db_file)
-            # except:
-            #     self.show_error(ErrMessage.bad_session)
 
     def set_xls_mode(self):
         self.__is_xls_mode= True
@@ -912,6 +880,7 @@ class MyWindow(QtGui.QMainWindow):
         self.connect(self.control_thr, QtCore.SIGNAL(u'control_passed()'), self.enable_convert)
         self.connect(self.control_thr, QtCore.SIGNAL(u'contr_failed(PyQt_PyObject)'), self.add_control_protocol)
         self.connect(self.control_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
+        self.connect(self.control_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(ErrMessage.control_failed))
         self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.on_finished)
         self.control_thr.start()
 
@@ -975,9 +944,9 @@ class MyWindow(QtGui.QMainWindow):
         self.disconnect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.tree_edit_cell)
         self.connect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.tree_edit_cell)
 
-    def make_tree_model(self, data):
+    def make_tree_model(self, all_exps):
         model = QtGui.QStandardItemModel()
-        forms22 = data.keys()
+        forms22 = all_exps.keys()
         f22_notes = self.sprav_holder.f22_notes
         self.tree_index_dict = {}
         for key in sorted(forms22):
@@ -988,7 +957,7 @@ class MyWindow(QtGui.QMainWindow):
             f22_item_font.setPointSize(10)
             f22_item.setFont(f22_item_font)
             model.appendRow(f22_item)
-            item_names = [i.info for i in data[key]]
+            item_names = [u'%s%s' % (i.soato_inf, i.info) for i in all_exps[key]]
             index_li = []
             ch_item_count = 1
             for exp_item in sorted(item_names):
@@ -1060,11 +1029,18 @@ class MyWindow(QtGui.QMainWindow):
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.add_event_log(Events.control_failed)
         self.control_table.table.add_span_row(event_time)
-        for row in data_li:
-            errors = unicode(tuple(row[2]))
-            self.control_table.table.add_row([row[0],row[1], u'OBJECTID in %s' % errors, row[3]])
+        err_descriptions = ErrMessage.control_protocol
+        for err in data_li:
+            errors = unicode(tuple(err[u'err_ids']))
+            err_code = err['err_msg']
+            if err[u'dyn_param']:
+                err_msg = err_descriptions[err_code](err[u'dyn_param'])
+            else:
+                err_msg = err_descriptions[err_code]
+            self.control_table.table.add_row([err[u'table'],err[u'field'], u'OBJECTID in %s' % errors, err_msg])
 
     def add_convert_protocol(self, data_di):
+        self.convert_btn.setDisabled(True)
         self.on_finished()
         self.convert_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
@@ -1073,7 +1049,6 @@ class MyWindow(QtGui.QMainWindow):
         for key in data_di:
             errors = unicode(tuple(data_di[key]))
             self.convert_table.table.add_row([unicode(key), u'OBJECTID in %s' % errors, ErrMessage.convert_errors[key]])
-
 
     def try_has_edbf(self):
         if self.__is_xls_mode or self.try_to_connect(self.e_db_file):

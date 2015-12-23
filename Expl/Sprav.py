@@ -39,7 +39,7 @@ class DBConn(object):
             except: pass
         return []
 
-    def get_columns(self, table_name):
+    def __get_columns(self, table_name):
         if self.__dbc:
             try:
                 return self.__dbc.columns(table= table_name)
@@ -48,15 +48,21 @@ class DBConn(object):
 
     def get_f_names(self, table_name):
         f_names = []
-        for f_info in self.get_columns(table_name):
-            f_names.append(f_info[3])
-        return f_names
+        try:
+            for f_info in self.__get_columns(table_name):
+                f_names.append(f_info[3])
+            return f_names
+        except TypeError:
+            raise Exception(u'Ошибка соединения с базой данных')
 
     def get_f_names_types(self, table_name):
         f_name_type = {}
-        for f_info in self.get_columns(table_name):
-            f_name_type[f_info[3]] = f_info[5]
-        return f_name_type
+        try:
+            for f_info in self.__get_columns(table_name):
+                f_name_type[f_info[3]] = f_info[5]
+            return f_name_type
+        except TypeError:
+            raise Exception(u'Ошибка соединения с базой данных')
 
     def insert_row(self, tab_name, fields, vals):
         if self.__dbc:
@@ -74,6 +80,7 @@ class DBConn(object):
                 print  pyodbc.Error
                 pass
         return False
+
 
     def exec_query(self, query, reconnect = False):
         if self.__dbc:
@@ -100,9 +107,20 @@ class DBConn(object):
             try:
                 sel_res = [row for row in self.__dbc.execute(query).fetchall()]
                 return sel_res
-            except pyodbc.ProgrammingError: pass
-            except pyodbc.Error: pass
+            except pyodbc.ProgrammingError:
+                raise Exception(u'Ошибка при выполнении запроса select (pyodbc.ProgrammingError)')
+            except pyodbc.Error:
+                raise Exception(u'Ошибка при выполнении запроса select (pyodbc.Error)')
         return False
+
+    def select_single_f(self, query):
+        try:
+            self.__dbc.execute(query)
+        except pyodbc.ProgrammingError:
+            raise Exception(u'Ошибка при выполнении запроса select (pyodbc.ProgrammingError)')
+        except pyodbc.Error:
+            raise Exception(u'Ошибка при выполнении запроса select (pyodbc.Error)')
+        return [row[0] for row in self.__dbc.fetchall()]
 
     def get_tab_dict(self, query):
         """Вернет словарь на основе данных полученных в результате выполнения запроса.
@@ -207,6 +225,8 @@ class SpravHolder(object):
         self.state_codes =None
         self.melio_codes =None
         self.land_codes =None
+        self.max_n = None
+        self.crtab_columns = None
 
     def set_parameters(self, sprav_dict):
         try:
@@ -217,7 +237,7 @@ class SpravHolder(object):
             self.soato_npt = sprav_dict[u'soato_npt']
             self.f22_notes = sprav_dict[u'f22_notes']
             self.bgd2ekp_1 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][0])
-            self.bgd2ekp_2 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][2])
+            self.bgd2ekp_2 = self.bgd_to_dicts(sprav_dict[u'bgd2ekp'][1])
             self.user_types = sprav_dict[u'user_types']
             self.slnad_codes = sprav_dict[u'slnad_codes']
             self.state_codes = sprav_dict[u'state_codes']
@@ -475,8 +495,8 @@ class SpravHolder(object):
                             newbgd.append((row[0], utype, state, int(row[4]), npt[0], npt[1],  row[5],row[6]))
         return newbgd
 
-    def remake_bgd2(self, upd_lc_st = True):
-        selectbgd2 = u'select F22,NEWF22,UTYPE,NPTYPE,LCODE_MIN,LCODE_MAX,NewLCODE,STATE,NewSTATE,SLNAD, NEWUSNAME,DOPUSNAME from BGDtoEkp2'
+    def remake_bgd2(self):
+        selectbgd2 = u'select F22,NEWF22,UTYPE,NPTYPE,LCODE_MIN,LCODE_MAX,NewLCODE,STATE,SLNAD, NEWUSNAME,DOPUSNAME from BGDtoEkp2'
         bgd2 = []
         if self.s_conn:
             for row in self.select_sprav(selectbgd2):
@@ -484,18 +504,15 @@ class SpravHolder(object):
                 nptypelist = u_to_int(row[3].split(u','))
                 stateli = u_to_int(row[7].split(u','))
                 nptypeliremaked = remake_list(nptypelist)
-                if upd_lc_st:
-                    nlc, nst = row[6],row[8]
-                else:
-                    nlc, nst = None, None
+                nlc = row[6] if row[6] else None
                 for state in stateli:
                     for utype in utypelist:
                         for npt in nptypeliremaked:
-                            bgd2.append((row[0], utype, state, int(row[9]), row[1],  npt[0], npt[1], row[4], row[5], nlc,
-                                         nst,  row[10], row[11]))
-            bgd2 = (self.remake_bgd1(),upd_lc_st,bgd2)
+                            bgd2.append((row[0], utype, state, int(row[8]), row[1],  npt[0], npt[1], row[4], row[5], nlc, row[9], row[10]))
+                            # bgd_row: F22, UTYPE, State, SLNAD, newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
+            bgd2 = (self.remake_bgd1(),bgd2)
         return bgd2
-    # bgd_row: F22, UTYPE, State, SLNAD, newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc,  newstate,  NEWUSNAME, DOPUSNAME
+
 
     def get_f22_notes(self):
         f22_notes = self.select_sprav(u'Select F22Code, Notes from S_Forma22')
@@ -534,7 +551,7 @@ class SpravControl(object):
         self.tabs_fields[u'ExpB_r_Structure'] = [(u'row_key', u'VARCHAR'), (u'val_f22', u'VARCHAR'), (u'sort_by', u'VARCHAR'), (u'ConditionSum', u'VARCHAR')]
         if fullcontr:
             self.tabs_fields[u'BGDToEkp1'] = [(u'F22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'STATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
-            self.tabs_fields[u'BGDToEkp2'] = [(u'F22', u'VARCHAR'), (u'NEWF22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'LCODE_MIN', u'SMALLINT'), (u'LCODE_MAX', u'SMALLINT'), (u'NewLCODE', u'SMALLINT'), (u'STATE', u'VARCHAR'), (u'NewSTATE', u'VARCHAR'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
+            self.tabs_fields[u'BGDToEkp2'] = [(u'F22', u'VARCHAR'), (u'NEWF22', u'VARCHAR'), (u'UTYPE', u'VARCHAR'), (u'NPTYPE', u'VARCHAR'), (u'LCODE_MIN', u'SMALLINT'), (u'LCODE_MAX', u'SMALLINT'), (u'NewLCODE', u'SMALLINT'), (u'STATE', u'VARCHAR'), (u'NewSTATE', u'SMALLINT'), (u'SLNAD', u'VARCHAR'), (u'NEWUSNAME', u'SMALLINT'), (u'DOPUSNAME', u'VARCHAR')]
             self.tabs_fields[u'SOATO'] = [(u'OBJECTID', u'COUNTER'), (u'znak1', u'VARCHAR'), (u'znak2', u'SMALLINT'), (u'znak57min', u'SMALLINT'), (u'znak57max', u'SMALLINT'), (u'znak810max', u'SMALLINT'), (u'znak810min', u'SMALLINT'), (u'TypeNP', u'SMALLINT'), (u'NPTypeNotes', u'VARCHAR'), (u'SovType', u'VARCHAR')]
             self.tabs_fields[u'S_State'] = [(u'OBJECTID', u'COUNTER'), (u'StateCode', u'SMALLINT')]
             self.tabs_fields[u'S_Forma22'] = [(u'OBJECTID', u'COUNTER'), (u'F22Code', u'VARCHAR'), (u'Notes', u'VARCHAR')]
@@ -544,11 +561,11 @@ class SpravControl(object):
         self.s_conn = DBConn(self.db_path)
         if self.s_conn.has_dbc:
             self.losttables = self.contr_tables()
-            self.badfields = dict.fromkeys(self.tabs_fields.keys())
-            for key in self.tabs_fields:
-                self.badfields[key] = self.contr_field_types(key, self.tabs_fields[key])
-                if not self.badfields[key]:
-                    del self.badfields[key]
+            self.badfields = {}
+            for tab in self.tabs_fields:
+                fail = self.contr_field_types(tab, self.tabs_fields[tab])
+                if fail:
+                    self.badfields[tab] = fail
         else:
             raise SpravError(0)
 
@@ -564,12 +581,14 @@ class SpravControl(object):
         return returnlist
 
     def contr_field_types(self, tabname, tabstructure):
-        fields_types = [(row[3], row[5]) for row in self.s_conn.get_columns(tabname)]
-        returnlist = []
-        for field in tabstructure:
-            if field not in fields_types:
-                returnlist.append(field)
-        return returnlist
+        fields_types = self.s_conn.get_f_names_types(tabname)
+        failed = []
+        for (f, f_type) in tabstructure:
+            if f not in fields_types:
+                failed.append(f)
+            elif fields_types[f] != f_type:
+                failed.append(u'%s: %s->%s'%(f, fields_types[f], f_type))
+        return failed
 
     
     

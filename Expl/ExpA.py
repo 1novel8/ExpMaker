@@ -11,15 +11,12 @@ def round_row_data(data, accuracy = 4):
         return round(data/10000, accuracy)
 
 class DataComb(object):
-    def __init__(self, f22, user_soato, nusname, datali, inform = u''):
-        self.f22 = f22
-        self.us_soato = user_soato
-        self.nusname = nusname
-        self.data = datali[1:]
+    def __init__(self, datali, info, dop_info, soato_inf):
+        self.soato_inf = soato_inf
+        self.data = datali
         self.exp_a_rows = []
-        self.obj_name = inform
-        info_is_null = lambda x: x if x else ''
-        self.info = info_is_null(datali[0])+u' '+inform
+        self.obj_name = info
+        self.info = u'%s %s' % (dop_info, info)
         self.errors = {}
 
     def add_data(self, sprav):
@@ -106,10 +103,10 @@ class ExpFA(object):
         self.sprav_holder = sprav_holder
         self.__errors = []
         self.__exp_conn =  DBConn(expdb, False)
-        self.datadict = self.make_dict_of_dict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
         self.usersInfo, self.soatoInfo = input_data[-2:]
-        self.exps_dict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
         self.cc_soato_d = self.get_cc_soato_d()
+        self.datadict = self.make_datadict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
+        self.exps_dict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
 
     def get_cc_soato_d(self):
         cc_soato_d = {}
@@ -118,47 +115,47 @@ class ExpFA(object):
                 cc_soato_d[soato[:-3]] = self.soatoInfo[soato]
         return cc_soato_d
 
-    @staticmethod
-    def make_f22_dict(rows_ok):
-        """
-        Rows which passed convert are grouped by F22
-        """
-        f22_dict = dict()
-        for row in rows_ok:
-            for n in range(row.n):
-                row_params = [row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state]
-                            # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
-                row_params.extend(row.dop_args)
-                row_params.append(row.dopname[n])
-                try:
-                    f22_dict[row.f22[n]].append(row_params)
-                except KeyError:
-                    f22_dict[row.f22[n]] = [row_params,]
-        return f22_dict
-
+    def get_cc_name(self, soato):
+        soato = unicode(soato)
+        if soato[-3:] == u'000':
+            return u''
+        else:
+            try:
+                return self.cc_soato_d[soato[:-3]] +u'  '
+            except KeyError:
+                return u'! '
     def has_error(self):
         if not self.__errors:
             return False
         if 1 in self.__errors:
             return self.__expname
 
-    def make_dict_of_dict(self, rows):
-        """
-        :param rows : rows instances (f22, UserN_n, SOATO, NEWUSNAME_n, Area_n,LANDCODE, MELIOCODE, ServType08, State, DOPNAME_n)
-        :return: dict with dicts, keys: f22 >> usern | soato >> rows(newusname_n, dopname_n, (Area_n,LANDCODE, MELIOCODE, ServType08, State, *dop_args))
-        """
-        f22_groups = self.make_f22_dict(rows)
-        ct_dict = dict()
-        for f22 in f22_groups:
-            ct_dict[f22] = dict()
-            for row in f22_groups[f22]:
-                row_ind = 0 if row[2] == 1 else 1    #NEWUSNAME_%(N)d =1 >> Sort By UserN
-                                                    #NEWUSNAME_%(N)d =2|3 >> Sort By SOATO
+    def make_datadict(self, rows):
+        f22_dict = {}
+        for row in rows:
+            for n in range(row.n):
+                f22_key = row.f22[n]
+                if row.nusname[n] == 1: #группировка по User_N
+                    group_key = row.usern[n]
+                    info = self.usersInfo[group_key]
+                else:                   #группировка по SOATo
+                    group_key = row.soato
+                    info = self.soatoInfo[group_key]
+                dop_info = row.dopname[n] if row.dopname[n] else u''
+                row_params = [row.area[n], row.lc, row.mc, row.st08, row.state]# NEWUSNAME_%(N)d, Area_%(N)d, LANDCODE, MELIOCODE, ServType08, State_1
+                row_params.extend(row.dop_args) #ADD Dop args with Dop_* in field name
                 try:
-                    ct_dict[f22][row[row_ind]].append(row[3:-1])
+                    f22_dict[f22_key][group_key][u'r_params'].append(row_params)
                 except KeyError:
-                    ct_dict[f22][row[row_ind]] = [row[2], row[-1], row[3:-1]]
-        return ct_dict
+                    if not f22_dict.has_key(f22_key):
+                        f22_dict[f22_key] = {}
+                    f22_dict[f22_key][group_key] = {
+                        u'r_params': [row_params, ],
+                        u'info': info,
+                        u'dop_info': dop_info,
+                        u'soato_inf': self.get_cc_name(row.soato)
+                    }
+        return f22_dict
 
     def make_exp_tree(self):
         """ Returns dictionary:
@@ -177,9 +174,7 @@ class ExpFA(object):
             comb_dicts[key1] = dict.fromkeys(self.datadict[key1].keys())
             for key2 in comb_dicts[key1]:
                 comb_li = self.datadict[key1][key2]
-                if comb_li[0] == 1:
-                    comb_dicts[key1][key2] = DataComb(key1, key2, comb_li[0], comb_li[1:], self.usersInfo[key2])
-                else: comb_dicts[key1][key2] = DataComb(key1, key2, comb_li[0], comb_li[1:], self.soatoInfo[key2])
+                comb_dicts[key1][key2] = DataComb(comb_li[u'r_params'], comb_li[u'info'], comb_li[u'dop_info'], comb_li[u'soato_inf'])
         return comb_dicts
 
     def calc_all_exps(self):
@@ -228,7 +223,7 @@ class ExpFA(object):
             for li in sorted(data_matrix):
                 li[0:0] = [n, u'%s. %d' % (f22_k, f22_row_num)]
                 f22_row_num+=1
-                n+=1
+                n += 1
                 xl_f22_dict[f22_k].append(li)
             total_row = map(lambda x: sum(x), zip(itogo_row,total_row))
             itogo_row[0:0] = [n, u'%s. i' % f22_k, u'Итого:']
@@ -237,6 +232,16 @@ class ExpFA(object):
             return_xl_matrix.extend(list(xl_f22_dict[f22_k]))
         total_row[0:0] = [n, u'', u'Всего:']
         return_xl_matrix.append(total_row)
+        #Do Shape_sum
+        conv_rows = []
+        for k1 in self.datadict:
+            for k2 in self.datadict[k1]:
+                conv_rows.extend(self.datadict[k1][k2][u'r_params'])
+        shape_comb = DataComb(conv_rows, u'Shape_sum:', u'', u'')
+        shape_comb.add_data(self.sprav_holder)
+        shape_row = shape_comb.prepare_svodn_data()
+        shape_row[:0] = [n+1, u'', u'Shape_sum:']
+        return_xl_matrix.append(shape_row)
         return return_xl_matrix
 
     def fill_razv_edb(self, matrix):

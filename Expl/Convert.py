@@ -5,6 +5,7 @@ import pyodbc
 from Sprav import DBConn
 
 ct = u'crostab_razv'
+
 def add_column(connection, tabname, colname, coltype=u'int Null'):
     connection.exec_query(u'ALTER TABLE %s DROP "%s";' % (tabname, colname))
     sql = u'ALTER TABLE %s ADD %s %s ;'%(tabname, colname, coltype)
@@ -29,32 +30,27 @@ def upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, 
         sqlupdnp += u' and (mid(%s, 8, 3) between %s and %s)' % (f_kod, zn810min, zn810max)
     return sqlupdnp
 
-
-def add_utype_partn(connection):
-    n = 1
-    while True:
-        un = unicode(n)
+def add_utype_partn(connection, max_n = None):
+    for n in range(1,max_n+1):
         #---------------------------UserType_n----------------------------------------------
-        add_column(connection, ct, u'UserType_%s' % un)
-        sql1 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.usern_%(nn)s
-                    SET %(t)s.Usertype_%(nn)s = [Users].[UserType];''' % {u't': ct, u'nn': un}
-        # sql2 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
-        #             SET %(t)s.Usertype_%(nn)s = [Users].[UserType],
-        #                 %(t)s.UserN_%(nn)s = %(t)s.[UserN_Sad]
-        #             WHERE %(t)s.UserN_%(nn)s is not null
-        #                     and %(t)s.UserN_Sad is not null
-        #                     and SLNAD = 2 ;''' % {u't': ct, u'nn': un}
+        add_column(connection, ct, u'UserType_%s' % n)
+        sql1 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.usern_%(nn)d
+                    SET %(t)s.Usertype_%(nn)d = [Users].[UserType];''' % {u't': ct, u'nn': n}
+        sql2 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
+                    SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
+                        %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
+                    WHERE %(t)s.UserN_%(nn)d is not null
+                            and %(t)s.UserN_Sad is not null
+                            and SLNAD = 2 ;''' % {u't': ct, u'nn': n}
         connection.exec_query(sql1)
+        #TODO: перенести после проверки
+        # connection.exec_query(sql2)
         #---------------------------PART_n----------------------------------------------
-        add_column(connection, ct, u"Area_%s" % un, u'DOUBLE NULL')
+        add_column(connection, ct, u"Area_%s" % n, u'DOUBLE NULL')
         sqlarea = u'''UPDATE %(t)s
                     SET Area_%(nn)s = (Part_%(nn)s/100)*[Shape_Area]
-                    WHERE Part_%(nn)s <> 0''' % {u't': ct, u'nn': un}
+                    WHERE Part_%(nn)s <> 0''' % {u't': ct, u'nn': n}
         connection.exec_query(sqlarea)
-        n += 1
-        if not connection.exec_sel_query(u'SELECT UserN_%s FROM %s;' % (unicode(n), ct)):
-            break
-    return n-1
 
 def convert_soato(connection):
     add_column(connection, u'SOATO', u'NameSov', u'varchar(80) NULL')
@@ -86,7 +82,7 @@ def bgd_to_dicts(bgd_li):
 class CtrRow(object):
     def __init__(self, r_args, n_dop_args, nm, sprav):
         """
-        :param r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, F22_*, UserN_*,Usertype_*, Area_*, *dop_params
+        :param r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, Forma22_*, UserN_*,Usertype_*, Area_*, *dop_params
         :param n_dop_args: len of dop params array in the end of r_args
         :param nm: max number of parts in crostab table
         :param sprav: SpravHolder instance
@@ -121,7 +117,6 @@ class CtrRow(object):
         if n_dop_args:self.dop_args = r_args[-n_dop_args:]
         else:
             self.dop_args = []
-        self.new_state = None
         self.new_lc = None
         self.old_changed_state = None
         self.old_changed_lc = None
@@ -156,9 +151,7 @@ class CtrRow(object):
             if self.bgd1_control(0):
                 pass
             elif self.bgd2_control(0):
-                if self.new_state is not None:
-                    self.change_state()
-                if self.new_lc is not None:
+                if self.new_lc:
                     self.change_lc()
             else:
                 self.has_err = 1
@@ -170,11 +163,8 @@ class CtrRow(object):
             if bgd1_failed:
                 for n in bgd1_failed:
                     if self.bgd2_control(n):
-                        if self.new_lc is not None:
+                        if self.new_lc:
                             self.change_lc()
-                        if self.new_state is not None:
-                            self.has_err = 3
-                            break
                     else:
                         self.has_err = 2
                         break
@@ -183,10 +173,6 @@ class CtrRow(object):
         self.old_changed_lc = self.lc
         self.lc = self.new_lc
 
-    def change_state(self):
-        self.old_changed_state = self.state
-        self.state = self.new_state
-
     def bgd1_control(self, nn):
         try:
             bgd_li = self.spr_bgd_1[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
@@ -194,6 +180,7 @@ class CtrRow(object):
                 if b_row[0] <= self.np_type <= b_row[1]:
                     self.nusname[nn] = b_row[2]
                     self.dopname[nn] = b_row[3]
+
                     return True
         except KeyError:
             pass
@@ -202,14 +189,14 @@ class CtrRow(object):
     def bgd2_control(self, nn):
         try:
             bgd_li = self.spr_bgd_2[self.f22[nn]][self.utype[nn]][self.state][self.slnad]
-            for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1), NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5),  newstate(6),  NEWUSNAME(7), DOPUSNAME(8)
+                                            # newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
+            for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1), NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5), NEWUSNAME(6), DOPUSNAME(7)
                 if b_row[1] <= self.np_type <= b_row[2] \
                         and b_row[3] <= self.lc <= b_row[4]:
                     self.f22[nn]  = b_row[0]
-                    self.nusname[nn] = b_row[7]
-                    self.dopname[nn] = b_row[8]
-
-                    self.new_lc, self.new_state = b_row[5], b_row[6]
+                    self.nusname[nn] = b_row[6]
+                    self.dopname[nn] = b_row[7]
+                    self.new_lc = b_row[5]
                     return True
         except KeyError:
             pass
@@ -224,7 +211,8 @@ def for_query(field, count):
 def convert(sprav_holder, temp_db_path):
     ctr_conn = DBConn(temp_db_path)
     convert_soato(ctr_conn)
-    n_max = add_utype_partn(ctr_conn)
+    n_max = sprav_holder.max_n
+    add_utype_partn(ctr_conn, n_max)
 
     def make_fields_str(f_name, col = n_max):
         s = u''
@@ -232,9 +220,9 @@ def convert(sprav_holder, temp_db_path):
             s+=u'%s%d,' % (f_name, n+1)
         return s[:-1]
 
-    cr_tab_fields = ctr_conn.get_f_names(ct)
+    cr_tab_fields = sprav_holder.crtab_columns.keys()
     select_ctr_all = u'select OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, %s, %s, %s, %s' % \
-                     (make_fields_str(u'F22_'),make_fields_str(u'UserN_'),make_fields_str(u'Usertype_'),make_fields_str(u'Area_'))
+                     (make_fields_str(u'Forma22_'),make_fields_str(u'UserN_'),make_fields_str(u'Usertype_'),make_fields_str(u'Area_'))
     dop_fields = []
     for field in sorted(cr_tab_fields):
         if 'Dop' in field:
@@ -257,8 +245,6 @@ def convert(sprav_holder, temp_db_path):
                 rows_ok.append(new_row)
         del ctr_conn
 
-        err_dict = dict()
-
         for err_row in rows_failed:
             try:
                 whats_err[err_row.has_err].append(err_row.object_id)
@@ -272,7 +258,6 @@ def convert(sprav_holder, temp_db_path):
             return whats_err
         else:
             return save_info
-        # return save_info
     else:
         raise Exception('Ошибка при загрузке данных из crostab. Connection failed')
 
