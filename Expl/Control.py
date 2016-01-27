@@ -12,7 +12,7 @@ db_structure = {
     crs_tab: {u'OBJECTID': u'COUNTER', u'Shape_Area': u'DOUBLE', u'SOATO': u'VARCHAR',
     u'Part_1': u'DOUBLE', u'UserN_1': u'INTEGER',u'Forma22_1': u'VARCHAR',
     u'ServType08': u'SMALLINT', u'SLNAD': u'SMALLINT',u'State_1': u'SMALLINT',
-    u'LANDCODE': u'SMALLINT', u'MELIOCODE': u'SMALLINT', u'UserN_Sad': u'SMALLINT'
+    u'LANDCODE': u'SMALLINT', u'MELIOCODE': u'SMALLINT', u'UserN_Sad': u'INTEGER'
     },
     soato_tab: {u'NAME': u'VARCHAR',
                 u'OBJECTID': u'COUNTER',
@@ -196,11 +196,11 @@ class DataControl(DbControl):
     def contr_us_f22_part(self):
         for n in range(2, self.max_n+1):
             search_err = self.select_errors(u'SELECT OBJECTID FROM crostab_razv WHERE UserN_%(n)d is NOT Null and (Forma22_%(n)d is Null or Part_%(n)d = 0)' % {u'n': n})
-            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 8)
+            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 6, n)
             search_err = self.select_errors(u'SELECT OBJECTID FROM crostab_razv WHERE Forma22_%(n)d is NOT Null and (UserN_%(n)d is Null or Part_%(n)d = 0)' % {u'n': n})
-            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 8)
+            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 6, n)
             search_err = self.select_errors(u'SELECT OBJECTID FROM crostab_razv WHERE Part_%(n)d <> 0 and (UserN_%(n)d is Null or Forma22_%(n)d is Null)' % {u'n': n})
-            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 8)
+            self.add_to_protocol(crs_tab, u'Forma22_%(n)d, UserN_%(n)d или Part_%(n)d' % {u'n': n}, search_err, 6, n)
 
     def contr_part_sum(self):
         part_sum = u'Part_1'
@@ -273,7 +273,8 @@ class DataControl(DbControl):
         all_usern = self.select_errors(u'select %s from %s' % (field, table))
         wrong_kodes = filter(lambda x: all_usern.count(x)>1, all_usern)
         if wrong_kodes:
-            search_err = self.select_errors(u'select OBJECID from %s where %s in %s' % (table, field, unicode(tuple(wrong_kodes))))
+            query = u'select OBJECTID from %s where %s in %s' % (table, field, unicode(tuple(set(wrong_kodes))))
+            search_err = self.select_errors(query)
             self.add_to_protocol(table, field, search_err, 9)
 
     def contr_field(self, table, field, in_spr_data, spr_table, null_granted = False):

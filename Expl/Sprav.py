@@ -96,8 +96,10 @@ class DBConn(object):
                     return self.exec_query(query)
                 else:
                     return False
+
     def run_db(self):
         os.system(u'start %s' % self.db_pass)
+
     @property
     def has_dbc(self):
         return True if self.__dbc else False

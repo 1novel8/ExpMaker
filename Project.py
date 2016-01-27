@@ -6,13 +6,13 @@ import time
 import sys
 import shutil
 import os.path
-import cPickle as pickle
+import cPickle as Pickle
 import pyodbc
 
 from PyQt4 import QtGui, QtCore
 
 from Expl import Control, Convert, ExpA, FormB, Sprav, SaveToXL
-from Titles import Events, ToolTip, WName, ErrMessage, LoadMessg
+from Titles import Events, ToolTip, WidgNames, ErrMessage, LoadMessg
 
 project_dir = os.getcwd()
 spr_dir = u'%s\\Spr\\'% project_dir
@@ -66,7 +66,7 @@ class MainActiveThread(QtCore.QThread):
     def load_work_pkl(self):
         try:
             with open(self.__file_path, 'rb') as inp:
-                exp_data = pickle.load(inp)
+                exp_data = Pickle.load(inp)
                 inp.close()
             loading_password = exp_data.pop()
         except Exception as err:
@@ -80,7 +80,7 @@ class MainActiveThread(QtCore.QThread):
     def save_work_pkl(self):
         try:
             with open(self.__file_path,u'wb') as output:
-                pickle.dump(self.__args[0], output, 2)
+                Pickle.dump(self.__args[0], output, 2)
             self.__args = []
             self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'),Events.session_saved % self.__file_path)
         except:
@@ -140,7 +140,7 @@ class MainActiveThread(QtCore.QThread):
     def load_pkl_op1_2(self):
         try:
             with open(self.__file_path, 'rb') as inp:
-                loaded_data = pickle.load(inp)
+                loaded_data = Pickle.load(inp)
                 inp.close()
             loading_password = loaded_data.pop()
             if loading_password == u'Sprav':
@@ -175,7 +175,7 @@ class MainActiveThread(QtCore.QThread):
                 self.__file_path+= u'.pkl'
             try:
                 with open(self.__file_path,u'wb') as output:
-                    pickle.dump([self.current_sprav_dict, u"Sprav"], output, 2)
+                    Pickle.dump([self.current_sprav_dict, u"Sprav"], output, 2)
                     self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'), Events.spr_saved)
             except:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_saved)
@@ -204,16 +204,16 @@ class ControlThread(QtCore.QThread):
         self.sprav_holder = sprav
 
     def run(self):
+        contr = Control.DataControl(self.sprav_holder, self.db_file, tempDB_path)
         try:
-            contr = Control.DataControl(self.sprav_holder, self.db_file, tempDB_path)
+            err_li = contr.run_field_control()
         except Exception as Err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), Err.message)
         else:
-            err_li = contr.run_field_control()
             if err_li:
                 self.emit(QtCore.SIGNAL(u'contr_failed(PyQt_PyObject)'), err_li)
             else:
-                self.emit(QtCore.SIGNAL(u'control_passed()'))
+                    self.emit(QtCore.SIGNAL(u'control_passed()'))
 
 class ConvertThread(QtCore.QThread):
     def __init__(self, sprav, parent = None):
@@ -254,13 +254,11 @@ class ExpAThread(QtCore.QThread):
         exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.dirname(self.exp_file)+'\\'+ exl_file_name
         if self.output_mode:
+            xls = self.xl_settings
             try:
-                SaveToXL.exp_matrix(xl_matrix, save_as = exl_file_path, start_f = self.xl_settings[u'a_sv_l'], start_r = self.xl_settings[u'a_sv_n'],templ_path = self.xl_settings[u'a_sv_path'])
+                SaveToXL.exp_matrix(xl_matrix, save_as = exl_file_path, start_f = xls[u'a_sv_l'], start_r = xls[u'a_sv_n'], sh_name = xls[u'a_sv_sh_name'], templ_path = xls[u'a_sv_path'])
             except SaveToXL.XlsIOError as err:
-                if err.err_type == 1:
-                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
-                elif err.err_type == 2:
-                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
             else:
                 self.emit(QtCore.SIGNAL(u'success()'))
         else:
@@ -306,13 +304,11 @@ class ExpBThread(QtCore.QThread):
             exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
             exl_file_path = os.path.dirname(self.exp_file)+u'\\'+ exl_file_name
             b_rows_dict = self.prepare_b_matr(b_rows_dict)
+            xls = self.xl_settings
             try:
-                SaveToXL.exp_matrix(b_rows_dict, save_as = exl_file_path, start_f = self.xl_settings[u'b_l'], start_r = self.xl_settings[u'b_n'],templ_path = self.xl_settings[u'b_path'])
+                SaveToXL.exp_matrix(b_rows_dict, save_as = exl_file_path, start_f = xls[u'b_l'], start_r = xls[u'b_n'], sh_name = xls[u'b_sh_name'], templ_path = xls[u'b_path'])
             except SaveToXL.XlsIOError as err:
-                if err.err_type == 1:
-                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_template_not_found %err.args[0][0] )
-                elif err.err_type == 2:
-                    self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_already_opened % exl_file_path)
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
             else:
                 self.emit(QtCore.SIGNAL(u'success()'))
         else:
@@ -341,45 +337,75 @@ class LoadingThread(QtCore.QThread):
             else:       dots[count] = u' '
             count+=1
 
+class SettingsWindow(QtGui.QMainWindow):
+    def __init__(self, parent = None, title = u'' ):
+        super(SettingsWindow, self).__init__(parent)
+        self.setWindowTitle(title)
+        self.resize(690, 450)
+        self.main_frame = QtGui.QFrame(self)
+        self.main_layout = QtGui.QGridLayout(self.main_frame)
+        self.main_frame.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.main_frame.setFrameShadow(QtGui.QFrame.Raised)
+        self.setCentralWidget(self.main_frame)
+        self.colored_blocks = {}
+
+    def add_widget(self, widget, *args):
+        self.main_layout.addWidget(widget, *args)
+
+class ColoredBlock(QtGui.QFrame):
+    def __init__(self, block_name = '', color = '#01A6D3', parent = None, ):
+        super(ColoredBlock, self).__init__(parent)
+        self.box = QtGui.QGridLayout(self)
+        self.setLayout(self.box)
+        self.name_lbl = QtGui.QLabel(block_name, self)
+        self.box.addWidget(self.name_lbl, 0,0,1,3)
+        self.setStyleSheet(u'background-color: %s; color: white; border-radius: 13;'%color)
+
+    def add_widget(self, widget, *args):
+        if args:
+            args = list(args)
+            args[0] +=1
+        self.box.addWidget(widget, *args)
+
 class MyWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.setWindowTitle(WName.main_name)
+        self.setWindowTitle(WidgNames.main_name)
         self.resize(1300, 640)
         self.central_widget = QtGui.QFrame(self)
         self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
         self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
         self.gridLayout = QtGui.QGridLayout(self.central_widget)
-        self.l1 = QtGui.QLabel(WName.l1_title,self.central_widget)
-        self.l2 = QtGui.QLabel(WName.l2_title,self.central_widget)
-        self.l3 = QtGui.QLabel(WName.l3_title,self.central_widget)
-        self.l4 = QtGui.QLabel(WName.l4_title,self.central_widget)
+        self.l1 = QtGui.QLabel(WidgNames.l1_title,self.central_widget)
+        self.l2 = QtGui.QLabel(WidgNames.l2_title,self.central_widget)
+        self.l3 = QtGui.QLabel(WidgNames.l3_title,self.central_widget)
+        self.l4 = QtGui.QLabel(WidgNames.l4_title,self.central_widget)
         self.sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        self.control_btn = QtGui.QPushButton(WName.btn_control,self.central_widget)
+        self.control_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
         self.control_btn.setToolTip(ToolTip.btn_control)
         self.control_btn.setSizePolicy(self.sizePolicy)
-        self.convert_btn = QtGui.QPushButton(WName.btn_control,self.central_widget)
+        self.convert_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
         self.convert_btn.setToolTip(ToolTip.btn_convert)
         self.convert_btn.setSizePolicy(self.sizePolicy)
-        self.exp_a_btn = QtGui.QPushButton(WName.btn_exp,self.central_widget)
+        self.exp_a_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
         self.exp_a_btn.setToolTip(ToolTip.btn_exp_a)
         self.exp_a_btn.setSizePolicy(self.sizePolicy)
-        self.btn_a_all = QtGui.QPushButton(WName.btn_a_sv,self.central_widget)
+        self.btn_a_all = QtGui.QPushButton(WidgNames.btn_a_sv,self.central_widget)
         self.btn_a_all.setToolTip(ToolTip.btn_a_sv)
-        self.btn_a_tree = QtGui.QPushButton(WName.btn_a_ch,self.central_widget)
+        self.btn_a_tree = QtGui.QPushButton(WidgNames.btn_a_ch,self.central_widget)
         self.btn_a_tree.setToolTip(ToolTip.btn_a_ch)
         self.btn_a_tree.setSizePolicy(self.sizePolicy)
         self.btn_a_all.setSizePolicy(self.sizePolicy)
         self.btn_a_all.setHidden(True)
         self.btn_a_tree.setHidden(True)
-        self.exp_b_btn = QtGui.QPushButton(WName.btn_exp,self.central_widget)
+        self.exp_b_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
         self.exp_b_btn.setToolTip(ToolTip.btn_exp_b)
         self.exp_b_btn.setSizePolicy(self.sizePolicy)
-        self.event_table = TableWidget(WName.event_table_head, self.central_widget)
+        self.event_table = TableWidget(WidgNames.event_table_head, self.central_widget)
         self.event_table.show()
         self.event_table.table.set_event_ss()
-        self.control_table = TableWidget(WName.control_table_head, self.central_widget)
-        self.convert_table = TableWidget(WName.convert_table_head, self.central_widget)
+        self.control_table = TableWidget(WidgNames.control_table_head, self.central_widget)
+        self.convert_table = TableWidget(WidgNames.convert_table_head, self.central_widget)
         self.treeView = QtGui.QTreeView()
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -449,16 +475,19 @@ class MyWindow(QtGui.QMainWindow):
         self.run_main_thr()
         self.xls_settings_d = {
             'a_sv_l':u'A',
-            'a_sv_n':1,
-            'a_l':u'A',
-            'a_n':2,
-            'a_obj_l':u'A',
-            'a_obj_n':1,
-            'b_l':u'C',
-            'b_n':3,
+            'a_sv_n':6,
+            'a_l':u'F',
+            'a_n':16,
+            'a_obj_l':u'M',
+            'a_obj_n':4,
+            'b_l':u'B',
+            'b_n':7,
             'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
             'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
-            'b_path': u'%s\\FB.xlsx' % xls_templates_dir
+            'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
+            'a_sh_name': u'RB экспликация А',
+            'a_sv_sh_name': u'Активный',
+            'b_sh_name': u'Активный',   #RB Форма22 зем.
         }
         try:
             self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_dir).read()))
@@ -497,11 +526,11 @@ class MyWindow(QtGui.QMainWindow):
         self.export_frame = ExportFrame()
         self.src_widget = SrcFrame()
         self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
-        self.src_widget.set_lbl_text(WName.src_widg)
+        self.src_widget.set_lbl_text(WidgNames.src_widg)
         self.export_frame.hide()
         self.gridLayout.addWidget(self.export_frame, 9,0,1,2)
         self.save_widget = SrcFrame(u'#9556FF')
-        self.save_widget.set_lbl_text(WName.save_widg)
+        self.save_widget.set_lbl_text(WidgNames.save_widg)
         self.save_widget.hide()
         self.gridLayout.addWidget(self.save_widget, 10,0,1,2)
         self.connect(self.export_frame.rbtn_mdb, QtCore.SIGNAL(u'clicked()'), self.set_mdb_mode)
@@ -551,18 +580,18 @@ class MyWindow(QtGui.QMainWindow):
         self.save_widget.setDisabled(blocked)
 
     def set_menu_properties(self):
-        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\add.png' % project_dir), WName.exit_main_1, self)
-        main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_dir), WName.exit_main_2, self)
+        main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\db.png' % project_dir), WidgNames.exit_main_1, self)
+        main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_dir), WidgNames.exit_main_2, self)
         main_exit1.setShortcut(u'Ctrl+O')
         main_exit1.setStatusTip(ToolTip.exit_main_1)
         main_exit2.setShortcut(u'Ctrl+Q')
         main_exit2.setStatusTip(ToolTip.exit_main_2)
 
-        spr_default = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WName.exit_spr_1, self)
-        spr_choose_pkl = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WName.exit_spr_2, self)
-        spr_choose_mdb = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_3, self)
-        spr_save_spr = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_4, self)
-        spr_info = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\exclamation.png' % project_dir), WName.exit_spr_6, self)
+        spr_default = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_1, self)
+        spr_choose_pkl = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_2, self)
+        spr_choose_mdb = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_3, self)
+        spr_save_spr = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\save.png' % project_dir), WidgNames.exit_spr_4, self)
+        spr_info = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\info.ico' % project_dir), WidgNames.exit_spr_5, self)
         spr_default.setStatusTip(ToolTip.exit_spr_1)
         spr_choose_pkl.setStatusTip(ToolTip.exit_spr_2)
         spr_choose_mdb.setStatusTip(ToolTip.exit_spr_3)
@@ -573,6 +602,11 @@ class MyWindow(QtGui.QMainWindow):
         spr_choose_pkl.setShortcut(u'Ctrl+P')
         spr_choose_mdb.setShortcut(u'Ctrl+M')
         spr_save_spr.setShortcut(u'Ctrl+S')
+        spr_info.setShortcut(u'Ctrl+I')
+
+        settings_xls = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_1, self)
+        settings_xls.setStatusTip(ToolTip.settings_xls)
+        settings_xls.setShortcut(u'Ctrl+E')
 
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
@@ -582,9 +616,12 @@ class MyWindow(QtGui.QMainWindow):
         self.connect(spr_choose_mdb, QtCore.SIGNAL(u'triggered()'), self.load_sprav)
         self.connect(spr_save_spr, QtCore.SIGNAL(u'triggered()'), self.save_sprav)
         self.connect(spr_info, QtCore.SIGNAL(u'triggered()'), self.show_spr_info)
+        self.connect(settings_xls, QtCore.SIGNAL(u'triggered()'), self.show_xl_settings_window)
+
         menu = self.menuBar()
-        menu_file = menu.addMenu(WName.menu_1)
-        menu_sprav = menu.addMenu(WName.menu_2)
+        menu_file = menu.addMenu(WidgNames.menu_1)
+        menu_sprav = menu.addMenu(WidgNames.menu_2)
+        menu_settings = menu.addMenu(WidgNames.menu_3)
         menu_file.addAction(main_exit1)
         menu_file.addAction(main_exit2)
         menu_sprav.addAction(spr_default)
@@ -592,9 +629,77 @@ class MyWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_choose_mdb)
         menu_sprav.addAction(spr_save_spr)
         menu_sprav.addAction(spr_info)
+        menu_settings.addAction(settings_xls)
+
+    def show_xl_settings_window(self):
+        xl_s = self.xls_settings_d
+        color1 = u'#35B953'
+        color2 = u'#51D04C'
+        self.xls_window = SettingsWindow(self, u'Настройки выгрузки в Excel')
+        block_1 = ColoredBlock(u'Экспорт выборочной экспликации А', parent=self.xls_window, color =color1)
+        block_2 = ColoredBlock(u'Экспорт сводной экспликации А', parent = self.xls_window, color =color2)
+        block_3 = ColoredBlock(u'Экспорт экспликации по форме 22.Зем', parent = self.xls_window, color=color2)
+        # lbl_2.setAlignment(QtCore.Qt.AlignCenter)
+        letters = lambda x: [x,]+[unicode(chr(x)) for x in range(65,91)]
+        digits = lambda x: [unicode(x),]+[unicode(i) for i in range(1,100)]
+        self.sh_edit_ea = QtGui.QLineEdit(xl_s['a_sh_name'])
+        self.sh_edit_easv = QtGui.QLineEdit(xl_s['a_sv_sh_name'])
+        self.sh_edit_eb = QtGui.QLineEdit(xl_s['b_sh_name'])
+        self.sh_edit_ea.setMinimumWidth(150)
+        self.sh_edit_easv.setMinimumWidth(150)
+        self.sh_edit_eb.setMinimumWidth(150)
+        self.cmb_let_ea = CombBox(data=letters(xl_s['a_l']))
+        self.cmb_let_ea_obj = CombBox(data=letters(xl_s['a_obj_l']))
+        self.cmb_let_ea_sv = CombBox(data=letters(xl_s['a_sv_l']))
+        self.cmb_let_eb = CombBox(data=letters(xl_s['b_l']))
+        self.cmb_num_ea = CombBox(data=digits(xl_s['a_n']))
+        self.cmb_num_ea_obj = CombBox(data=digits(xl_s['a_obj_n']))
+        self.cmb_num_ea_sv = CombBox(data=digits(xl_s['a_sv_n']))
+        self.cmb_num_eb = CombBox(data=digits(xl_s['b_n']))
+        table_1 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
+        table_2 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
+        table_3 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
+        table_1.add_span_row(WidgNames.out_matrix)
+        table_2.add_span_row(WidgNames.out_matrix)
+        table_3.add_span_row(WidgNames.out_matrix)
+        table_1.add_widgets_row([self.sh_edit_ea, self.cmb_let_ea, self.cmb_num_ea])
+        table_2.add_widgets_row([self.sh_edit_easv, self.cmb_let_ea_sv, self.cmb_num_ea_sv])
+        table_3.add_widgets_row([self.sh_edit_eb, self.cmb_let_eb, self.cmb_num_eb])
+        table_1.add_span_row(WidgNames.out_object)
+        table_1.add_widgets_row([None, self.cmb_let_ea_obj, self.cmb_num_ea_obj])
+        block_1.add_widget(table_1)
+        block_2.add_widget(table_2)
+        block_3.add_widget(table_3)
+
+        btn = QtGui.QPushButton(u"Применить", self.xls_window.main_frame)
+        btn.setStyleSheet(u'background-color: %s;color: white; border-radius: 45; padding:0px'%color1)
+        btn.setFixedHeight(90)
+        btn.setFixedWidth(90)
+        self.xls_window.add_widget(block_1, 0,0,3,3)
+        self.xls_window.add_widget(block_2, 3,0,3,3)
+        self.xls_window.add_widget(block_3, 0,3,3,3)
+        self.xls_window.add_widget(btn, 3,3,1,1)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_xl_data)
+        self.xls_window.show()
+
+    def update_xl_data(self):
+        xl_d = self.xls_settings_d
+        xl_d['a_sh_name'] = unicode(self.sh_edit_ea.text())
+        xl_d['a_sv_sh_name'] = unicode(self.sh_edit_easv.text())
+        xl_d['b_sh_name'] = unicode(self.sh_edit_eb.text())
+        xl_d['a_l'] = unicode(self.cmb_let_ea.currentText())
+        xl_d['a_obj_l'] = unicode(self.cmb_let_ea_obj.currentText())
+        xl_d['a_sv_l'] = unicode(self.cmb_let_ea_sv.currentText())
+        xl_d['b_l'] = unicode(self.cmb_let_eb.currentText())
+        xl_d['a_n'] = int(self.cmb_num_ea.currentText())
+        xl_d['a_obj_n'] = int(self.cmb_num_ea_obj.currentText())
+        xl_d['a_sv_n'] = int(self.cmb_num_ea_sv.currentText())
+        xl_d['b_n'] = int(self.cmb_num_eb.currentText())
+        self.add_event_log(u'Установлены новые настройки выгрузки в Excel')
+        self.xls_window.close()
 
     def open_file(self):
-        self.db_file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.open_file, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
+        self.db_file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.open_file, project_dir, u'Valid files (*.mdb *.pkl);; All files (*)', options=QtGui.QFileDialog.DontUseNativeDialog))
         if self.db_file:
             if self.db_file[-4:] == u'.mdb':
                 self.run_main_thr(self.db_file, op = 0)
@@ -629,7 +734,7 @@ class MyWindow(QtGui.QMainWindow):
 
     def save_session(self):
         default_name = self.e_db_file.split(u'\\')[-1][4:-4]+time.strftime(u'_%d_%m_%y') + u'.pkl'
-        save_file = unicode(QtGui.QFileDialog(self).getSaveFileName(self, WName.save_dialog, default_name, options=QtGui.QFileDialog.DontUseNativeDialog))
+        save_file = unicode(QtGui.QFileDialog(self).getSaveFileName(self, WidgNames.save_dialog, default_name, options=QtGui.QFileDialog.DontUseNativeDialog))
         if save_file:
             if save_file[-4:] != u'.pkl':
                 save_file+= u'.pkl'
@@ -644,7 +749,7 @@ class MyWindow(QtGui.QMainWindow):
         self.__is_xls_mode = False
 
     def ask_question(self, messag):
-        reply = QtGui.QMessageBox.question(self, WName.ask_exit, messag,
+        reply = QtGui.QMessageBox.question(self, WidgNames.ask_exit, messag,
                                            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
             self.statusBar().showMessage(LoadMessg.ready)
@@ -823,10 +928,10 @@ class MyWindow(QtGui.QMainWindow):
 
     def load_sprav(self, from_pkl = False):
         if from_pkl:
-            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.pkl', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
+            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.load_sprav+ u'*.pkl', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
             op = 2
         else:
-            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WName.load_sprav+ u'*.mdb', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
+            file = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.load_sprav+ u'*.mdb', project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
             op = 3
         if file:
             self.run_main_thr(file, op)
@@ -851,7 +956,7 @@ class MyWindow(QtGui.QMainWindow):
         self.add_event_log(Events.load_sprav_success)
 
     def save_sprav(self):
-        save_file = unicode(QtGui.QFileDialog(self).getSaveFileName(self, WName.save_dialog, options=QtGui.QFileDialog.DontUseNativeDialog))
+        save_file = unicode(QtGui.QFileDialog(self).getSaveFileName(self, WidgNames.save_dialog, options=QtGui.QFileDialog.DontUseNativeDialog))
         if save_file:
             self.add_loading(LoadMessg.spr_saving)
             self.run_main_thr(save_file,4)
@@ -869,11 +974,12 @@ class MyWindow(QtGui.QMainWindow):
             message = Events.spr_info(s_date, s_file)
         else:
             message = ErrMessage.spr_not_loaded
-        QtGui.QMessageBox.information(self, WName.sprav_info_box,message, u'Ok')
+        QtGui.QMessageBox.information(self, WidgNames.sprav_info_box,message, u'Ok')
 
 
     @QtCore.pyqtSlot()
     def click_control_btn(self):
+        self.convert_btn.setDisabled(True)
         self.add_event_log(Events.run_control)
         self.add_loading(LoadMessg.loading_control)
         self.control_thr = ControlThread(self.sprav_holder, self.db_file)
@@ -895,7 +1001,7 @@ class MyWindow(QtGui.QMainWindow):
         self.convert_thr.start()
 
     def get_edbf_name(self):
-        exp_dir = unicode(QtGui.QFileDialog(self).getExistingDirectory(self, WName.save_exp_dialog, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
+        exp_dir = unicode(QtGui.QFileDialog(self).getExistingDirectory(self, WidgNames.save_exp_dialog, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
         if exp_dir:
             if self.__is_session:
                 e_dbf = exp_dir + u'\\' + self.e_db_file.split(u'\\')[-1]
@@ -938,7 +1044,7 @@ class MyWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def click_a_tree_btn(self):
         self.model = self.make_tree_model(self.exp_a_thr.exp_tree)
-        self.model.setHorizontalHeaderLabels([WName.tree_header])
+        self.model.setHorizontalHeaderLabels([WidgNames.tree_header])
         self.treeView.setModel(self.model)
         self.treeView.setHidden(False)
         self.disconnect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.tree_edit_cell)
@@ -979,7 +1085,11 @@ class MyWindow(QtGui.QMainWindow):
             exp_index = indexes_before_sort[pressed_exp]
             pressed_exp = data[pressed_f22][exp_index]
             pressed_exp.add_data(self.sprav_holder)
-            SaveToXL.exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file, **self.xls_settings_d)
+            try:
+                SaveToXL.exp_single_fa(pressed_exp.exp_a_rows, u'%s_%s' % (pressed_f22, qindex.row()+1), pressed_exp.info, self.e_db_file, **self.xls_settings_d)
+            except SaveToXL.XlsIOError as err:
+                self.show_error(ErrMessage.xl_io_error[err.err_type](err.file_name))
+
 
     @QtCore.pyqtSlot()
     def click_exp_a_btn(self, after_click = True):
@@ -1031,24 +1141,37 @@ class MyWindow(QtGui.QMainWindow):
         self.control_table.table.add_span_row(event_time)
         err_descriptions = ErrMessage.control_protocol
         for err in data_li:
-            errors = unicode(tuple(err[u'err_ids']))
-            err_code = err['err_msg']
+            if len(err[u'err_ids'])> 100:
+                errors = unicode(tuple(err[u'err_ids'][:100]))
+                add_warning = u'!!! '
+            else:
+                errors = unicode(tuple(err[u'err_ids']))
+                add_warning = u''
+            err_code = err[u'err_msg']
             if err[u'dyn_param']:
                 err_msg = err_descriptions[err_code](err[u'dyn_param'])
             else:
                 err_msg = err_descriptions[err_code]
-            self.control_table.table.add_row([err[u'table'],err[u'field'], u'OBJECTID in %s' % errors, err_msg])
+            self.control_table.table.add_row([err[u'table'],err[u'field'], u'OBJECTID in %s' % errors, add_warning+err_msg])
 
     def add_convert_protocol(self, data_di):
         self.convert_btn.setDisabled(True)
+        self.convert_thr = None
         self.on_finished()
         self.convert_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.add_event_log(Events.convert_failed)
         self.convert_table.table.add_span_row(event_time)
-        for key in data_di:
-            errors = unicode(tuple(data_di[key]))
-            self.convert_table.table.add_row([unicode(key), u'OBJECTID in %s' % errors, ErrMessage.convert_errors[key]])
+        for err_type in data_di:
+            for part in data_di[err_type]:
+                errors = data_di[err_type][part]
+                if len(errors)> 100:
+                    errors = unicode(tuple(errors[:100]))
+                    add_warning = u'!!! '
+                else:
+                    errors = unicode(tuple(errors))
+                    add_warning = u' '
+                self.convert_table.table.add_row([part, u'OBJECTID in %s' % errors, add_warning + ErrMessage.convert_errors[err_type]])
 
     def try_has_edbf(self):
         if self.__is_xls_mode or self.try_to_connect(self.e_db_file):
@@ -1073,7 +1196,7 @@ class MyWindow(QtGui.QMainWindow):
             return False
 
     def show_error(self, err_text):
-        QtGui.QMessageBox.critical(self, WName.error, u"%s" % err_text,u'Закрыть')
+        QtGui.QMessageBox.critical(self, WidgNames.error, u"%s" % err_text,u'Закрыть')
 
 class ExportFrame(QtGui.QFrame):
     def __init__(self, parent = None):
@@ -1081,23 +1204,23 @@ class ExportFrame(QtGui.QFrame):
         self.color = u'#D3D120'
         self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
         self.rbtn_xls = QtGui.QRadioButton(u'*.xls',self)
-        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir))
+        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\xls.ico' % project_dir))
         self.rbtn_xls.setChecked(True)
         self.rbtn_xls.setFont(QtGui.QFont('Verdana',10))
         self.rbtn_mdb = QtGui.QRadioButton(u'*.mdb',self)
-        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\access.ico' % project_dir))
+        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\mdb.ico' % project_dir))
         self.rbtn_mdb.setFont(QtGui.QFont('Verdana',10))
         self.rbtn_style = u'background-color: white; color: green;' \
                           u' border-top-right-radius: 3%;' \
                           u'border-bottom-left-radius: 3%; padding: 3px;' \
-                          u' border: 2px solid' + self.color
+                          u'border: 2px solid' + self.color
         self.lbl_style = u'background-color: #49586B; color: white;' \
-                          u' border-top-left-radius: 23%;' \
-                          u' border-top-right-radius: 23%;' \
-                          u' border-bottom-left-radius: 23%;' \
-                          u' border-bottom-right-radius: 3%;' \
-                          u' padding-left: 10px;' \
-                          u' border: 2px solid '+self.color
+                          u'border-top-left-radius: 23%;' \
+                          u'border-top-right-radius: 23%;' \
+                          u'border-bottom-left-radius: 23%;' \
+                          u'border-bottom-right-radius: 3%;' \
+                          u'padding-left: 10px;' \
+                          u'border: 2px solid '+self.color
         self.lbl = QtGui.QLabel(u'Экспорт \n данных', self)
         # self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
         self.lbl.setFont(QtGui.QFont('Segoe Print',10))
@@ -1151,15 +1274,15 @@ class SrcFrame(QtGui.QFrame):
         self.lbl.repaint()
 
 class CombBox(QtGui.QComboBox):
-    def __init__(self, parent = None, width = 160, data = u'A'):
+    def __init__(self, parent = None, data = [], width = 60):
         QtGui.QComboBox.__init__(self, parent)
         self.change_data(data)
-        self.hide()
         self.setStyleSheet(u'font-size: 12px')
-        self.set_width(width)
+        self.set_min_width(width)
         self.setMaxVisibleItems(30)
-    def set_width(self, width):
-        self.setFixedWidth(width)
+
+    def set_min_width(self, width):
+        self.setMinimumWidth(width)
     def change_data(self, new_data):
         self.clear()
         self.addItems(new_data)
@@ -1170,12 +1293,12 @@ class GroupBox(QtGui.QFrame):
         self.setMaximumHeight(33)
         self.setStyleSheet(u'background-color: #2558FF; border-top-left-radius: 30%;border-bottom-right-radius: 30%; padding-right: 5px;padding-left: 5px')
         self.h_box = QtGui.QHBoxLayout(self)
-        self.first_cmb = CombBox(self)
-        self.first_cmb.show()
-        self.second_cmb = CombBox(self)
+        self.first_cmb = CombBox(self, width = 180)
+        self.second_cmb = CombBox(self, width = 180)
+        self.second_cmb.hide()
         self.first_cmb.setStyleSheet(u'border-radius: 5% ; border: 1px solid '+ border_color)
         self.second_cmb.setStyleSheet(u'border-radius: 5% ; border: 2px solid '+ border_color)
-        self.lbl = QtGui.QLabel(WName.lbl_group, self)
+        self.lbl = QtGui.QLabel(WidgNames.lbl_group, self)
         self.lbl.setStyleSheet(u'color: #C3FFF1;')
         self.lbl.setFont(QtGui.QFont('Segoe Print',9))
         self.lbl.setAlignment(QtCore.Qt.AlignCenter)
@@ -1196,17 +1319,17 @@ class Table(QtGui.QTableWidget):
     def __init__(self, header_text_li, parent = None):
         QtGui.QTableWidget.__init__(self, parent)
         self.__row_count = 0
-        self.horizontalHeader().setStretchLastSection(True)
         # qsize =QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         # self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.horizontalHeader().setOffsetToSectionPosition(1)
+        # self.horizontalHeader().setOffsetToSectionPosition(0)
+        # self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+20)
         self.horizontalHeader().setCascadingSectionResizes(True)
-        self.horizontalHeader().setMinimumSectionSize(130)
+        self.verticalHeader().setCascadingSectionResizes(True)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setMinimumSectionSize(50)
         header_css = u'border-radius: 1px; border: 1px dashed blue;'
         self.horizontalHeader().setStyleSheet(header_css)
         self.verticalHeader().setStyleSheet(header_css+u'padding:-2px')
-        self.verticalHeader().setCascadingSectionResizes(True)
-        # self.setWindowTitle(u"Text LOG")
         self.setColumnCount(len(header_text_li))
         self.setHorizontalHeaderLabels(header_text_li)
         self.setAlternatingRowColors(True)
@@ -1221,7 +1344,7 @@ class Table(QtGui.QTableWidget):
         self.__row_count+=1
         self.setRowCount(self.__row_count)
         time_label = TableLabel(text)
-        time_label.setStyleSheet(u'color: #AAAAAA; background-color: #22232F;font-size: 14px;'
+        time_label.setStyleSheet(u'color: #D3D3D3; background-color: #323C3D;font-size: 14px;'
                            u'border-top-left-radius: 30%; padding-right: 15px;padding-left: 15px')
         self.setCellWidget(self.__row_count-1,0, time_label)
         if span:
@@ -1235,7 +1358,12 @@ class Table(QtGui.QTableWidget):
         self.add_span_row(time_, False)
         for i, cell in enumerate(row_li):
             self.setCellWidget(self.__row_count-1,i+1, TableLabel(cell))
-
+    def add_widgets_row(self, widgets_row):
+        self.__row_count+=1
+        self.setRowCount(self.__row_count)
+        for i, cell in enumerate(widgets_row):
+            self.setCellWidget(self.__row_count-1,i, cell)
+    #TODO: Add documentation string
     def add_row(self, row_li):
         self.__row_count+=1
         self.setRowCount(self.__row_count)
@@ -1248,6 +1376,15 @@ class Table(QtGui.QTableWidget):
         self.reset()
         self.clearSpans()
         self.setRowCount(1)
+
+
+class SettingsTable(Table):
+    def __init__(self, header_li, parent = None):
+        Table.__init__(self, header_li, parent)
+        self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+80)
+        self.horizontalHeader().setResizeMode(1, True)
+        self.verticalHeader().setHidden(True)
+        self.setMinimumWidth(40)
 
 class TableLabel(QtGui.QTextEdit):
     def __init__(self, data):
@@ -1271,15 +1408,16 @@ class StyledButton(QtGui.QPushButton):
                            u'padding-right: 20px; padding-left: 20px;font-size: 12px;')
 
 class TableWidget(QtGui.QWidget):
-    def __init__(self, title, parent = None):
+    def __init__(self, title, parent = None, with_clear = True):
         QtGui.QWidget.__init__(self, parent)
         self.table = Table(title, parent)
-        self.clear_btn = StyledButton(WName.btn_clear, parent)
         self.box = QtGui.QGridLayout(self)
         self.box.addWidget(self.table,0,0,21,21)
-        self.box.addWidget(self.clear_btn,19,10,2,2)
-        self.connect(self.clear_btn, QtCore.SIGNAL(u"clicked()"), self.table.clear_all)
-        self.hide()
+        if with_clear:
+            self.clear_btn = StyledButton(WidgNames.btn_clear, parent)
+            self.box.addWidget(self.clear_btn,19,10,2,2)
+            self.connect(self.clear_btn, QtCore.SIGNAL(u"clicked()"), self.table.clear_all)
+            self.hide()
 if __name__ == u'__main__':
     app = QtGui.QApplication(sys.argv)
     exp_maker = MyWindow()

@@ -1,5 +1,5 @@
 QMainWindow {
-    background: url("../Images/v1.png") silver;
+    background: url("/Images/v1.png") silver;
 }
 QStatusBar {
     color : whitesmoke;

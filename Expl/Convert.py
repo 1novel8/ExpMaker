@@ -36,14 +36,13 @@ def add_utype_partn(connection, max_n = None):
         add_column(connection, ct, u'UserType_%s' % n)
         sql1 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.usern_%(nn)d
                     SET %(t)s.Usertype_%(nn)d = [Users].[UserType];''' % {u't': ct, u'nn': n}
-        sql2 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
-                    SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
-                        %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
-                    WHERE %(t)s.UserN_%(nn)d is not null
-                            and %(t)s.UserN_Sad is not null
-                            and SLNAD = 2 ;''' % {u't': ct, u'nn': n}
         connection.exec_query(sql1)
-        #TODO: перенести после проверки
+        # sql2 = u'''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
+        #             SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
+        #                 %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
+        #             WHERE %(t)s.UserN_%(nn)d is not null
+        #                     and %(t)s.UserN_Sad is not null
+        #                     and SLNAD = 2 ;''' % {u't': ct, u'nn': n}
         # connection.exec_query(sql2)
         #---------------------------PART_n----------------------------------------------
         add_column(connection, ct, u"Area_%s" % n, u'DOUBLE NULL')
@@ -88,16 +87,14 @@ class CtrRow(object):
         :param sprav: SpravHolder instance
         """
         self.has_err = False                # отанется False - контроль пройден,
-        # 1 - ошибки при доле 100%,
-        # 2 - ошибки при долях, не нашлось соответствий с bgd1, bgd2;
-        # 3 - сброс всех параметров,ошибка new_state при долях
-        # 4 - не сформирован soato
-
+        self.err_in_part = None
+        self.usern_sad = r_args.pop()
         self.object_id = r_args[0]
         self.soato = r_args[1]
         self.np_type = make_nptype(self.soato, sprav.soato_npt)
         if self.np_type is None:
             self.has_err = 4
+            self.err_in_part = 1
             return
         self.spr_bgd_1 = sprav.bgd2ekp_1
         self.spr_bgd_2   = sprav.bgd2ekp_2
@@ -123,6 +120,10 @@ class CtrRow(object):
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
         self.bgd_control()
+
+    def set_usern_sad(self):
+        if self.usern_sad:
+            self.usern = map(lambda x: self.usern_sad if x else x, self.usern)
 
     def has_code(self, n, param, codes):
         if param == u'f22':
@@ -155,19 +156,18 @@ class CtrRow(object):
                     self.change_lc()
             else:
                 self.has_err = 1
+                self.err_in_part = 1
         else:
-            bgd1_failed = []
             for n in range(self.n):
-                if not self.bgd1_control(n):
-                    bgd1_failed.append(n)
-            if bgd1_failed:
-                for n in bgd1_failed:
-                    if self.bgd2_control(n):
-                        if self.new_lc:
-                            self.change_lc()
-                    else:
-                        self.has_err = 2
-                        break
+                if self.bgd1_control(n):
+                    continue
+                elif self.bgd2_control(n):
+                    if self.new_lc:
+                        self.change_lc()
+                else:
+                    self.has_err = 2
+                    self.err_in_part = n+1
+                    break
 
     def change_lc(self):
         self.old_changed_lc = self.lc
@@ -208,53 +208,57 @@ def for_query(field, count):
         fields += u'%s%s, ' % field, i
     return fields[:-2]
 
-def convert(sprav_holder, temp_db_path):
-    ctr_conn = DBConn(temp_db_path)
-    convert_soato(ctr_conn)
-    n_max = sprav_holder.max_n
-    add_utype_partn(ctr_conn, n_max)
 
+def make_crtab_query(n_max, dop_fields = None):
     def make_fields_str(f_name, col = n_max):
         s = u''
         for n in range(col):
             s+=u'%s%d,' % (f_name, n+1)
         return s[:-1]
-
-    cr_tab_fields = sprav_holder.crtab_columns.keys()
-    select_ctr_all = u'select OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, %s, %s, %s, %s' % \
+    query = u'select OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, %s, %s, %s, %s' % \
                      (make_fields_str(u'Forma22_'),make_fields_str(u'UserN_'),make_fields_str(u'Usertype_'),make_fields_str(u'Area_'))
+    if dop_fields:
+        dop_fields = u','.join(dop_fields)
+        query+=u','+dop_fields
+    query+=u', UserN_Sad'
+    query += u' from %s' % ct
+    return query
+
+def convert(sprav_holder, temp_db_path):
+    n_max = sprav_holder.max_n
+    ctr_conn = DBConn(temp_db_path)
+    convert_soato(ctr_conn)
+    add_utype_partn(ctr_conn, n_max)
+
     dop_fields = []
+    cr_tab_fields = sprav_holder.crtab_columns.keys()
     for field in sorted(cr_tab_fields):
         if 'Dop' in field:
             dop_fields.append(field)
-    dop_f_count = len(dop_fields)
-    if dop_f_count:
-        dop_fields = u','.join(dop_fields)
-        select_ctr_all+=u','+dop_fields
-    select_ctr_all += u' from %s' % ct
-    rows_ok, rows_failed, = [],[]
-    select_result = ctr_conn.exec_sel_query(select_ctr_all)
+    select_ctr_all = make_crtab_query(n_max, dop_fields)
+    sel_result = ctr_conn.exec_sel_query(select_ctr_all)
+    del ctr_conn
 
-    whats_err = {}
-    if select_result:
-        for row in select_result:
-            new_row = CtrRow(row, dop_f_count,  n_max, sprav_holder )       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
+    rows_ok = []
+    whats_err = {1:{}, 2:{}, 3:{}, 4:{}}
+    got_errors = False
+    if sel_result:
+        for row in sel_result:
+            new_row = CtrRow(list(row), len(dop_fields),  n_max, sprav_holder )       #row[0], row[1], row[2], row[3],row[4], row[5:n_max+5], row[n_max+5:]
             if new_row.has_err:
-                rows_failed.append(new_row)
+                err_part = u'Part_%d'%new_row.err_in_part
+                try:
+                    whats_err[new_row.has_err][err_part].append(new_row.object_id)
+                except KeyError:
+                    whats_err[new_row.has_err][err_part] = [new_row.object_id, ]
+                    got_errors = True
             else:
+                new_row.set_usern_sad()
                 rows_ok.append(new_row)
-        del ctr_conn
 
-        for err_row in rows_failed:
-            try:
-                whats_err[err_row.has_err].append(err_row.object_id)
-            except KeyError:
-                whats_err[err_row.has_err] = [err_row.object_id, ]
-
-        print whats_err
         users_d, soato_d = data_users_soato(temp_db_path)
         save_info = [rows_ok, users_d, soato_d]
-        if whats_err:
+        if got_errors:
             return whats_err
         else:
             return save_info

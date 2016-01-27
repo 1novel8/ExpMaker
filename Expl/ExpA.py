@@ -4,11 +4,30 @@
 import time
 from Sprav import DBConn
 
-def round_row_data(data, accuracy = 4):
+def round_row_data(data, accuracy = 4, simple_round = True):
+    to_ga = 10000.0
+    if simple_round:
+        try:
+            return map(lambda x: round(x/to_ga, accuracy), data)
+        except TypeError:
+            return round(data/to_ga, accuracy)
+    else:
+        if hasattr(data, '__iter__'):
+            return map(lambda x: complex_round(x/to_ga, accuracy), data)
+        else:
+            return complex_round(data/to_ga, accuracy)
+
+def complex_round(digit, n_digits):
+    min_normal_round = 10**-n_digits
     try:
-        return map(lambda x: round(x/10000, accuracy), data)
-    except TypeError:
-        return round(data/10000, accuracy)
+        rounded = round(digit, n_digits)
+    except TypeError as err:
+        raise Exception(u'Возникла ошибка при попытке округления %s.\n%s' % (unicode(digit),err.message))
+    else:
+        if rounded < min_normal_round:
+            return round(digit, n_digits+3)
+        else:
+            return rounded
 
 class DataComb(object):
     def __init__(self, datali, info, dop_info, soato_inf):
@@ -41,7 +60,7 @@ class DataComb(object):
                     except KeyError:
                         self.errors[1] = r_params[0]
                     e_row = [0]*len(sprav.expa_f_str)
-            self.exp_a_rows.append(round_row_data(e_row))
+            self.exp_a_rows.append(round_row_data(e_row, False))
 
     def prepare_svodn_data(self):
         if self.exp_a_rows:
@@ -285,3 +304,6 @@ class ExpFA(object):
             self.__exp_conn.close_conn()
             return created_fields
         else: return False
+
+if __name__ == u'__main__':
+    print unicode(round_row_data([324242,3223, 0.2,345], 3, False))

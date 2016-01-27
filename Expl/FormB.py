@@ -174,18 +174,20 @@ class ExpFormaB(object):
         if not exp_dict:
             exp_dict = self.create_exp_dict()
         r_str = self.sprav_holder.expb_r_str
+        covered_fields = map(lambda x: u'f_%s'%x, cr_fields)
         self.__exp_conn.make_connection()
         for key in sorted(exp_dict.keys()):
-            try:
+            try:        #Here we create first two values for insert query
                 f_values = [key, r_str[key][u'row_name']]
             except KeyError as err:
                 if key == u'by_SHAPE':
                     f_values = [key, u'Всего:']
                 else: raise err
+
             for field_name in cr_fields[2:]:
                 f_v = exp_dict[key][field_name]
                 f_values.append(f_v if f_v else 0)
-            inserted = self.insert_row(cr_fields, f_values)
+            inserted = self.insert_row(covered_fields, f_values)
             if not inserted: break
         self.__exp_conn.close_conn()
         os.system(u'start %s' % self.exp_db)
@@ -204,7 +206,7 @@ class ExpFormaB(object):
         :return: list of created fields if create table operation finished with success, else returns false
         """
         create_fb = u'create table %s(ID AUTOINCREMENT, f_F22 text(8) Null, f_description text(150), ' % self.exp_name
-        created_fields = [u'f_F22', u'f_description']
+        created_fields = [u'F22', u'description']
         sort_f_d = {}
         f_str = self.sprav_holder.expb_f_str
         for key in f_str:
@@ -212,7 +214,7 @@ class ExpFormaB(object):
             if sort_key:
                 sort_f_d[sort_key] = key
         for key in sorted(sort_f_d):
-            create_fb+= u'%s DOUBLE NULL, ' % sort_f_d[key]
+            create_fb+= u'f_%s DOUBLE NULL, ' % sort_f_d[key]
             created_fields.append(sort_f_d[key])
         create_fb += u'PRIMARY KEY(ID));'
         self.__exp_conn.make_connection()
