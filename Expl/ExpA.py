@@ -1,143 +1,190 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pyodbc
 import time
-from Control import workDir
-template_db = u'%s\\template.mdb' % workDir
-access_dbf = u"%s\\tempDbase.mdb" % workDir
-dependOfCodes = dict(f_3=1, f_4=1, f_5=1, f_6=1, f_8 =1, f_9=1, f_10=1, f_11 =1, f_12=1, f_13 =1,f_15=1, f_16 =1,
-                     f_melio1=2, f_melio2=2, f_servtype=3,
-                     f_state02=4, f_state03=4, f_state04 =4, f_state05=4, f_state06=4, f_state07=4, f_state08 =4)
+from Sprav import DBConn
 
-def sum_by_lc(rowsli):
-    if len(rowsli):
-        sum_dict = dict.fromkeys(lcdict,0)
-        for key in sum_dict.keys():
-            for row in rowsli:
-                if row[1] in lcdict[key]:
-                    sum_dict[key] += row[0]
-        sum_dict[u'f_2'] = sum_dict[u'f_3']+sum_dict[u'f_4']
-        sum_dict[u'f_7'] = sum_dict[u'f_2']+sum_dict[u'f_5']+sum_dict[u'f_6']
-        sum_dict[u'f_14'] = sum_dict[u'f_15']+sum_dict[u'f_16']
-        sum_dict[u'f_1'] = sum(sum_dict[u'f_%d' % i] for i in (7,8,9,10,11,12,13,14))
-        a = map(lambda x : sum_dict[u'f_%d' % x], range(1,len(sum_dict.keys())+1))
-        return a
+def round_row_data(data, accuracy = 4, simple_round = True):
+    to_ga = 10000.0
+    if simple_round:
+        try:
+            return map(lambda x: round(x/to_ga, accuracy), data)
+        except TypeError:
+            return round(data/to_ga, accuracy)
     else:
-        return [0]*16
-
-def make_expa_params(rowslist):
-    fa_params = {u'f_01': sum_by_lc(rowslist)}
-    for key in rcdict.keys():
-        filtr_rows_li = [row[:2] for row in rowslist if row[dependOfCodes[key]] in rcdict[key]]
-        fa_params[key] = sum_by_lc(filtr_rows_li)
-    return fa_params
-
-def select_sprav(query):
-    __bgd = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s\\Spravochnik.mdb;' % workDir
-    conn = pyodbc.connect(__bgd, autocommit = True, unicode_results = True)
-    dbc = conn.cursor()
-    selresult = [row for row in dbc.execute(query).fetchall()]
-    dbc.close()
-    conn.close()
-    return selresult
-
-def make_row_codes():
-    """
-    Makes dictionary with Names of Rows in FormB as keys
-    and LandCodes, RowCodes as values
-    """
-    codsdict ={}
-    global rcdict
-    rcdict = {}
-    lcrows = select_sprav(u'select LandCode, NumberGraf from LandCodes')
-    rcrows = select_sprav(u'select Code, RowNames from RowCodes')
-    for row in lcrows:
-        if u'f_%s' % row[1] in codsdict.keys():
-            codsdict[u'f_%s' % row[1]].append(row[0])
+        if hasattr(data, '__iter__'):
+            return map(lambda x: complex_round(x/to_ga, accuracy), data)
         else:
-            codsdict[u'f_%s' % row[1]] = [row[0]]
-    global lcdict
-    lcdict = codsdict.copy()
-    for row in rcrows:
-        rowli = row[0][1:-1].split(u',')
-        rowli = map(lambda x: int(x), rowli)
-        rcdict[row[1]] = rowli
-    codsdict.update(rcdict)
-    codsdict[u'f_7'] = codsdict[u'f_3'] + codsdict[u'f_4'] + codsdict[u'f_5'] + codsdict[u'f_6']
-    return codsdict
-NumRowsLi = [u'f_01', u'f_state02', u'f_state03', u'f_state04', u'f_state05', u'f_state06', u'f_state07', u'f_state08', u'f_melio1', u'f_melio2', u'f_servtype' ]
+            return complex_round(data/to_ga, accuracy)
+
+def complex_round(digit, n_digits):
+    min_normal_round = 10**-n_digits
+    try:
+        rounded = round(digit, n_digits)
+    except TypeError as err:
+        raise Exception(u'Возникла ошибка при попытке округления %s.\n%s' % (unicode(digit),err.message))
+    else:
+        if rounded < min_normal_round:
+            return round(digit, n_digits+3)
+        else:
+            return rounded
 
 class DataComb(object):
-    def __init__(self, f22, user_soato, nusname, datali, inform = u''):
-        self.f22 = f22
-        self.us_soato = user_soato
-        self.nusname = nusname
-        self.data = datali[1:]
-        self.expArows = []
-        info_is_null = lambda x: x if x else ''
-        self.info = info_is_null(datali[0])+u' '+inform
+    def __init__(self, datali, info, dop_info, soato_inf):
+        self.soato_inf = soato_inf
+        self.data = datali
+        self.exp_a_rows = []
+        self.obj_name = info
+        self.info = u'%s %s' % (dop_info, info)
+        self.errors = {}
 
-    def add_data(self):
-        self.exp_a_dict = make_expa_params(self.data)
-        for i in NumRowsLi:
-            self.expArows.append(self.exp_a_dict[i])
+    def add_data(self, sprav):
+        """
+        :param sprav: sprav_holder instance
+        Makes ordered list of explication rows
+        work with expa_row_structure
+        """
+        self.exp_a_rows = []
+        for key in sorted(sprav.expa_r_str):
+            r_params = sprav.expa_r_str[key]
+            if r_params[2] in (0,1):            #index of the sort parameter, by which row is filtered
+                e_row = self.sum_by_lc(self.data, sprav.expa_f_str)
+            else:
+                r_par = r_params[1]
+                if not hasattr(r_par, '__iter__'): continue
+                try:
+                    e_row = self.sum_by_lc([row for row in self.data if row[r_params[2]] in r_par], sprav.expa_f_str)
+                except (IndexError, TypeError):
+                    try:
+                        self.errors[1]+= u', %s' % r_params[0]
+                    except KeyError:
+                        self.errors[1] = r_params[0]
+                    e_row = [0]*len(sprav.expa_f_str)
+            self.exp_a_rows.append(round_row_data(e_row, False))
+
+    def prepare_svodn_data(self):
+        if self.exp_a_rows:
+            try:
+                temp = list(self.exp_a_rows[0])
+                for row in self.exp_a_rows[1:]:
+                    temp.append(row[0])
+                return temp
+            except IndexError:
+                pass
+        return []
+
+    def sum_by_lc(self, rowsli, f_str):
+        c = u'codes'
+        if rowsli:
+            f_values = {}
+            for key in f_str:
+                if f_str[key][c]:
+                    f_values[key] = 0
+                    for row in rowsli:
+                        if row[1] in f_str[key][c]: f_values[key] += row[0]
+            # while f_value key is empty ...
+            while len(f_str) > len(f_values):
+                f_len = len(f_values)
+                for key in f_str:
+                    if f_values.has_key(key): continue
+                    sum_f_li = f_str[key][u'sum_f']
+                    if hasattr(sum_f_li, '__iter__'):
+                        f_sum = self.try_get_sum(sum_f_li, f_values)
+                        if f_sum == -1:
+                            continue
+                        else:
+                            f_values[key] = f_sum
+                    else: break
+                if f_len == len(f_values):
+                    break
+            return_li = []
+            for key in sorted(f_str):
+                try:
+                    return_li.append(f_values[key])
+                except KeyError: return_li.append(0)
+            return return_li
+        else:
+            return [0]*len(f_str)
+
+    @staticmethod
+    def try_get_sum(key_li, sum_di):
+        """If sum_di has all keys from key_li, function returns this sum else returns False"""
+        r_sum = 0
+        for f_key in key_li:
+            try:
+                r_sum += sum_di[f_key]
+            except KeyError: return -1
+        return r_sum
 
 
 class ExpFA(object):
-    def __init__(self, expdb, ctr_rows, crtabdb = u"%s\\tempDbase.mdb" % workDir):
-        self.__expfile = expdb
-        self.__ctrfile = crtabdb
-        self.__expAccess = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__expfile
-        self.__crtAccess = u'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % self.__ctrfile
-        self.__expconnected = 0
-        self.__crtabconnected = 0
-        self.datadict = self.make_dict_of_dict(ctr_rows)     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
-        self.usersInfo, self.soatoInfo = self.data_users_soato()
-        self.remake_codes()
-        self.expsdict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
-        self.a=self.make_exp_tree()
+    def __init__(self, expdb, input_data, sprav_holder):
+        self.sprav_holder = sprav_holder
+        self.__errors = []
+        self.__exp_conn =  DBConn(expdb, False)
+        self.usersInfo, self.soatoInfo = input_data[-2:]
+        self.cc_soato_d = self.get_cc_soato_d()
+        self.datadict = self.make_datadict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
+        self.exps_dict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instanse
 
-    @staticmethod
-    def make_f22_dict(rows_ok):
-        f22_dict = dict()
-        for row in rows_ok:
+    def get_cc_soato_d(self):
+        cc_soato_d = {}
+        for soato in self.soatoInfo:
+            if soato[-3:] == u'000':
+                cc_soato_d[soato[:-3]] = self.soatoInfo[soato]
+        return cc_soato_d
+
+    def get_cc_name(self, soato):
+        soato = unicode(soato)
+        if soato[-3:] == u'000':
+            return u''
+        else:
+            try:
+                return self.cc_soato_d[soato[:-3]] +u'  '
+            except KeyError:
+                return u'! '
+    def has_error(self):
+        if not self.__errors:
+            return False
+        if 1 in self.__errors:
+            return self.__expname
+
+    def make_datadict(self, rows):
+        f22_dict = {}
+        for row in rows:
             for n in range(row.n):
-                row_params = (row.usern[n], row.soato, row.nusname[n], row.area[n], row.lc, row.mc, row.st08, row.state, row.dopname[n])
-                            # NewF22_%(N)d, UserN_%(N)d, SOATO, NEWUSNAME_%(N)d, Area_%(N)d,LANDCODE, MELIOCODE, ServType08, State_1, NPType, DOPNAME_%(N)d,
+                f22_key = row.f22[n]
+                if row.nusname[n] == 1: #группировка по User_N
+                    group_key = row.usern[n]
+                    info = self.usersInfo[group_key]
+                else:                   #группировка по SOATo
+                    group_key = row.soato
+                    info = self.soatoInfo[group_key]
+                dop_info = row.dopname[n] if row.dopname[n] else u''
+                row_params = [row.area[n], row.lc, row.mc, row.st08, row.state]# NEWUSNAME_%(N)d, Area_%(N)d, LANDCODE, MELIOCODE, ServType08, State_1
+                row_params.extend(row.dop_args) #ADD Dop args with Dop_* in field name
                 try:
-                    f22_dict[row.f22[n]].append(row_params)
+                    f22_dict[f22_key][group_key][u'r_params'].append(row_params)
                 except KeyError:
-                    f22_dict[row.f22[n]] = [row_params,]
+                    if not f22_dict.has_key(f22_key):
+                        f22_dict[f22_key] = {}
+                    f22_dict[f22_key][group_key] = {
+                        u'r_params': [row_params, ],
+                        u'info': info,
+                        u'dop_info': dop_info,
+                        u'soato_inf': self.get_cc_name(row.soato)
+                    }
         return f22_dict
-
-    def make_dict_of_dict(self, rows):
-        """
-        :param rows : rows instances (f22, UserN_n, SOATO, NEWUSNAME_n, Area_n,LANDCODE, MELIOCODE, ServType08, State, DOPNAME_n)
-        :return: dict with dicts, keys: f22 >> usern | soato >> rows(newusname_n, dopname_n, (Area_n,LANDCODE, MELIOCODE, ServType08, State))
-        """
-        f22_rows = self.make_f22_dict(rows)
-        ct_dict = dict()
-        for f22 in f22_rows.keys():
-            ct_dict[f22] = dict()
-            for row in f22_rows[f22]:
-                row_ind = 0 if row[2] == 1 else 1    #NEWUSNAME_%(N)d =1 >> Sort By UserN
-                                                    #NEWUSNAME_%(N)d =2|3 >> Sort By SOATO
-                try:
-                    ct_dict[f22][row[row_ind]].append(row[3:-1])
-                except KeyError:
-                    ct_dict[f22][row[row_ind]] = [row[2], row[-1], row[3:-1]]
-        return ct_dict
 
     def make_exp_tree(self):
         """ Returns dictionary:
             keys: F22, values: combdata instanses
         """
-        tree_dict = dict.fromkeys(self.expsdict)
-        for key1 in self.expsdict:
+        tree_dict = dict.fromkeys(self.exps_dict)
+        for key1 in self.exps_dict:
             tree_dict[key1] = []
-            for key2 in self.expsdict[key1]:
-                tree_dict[key1].append(self.expsdict[key1][key2])
+            for key2 in self.exps_dict[key1]:
+                tree_dict[key1].append(self.exps_dict[key1][key2])
         return tree_dict
 
     def make_comb_data(self):
@@ -146,139 +193,117 @@ class ExpFA(object):
             comb_dicts[key1] = dict.fromkeys(self.datadict[key1].keys())
             for key2 in comb_dicts[key1]:
                 comb_li = self.datadict[key1][key2]
-                if comb_li[0] == 1:
-                    comb_dicts[key1][key2] = DataComb(key1, key2, comb_li[0], comb_li[1:], self.usersInfo[key2])
-                else: comb_dicts[key1][key2] = DataComb(key1, key2, comb_li[0], comb_li[1:], self.soatoInfo[key2])
+                comb_dicts[key1][key2] = DataComb(comb_li[u'r_params'], comb_li[u'info'], comb_li[u'dop_info'], comb_li[u'soato_inf'])
         return comb_dicts
 
     def calc_all_exps(self):
-        for key1 in self.expsdict:
-            for key2 in self.expsdict[key1]:
-                self.expsdict[key1][key2].add_data()
+        ask_err = True
+        if self.exps_dict:
+            for key1 in self.exps_dict:
+                for key2 in self.exps_dict[key1]:
+                    self.exps_dict[key1][key2].add_data(self.sprav_holder)
+                    if ask_err:
+                        ask_err = False
+                        errors = self.exps_dict[key1][key2].errors
+            return errors
+        return {1: u'Lost Data!'}
 
-    def transfer_to_ins(self):
+    def prepare_svodn_xl(self):
+        xl_f22_dict = {}
+        return_xl_matrix = []
+        n = 1
+        total_row = [0]*150
+        for f22_k  in sorted(self.exps_dict.keys()):
+            itogo_row = [0]*150
+            data_matrix = []
+            for group_k in self.exps_dict[f22_k]:
+                zem_obj = self.exps_dict[f22_k][group_k]
+                row_data = zem_obj.prepare_svodn_data()
+                itogo_row = map(lambda x: sum(x), zip(itogo_row,row_data))
+        #   Add cc name to zem_obj.info
+                cc_kod = unicode(group_k)[:-3]
+                if len(cc_kod)>6:
+                    try:
+                        cc_name = self.cc_soato_d[cc_kod] +u' '
+                    except KeyError:
+                        cc_name = u''
+                else:
+                    cc_name = u''
+                cc_name += zem_obj.info
+        #   --------------------------------
+                row_data.insert(0, cc_name)
+                data_matrix.append(row_data)
+
+            f22_head = [n, f22_k, self.sprav_holder.f22_notes[f22_k]]
+            f22_head.extend([None]*len(itogo_row))
+            xl_f22_dict[f22_k] = [f22_head,]
+            n+=1
+            f22_row_num = 1
+            for li in sorted(data_matrix):
+                li[0:0] = [n, u'%s. %d' % (f22_k, f22_row_num)]
+                f22_row_num+=1
+                n += 1
+                xl_f22_dict[f22_k].append(li)
+            total_row = map(lambda x: sum(x), zip(itogo_row,total_row))
+            itogo_row[0:0] = [n, u'%s. i' % f22_k, u'Итого:']
+            n+=1
+            xl_f22_dict[f22_k].append(itogo_row)
+            return_xl_matrix.extend(list(xl_f22_dict[f22_k]))
+        total_row[0:0] = [n, u'', u'Всего:']
+        return_xl_matrix.append(total_row)
+        #Do Shape_sum
+        conv_rows = []
+        for k1 in self.datadict:
+            for k2 in self.datadict[k1]:
+                conv_rows.extend(self.datadict[k1][k2][u'r_params'])
+        shape_comb = DataComb(conv_rows, u'Shape_sum:', u'', u'')
+        shape_comb.add_data(self.sprav_holder)
+        shape_row = shape_comb.prepare_svodn_data()
+        shape_row[:0] = [n+1, u'', u'Shape_sum:']
+        return_xl_matrix.append(shape_row)
+        return return_xl_matrix
+
+    def fill_razv_edb(self, matrix):
         self.__expname = u'ExpA_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
-        self.create_clear_edb()
-        final_dict = self.expsdict
-        self.calc_all_exps()
-        self.__connect_exp()
-        fdk = final_dict.keys()
-        fdk.sort()
-        for f22key in fdk:
-            itogo_row = [0]*16
-            for us_so_key in final_dict[f22key].keys():
-                li = final_dict[f22key][us_so_key].expArows
-                data = final_dict[f22key][us_so_key].info
-                for i in range(1, len(li)+1):
-                    if i == 1:
-                        self.add_row_exp_a(f22key, data, i, li[i-1])
-                        itogo_row = map(lambda x: sum(x), zip(itogo_row, li[i-1]))
-                    else:
-                        self.add_row_exp_a(f22key, us_so_key, i, li[i-1])
-            self.add_row_exp_a(f22key, u'Итого', 0, itogo_row)
-        self.__disconnect_exp()
+        created_fields = self.create_edb_table(True)
+        if created_fields:
+            if len(created_fields) == len(matrix[0]):
+                self.__exp_conn.make_connection()
+                joined_f = u','.join(created_fields)
+                for row in matrix:
+                    # row = row[1:]
+                    row = map(lambda x: u"'%s'" % x if isinstance(x, unicode) else x, row)
+                    row = map(lambda x: (u'Null' if x is None else unicode(x)), row)
+                    f_values = u','.join(row)
+                    ins_query = u'insert into %s(%s) values (%s);' % (self.__expname, joined_f, f_values)
+                    row_insert = self.__exp_conn.exec_query(ins_query)
+                    if not row_insert: break
+                self.__exp_conn.close_conn()
+            self.__exp_conn.run_db()
 
-    def add_row_exp_a(self, ff22, f_us_n, f_r_n, params):
-        if self.__expconnected ==1:
-            ins_args = map(lambda x: round(x/10000,4), params)
-            sql_ins = u'''insert into %s (f_F22, f_UsN, f_RowNumber, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10,
-                        f_11, f_12, f_13, f_14, f_15, f_16) values ( ?, ?, ?, %s);''' % (self.__expname, unicode(ins_args)[1:-1])
-            try:
-                self.__edbc.execute(sql_ins, (ff22, f_us_n, f_r_n))
-            except pyodbc.DataError: pass
-
-    def create_clear_edb(self):
-        create_fa = u''' create table %s(
-        ID AUTOINCREMENT    ,
-        f_F22 text(3)       ,
-        f_UsN text(100)     ,
-        f_RowNumber integer NULL,
-        f_1  DOUBLE NULL    ,
-        f_2  DOUBLE NULL    ,
-        f_3  DOUBLE NULL    ,
-        f_4  DOUBLE NULL    ,
-        f_5  DOUBLE NULL    ,
-        f_6  DOUBLE NULL    ,
-        f_7  DOUBLE NULL    ,
-        f_8  DOUBLE NULL    ,
-        f_9  DOUBLE NULL    ,
-        f_10 DOUBLE NULL    ,
-        f_11 DOUBLE NULL    ,
-        f_12 DOUBLE NULL    ,
-        f_13 DOUBLE NULL    ,
-        f_14 DOUBLE NULL    ,
-        f_15 DOUBLE NULL    ,
-        f_16 DOUBLE NULL    ,
-        PRIMARY KEY(ID));''' % self.__expname
-        self.__connect_exp()
-        if self.__expconnected == 1:
-            self.try_to_drop()
-            self.__edbc.execute(create_fa)
-            self.__disconnect_exp()
-
-    def try_to_drop(self):
-        if self.__expconnected == 1:
-            try:
-                self.__edbc.execute(u"Drop table %s;" % self.__expname)
-                return True
-            except pyodbc.Error:
-                return False
-
-    def data_users_soato(self):
+    def create_edb_table(self, razv = False):
         """
-        returns UsersDict and SoatoDict with keys usern and soato
-        and values in unicode
+        :param razv: Makes tab structure like xls if parameter is true
+        :return: list of created fields if create table operation finished with success, else returns false
         """
-        self.__connect_crtab()
-        if self.__crtabconnected == 1:
-            self.__ctdbc.execute(u'select KOD, NameSNp from SOATO')
-            sel_result = [row for row in self.__ctdbc.fetchall()]
-            soato_dict = dict(sel_result)
-            self.__ctdbc.execute(u'select UserN, UsName from Users')
-            sel_result = [row for row in self.__ctdbc.fetchall()]
-            users_dict = dict(sel_result)
-            self.__disconnect_crtab()
-            return users_dict, soato_dict
-        else:
-            #TODO: Remake exception
-            print u'Error, Crtab_razv is not connected'
+        create_fa = u'create table %s(ID AUTOINCREMENT, f_F22 text(8) Null, f_UsN text(100), ' % self.__expname
+        created_fields = [u'ID', u'f_F22', u'f_UsN']
+        def add_fields(f_dict, f_name_ki):
+            query_part = u''
+            for f_k, f_v in sorted(f_dict.items()):
+                if f_v[f_name_ki]:
+                    query_part+= u'f_%s DOUBLE NULL, ' % f_v[f_name_ki]
+                    created_fields.append(u'f_%s' % f_v[f_name_ki])
+            return query_part
+        create_fa += add_fields(self.sprav_holder.expa_f_str, u'f_name')
+        if razv:
+            create_fa += add_fields(self.sprav_holder.expa_r_str, 0)
+        create_fa += u'PRIMARY KEY(ID));'
+        self.__exp_conn.make_connection()
+        if self.__exp_conn.exec_query(create_fa):
+            self.__exp_conn.close_conn()
+            return created_fields
+        else: return False
 
-    def __connect_exp(self):
-        try:
-            self.__econn = pyodbc.connect(self.__expAccess, autocommit = True, unicode_results = True)
-            self.__edbc = self.__econn.cursor()
-            self.__expconnected = 1
-        except:
-            self.__expconnected = 0
-
-    def __disconnect_exp(self):
-        if self.__expconnected == 1:
-            self.__edbc.close()
-            self.__econn.close()
-            self.__expconnected = 0
-
-    def __connect_crtab(self):
-        try:
-            self.__ctconn = pyodbc.connect(self.__crtAccess, autocommit = True, unicode_results = True)
-            self.__ctdbc = self.__ctconn.cursor()
-            self.__crtabconnected = 1
-        except:
-            print u'Error, Crtab_razv is not connected!!!'
-            self.__crtabconnected = 0
-
-    def __disconnect_crtab(self):
-        if self.__crtabconnected == 1:
-            self.__ctdbc.close()
-            self.__ctconn.close()
-            self.__crtabconnected = 0
-
-    @staticmethod
-    def remake_codes():
-        make_row_codes()
-
-if __name__ == '__main__':
-    print time.ctime()
-    test = ExpFA(u'd:\\workspace\\explication.mdb',access_dbf)
-    test.transfer_to_ins()
-    print time.ctime()
-
+if __name__ == u'__main__':
+    print unicode(round_row_data([324242,3223, 0.2,345], 3, False))
