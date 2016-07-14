@@ -30,7 +30,7 @@ class SpravError(Exception):
         super(SpravError, self).__init__(errors[e_type]())
 
 def catch_ex_as_sprav_err(decor_method):
-    def wrapper(q = 3, *args, **kwargs):
+    def wrapper(*args, **kwargs):
         try:
             return decor_method(*args, **kwargs)
         except SpravError:

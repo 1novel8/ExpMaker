@@ -13,7 +13,6 @@ from Packages import Control, Convert, ExpA, FormB, Sprav
 from Packages.Exports import ToXL, ToMdb
 from Packages.Titles import LoadMessg, WidgNames, Events, ToolTip, ErrMessage
 
-
 Expl = 2
 project_dir = os.getcwd()
 spr_dir = os.path.join(project_dir, 'Spr')
@@ -181,7 +180,7 @@ class MainActiveThread(QtCore.QThread):
     def control_spr_db(self, full=True):
         sprav_contr = Sprav.SprControl(self.__file_path, full)
         if not sprav_contr.is_connected:
-            self.emit(QtCore.SIGNAL(u'failure_conn(const QString&)'), ErrMessage.no_db_conn % self.__file_path)
+            self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.no_db_conn % self.__file_path)
             return False
         bad_tbls = sprav_contr.contr_tables()
         if bad_tbls:
@@ -315,12 +314,26 @@ class ExpAThread(QtCore.QThread):
         f_orders = self.sprav_holder.str_orders['sv_f']
         r_order_base = sv_dict['texts']
         matr = []
-        def push_to_matr(first, second, remain):
-            row = [first, second]
+
+        self.n = 1
+        def push_to_matr(first, second, remain, skip_num = False):
+            row = []
+            if self.__out_to_xl:
+                row = [self.n, ]
+                if skip_num:
+                    row = ['', ]
+                else:
+                    self.n+=1
+            row.extend([first, second])
             row.extend(remain)
             matr.append(row)
-        push_to_matr(u'F22_id', u'description', f_orders)
+
+        push_to_matr(u'F22_id', u'description', f_orders, True)
         for f22_key in sorted(r_order_base.keys()):
+            if self.__out_to_xl:
+                push_to_matr('','', ['', ] * (len(f_orders)+2), True)
+                push_to_matr(f22_key, self.sprav_holder.f22_notes[f22_key], ['',]*len(f_orders), True)
+
             vals_keys = map(lambda (x, y): (y, x), r_order_base[f22_key].items())
             n = 1
             for row_name, row_key in sorted(vals_keys):
@@ -335,11 +348,12 @@ class ExpAThread(QtCore.QThread):
         # добовление информационной строки Shape_area
         digits = map(lambda x: sv_dict['sh_sum'][x]['val'], f_orders)
         push_to_matr(u'***', u'Shape_Area (для сравнения):', digits)
+        del self.n
         return matr
 
     def export_s_to_xl(self, matrix):
         try:
-            ToXL.exp_single_fa(matrix, self.__args[0], self.__single_exp.info, self.exp_db_file, **self.xl_settings)
+            ToXL.exp_single_fa(matrix, self.__args[0], self.__single_exp.obj_name, self.exp_db_file, **self.xl_settings)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -456,6 +470,7 @@ class ExpBThread(QtCore.QThread):
 class LoadingThread(QtCore.QThread):
     def __init__(self, parent = None):
         super(LoadingThread, self).__init__(parent)
+
     def run(self):
         dots = [u' ',]*5
         count = 0
@@ -610,6 +625,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tree_text_widg = QtGui.QWidget()
         self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
         self.tree_text_box.addWidget(self.splitter)
+
         self.gridLayout.addWidget(self.l1, 1, 0, 1, 1)
         self.gridLayout.addWidget(self.l2, 2, 0, 1, 1)
         self.gridLayout.addWidget(self.l3, 4, 0, 1, 1)
@@ -627,12 +643,6 @@ class MainWindow(QtGui.QMainWindow):
         self.setFocus()
         self.set_menu_properties()
         self.hide_props()
-        self.connect(self.control_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_control_btn()"))
-        self.connect(self.convert_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_convert_btn()"))
-        self.connect(self.exp_a_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_a_btn()"))
-        self.connect(self.btn_a_all, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_svodn_btn()"))
-        self.connect(self.btn_a_tree, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_tree_btn()"))
-        self.connect(self.exp_b_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_b_btn()"))
         self.sprav_holder = None
         self.bold_font = QtGui.QFont()
         self.normal_font = QtGui.QFont()
@@ -640,7 +650,7 @@ class MainWindow(QtGui.QMainWindow):
         self.set_widgets_font()
         self.set_sources_widgets()
         self.__is_session = False
-        self.set_default_params()
+        self.init_data_params()
         self.load_thr = LoadingThread()
         self.db_file = None
         self.main_load_save_thr = MainActiveThread()
@@ -648,6 +658,15 @@ class MainWindow(QtGui.QMainWindow):
         def set_status(dots):
             mes = self._load_message+dots
             self.statusBar().showMessage(mes)
+        self.__is_xls_mode = True
+        self.settings = Settings()
+        self.connect(self.control_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_control_btn()"))
+        self.connect(self.convert_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_convert_btn()"))
+        self.connect(self.exp_a_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_a_btn()"))
+        self.connect(self.btn_a_all, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_svodn_btn()"))
+        self.connect(self.btn_a_tree, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_tree_btn()"))
+        self.connect(self.exp_b_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_b_btn()"))
+
         self.connect(self.load_thr, QtCore.SIGNAL(u's_loading(const QString&)'), set_status)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.set_sprav_holder)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'spr_error_occured(const QString&)'), self.show_sprav_error)
@@ -660,19 +679,28 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.click_tree_cell)
         self.connect(self.group_box.first_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.first_combo_changed)
         self.connect(self.group_box.second_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.second_combo_changed)
-        self.__is_xls_mode = True
+
         self.show()
         self.run_main_thr()
-        self.settings = Settings()
-
         try:
             self.setStyleSheet((open(u'%s\\Style\\ss.css' % project_dir).read()))
         except IOError:
             self.show_warning(ErrMessage.no_css)
 
-    def set_default_params(self):
+    def reset_params(self):
         # self.__a_thr_reset = False
         # if not self.__is_session:
+        del self.e_db_file, \
+            self.explication_data, \
+            self.current_exp_data,\
+            self.ate_expl_data_dict,\
+            self.control_thr, \
+            self.convert_thr, \
+            self.exp_a_thr, \
+            self.exp_b_thr
+        self.init_data_params()
+
+    def init_data_params(self):
         self.e_db_file = None
         self.explication_data = None
         self.current_exp_data = None
@@ -881,6 +909,8 @@ class MainWindow(QtGui.QMainWindow):
     def open_file(self):
         db_f = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.open_file, project_dir, u'Valid files (*.mdb *.pkl);; All files (*)', options=QtGui.QFileDialog.DontUseNativeDialog))
         self.db_file = db_f.replace('/', '\\')
+
+
         if db_f:
             if db_f[-4:] == u'.mdb':
                 self.run_main_thr(self.db_file, op = 0)
@@ -891,14 +921,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def db_file_opened(self):
         self.__is_session = False
-        self.set_default_params()
+        self.reset_params()
         self.reset_parameters()
         self.add_event_log(Events.opened_file % self.db_file)
         self.add_event_log(Events.db_has_data % os.path.basename(self.db_file), False)
 
     def session_loaded(self, exp_data):
         self.__is_session = True
-        self.set_default_params()
+        self.reset_params()
         self.reset_parameters()
         e_db_f = exp_data.pop()
         if not self.set_export_src(os.path.dirname(e_db_f), os.path.basename(e_db_f)):
@@ -1050,7 +1080,9 @@ class MainWindow(QtGui.QMainWindow):
                 self.current_exp_data[0] = self.ate_expl_data_dict[curr_soato]
                 if self.group_soatos[curr_soato]:
                     self.show_second_combo(curr_soato)
-            self.click_exp_a_btn(False)
+
+            #self.click_exp_a_btn(False)
+            self.reset_expa_thread()
             self.click_a_tree_btn()
 
 
@@ -1062,7 +1094,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.current_exp_data[0] = self.ate_expl_data_dict[curr_soato]
             else:
                 self.current_exp_data[0] = self.second_expl_data_dict[curr_soato]
-            self.click_exp_a_btn(False)
+            #self.click_exp_a_btn(False)
+            self.reset_expa_thread()
             self.click_a_tree_btn()
 
     @staticmethod
@@ -1210,20 +1243,22 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_thr.start()
 
     @QtCore.pyqtSlot()
-    def click_exp_a_btn(self, after_click = True):
+    def click_exp_a_btn(self):
         self.block_btns()
         self.btn_a_all.setHidden(False)
         self.btn_a_tree.setHidden(False)
         self.exp_a_btn.setHidden(True)
-        if after_click:
-            self.show_first_combo()
+        self.show_first_combo()
+        self.block_btns(False)
+
+    def reset_expa_thread(self):
+        self.exp_a_thr = None
         self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.sprav_holder, self.settings)
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'exp_sv_success()'), lambda: self.add_event_log(Events.finished_exp_a_sv))
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'exp_s_success()'), lambda: self.add_event_log(Events.finished_exp_a_s))
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda: self.add_event_log(Events.exp_a_finished_with_err))
-        self.block_btns(False)
 
     @QtCore.pyqtSlot()
     def click_a_svodn_btn(self):
@@ -1234,7 +1269,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def run_single_exp_a(self, pressed_exp, exp_ind):
         self.add_loading(LoadMessg.wait_exp_a)
-        exp_name = exp_ind + '. ' + pressed_exp.info
+        exp_name = exp_ind + '. ' + pressed_exp.obj_name
         self.add_event_log(Events.started_s_exp_a % exp_name)
         self.exp_a_thr.run_single_exp(pressed_exp, exp_ind)
 
@@ -1272,7 +1307,7 @@ class MainWindow(QtGui.QMainWindow):
             f22_item_font.setPointSize(10)
             f22_item.setFont(f22_item_font)
             model.appendRow(f22_item)
-            item_names = [u'%s%s' % (i.soato_inf, i.info) for i in all_exps[key]]
+            item_names = [i.full_obj_name for i in all_exps[key]]
             index_li = []
             ch_item_count = 1
             for exp_item in sorted(item_names):

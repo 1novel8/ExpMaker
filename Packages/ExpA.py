@@ -80,12 +80,12 @@ def round_and_modify(data_dict, settings):
     return modified
 
 class DataComb(object):
-    def __init__(self, data_li, info, dop_info, soato_inf):
+    def __init__(self, data_li, full_inf, main_inf, soato_inf):
         self.soato_inf = soato_inf
         self.__init_data = data_li
         self.expl_data = {}
-        self.obj_name = info
-        self.info = u'%s %s' % (dop_info, info)
+        self.obj_name = main_inf
+        self.full_obj_name = full_inf
         self.errors = {}
 
     def add_data(self, spr):
@@ -111,6 +111,8 @@ class DataComb(object):
                     self.errors[r_key] = e.message
             self.expl_data = expl_data
             self.__init_data = None
+
+
     def round_expl_data(self, round_setts):
         rounded_e_data = {}
         if self.expl_data:
@@ -189,13 +191,13 @@ class ExpFA(object):
 
     def get_cc_name(self, soato):
         soato = unicode(soato)
-        if soato[-3:] == u'000':
-            return u''
-        else:
-            try:
-                return self.cc_soato_d[soato[:-3]] +u'  '
-            except KeyError:
-                return u'! '
+        # if soato[-3:] == u'000':
+        #     return u''
+        # else:
+        try:
+            return self.cc_soato_d[soato[:-3]] +u'  '
+        except KeyError:
+            return u'! '
 
     def make_datadict(self, rows):
         f22_dict = {}
@@ -204,26 +206,35 @@ class ExpFA(object):
         for row in rows:
             for n in range(row.n):
                 f22_key = row.get_el_by_fkey_n('f22', n)
-                if row.nusname[n] == 1: #группировка по User_N
+                nusn = row.nusname[n]
+                if nusn == 1: #группировка по User_N
                     group_key = row.get_el_by_fkey_n('usern', n)
-                    info = self.usersInfo[group_key]
-                else:                   #группировка по SOATo
+                else:         #группировка по SOATo
                     group_key = row.soato
-                    info = self.soatoInfo[group_key]
-                dop_info = row.dopname[n] if row.dopname[n] else u''
                 row_params = row.simplify_to_d(n, need_keys)# NEWUSNAME_%(N)d, Area_%(N)d, LANDCODE, MELIOCODE, ServType08, State_1
                 try:
                     f22_dict[f22_key][group_key]['r_params'].append(row_params)
                 except KeyError:
                     if not f22_dict.has_key(f22_key):
                         f22_dict[f22_key] = {}
+                    soato_inf = self.get_cc_name(row.soato)
+                    main_inf = self.usersInfo[group_key] if nusn == 1 else self.soatoInfo[group_key]
+                    dop_inf = row.dopname[n] if row.dopname[n] else u''
                     f22_dict[f22_key][group_key] = {
                         u'r_params': [row_params, ],
-                        u'info': info,
-                        u'dop_info': dop_info,
-                        u'soato_inf': self.get_cc_name(row.soato)
+                        u'main_inf': u'%s %s' % (dop_inf, main_inf),
+                        u'soato_inf': soato_inf,
+                        u'full_inf': self.get_full_e_name(main_inf, dop_inf, soato_inf, nusn),
                     }
         return f22_dict
+
+    def get_full_e_name(self, main_name, dop_name, ss_name, nusn_code):
+        if nusn_code == 1:
+            return main_name
+        if nusn_code == 2:
+            return ss_name + ' ' + dop_name + ' ' + main_name
+        if nusn_code == 3:
+            return main_name + ' ' + dop_name
 
     def make_exp_tree(self):
         """ Returns dictionary:
@@ -242,7 +253,7 @@ class ExpFA(object):
             comb_dicts[key1] = dict.fromkeys(self.datadict[key1].keys())
             for key2 in comb_dicts[key1]:
                 comb_li = self.datadict[key1][key2]
-                comb_dicts[key1][key2] = DataComb(comb_li['r_params'], comb_li['info'], comb_li['dop_info'], comb_li['soato_inf'])
+                comb_dicts[key1][key2] = DataComb(comb_li['r_params'], comb_li['full_inf'], comb_li['main_inf'], comb_li['soato_inf'])
         return comb_dicts
 
     def calc_all_exps(self, round_setts):
@@ -255,7 +266,7 @@ class ExpFA(object):
                 for key2 in self.exps_dict[key1]:
                     exp_obj = self.exps_dict[key1][key2]
                     sv_exp[key1][key2] = exp_obj.make_sv_row(self.sprav_holder)
-                    sv_texts[key1][key2] = self.__get_sv_row_text(key2, exp_obj.info)
+                    sv_texts[key1][key2] = self.__get_sv_row_text(key2, exp_obj.obj_name)
                     if exp_obj.errors:
                         #TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
