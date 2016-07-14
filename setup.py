@@ -24,7 +24,7 @@ target = {
 setup(
     data_files =data,
     windows = [target],
-    options = {"py2exe": {"includes":["sip", "Expl", "Titles", "openpyxl", "os", "pyodbc", "time", "decimal", "datetime", "shutil", "sys", "PyQt4"],
+    options = {"py2exe": {"includes":["sip", "Packages", "openpyxl", "os", "pyodbc", "time", "decimal", "datetime", "shutil", "sys", "PyQt4"],
                     "dll_excludes": ["MSVCP90.dll", "CRYPT32.dll" , "COMDLG32.dll", "IMM32.dll" , "ole32.dll", "WINSPOOL.DRV", "WINMM.dll","USER32.dll", "SHELL32.dll", "ODBC32.dll", "ADVAPI32.dll", "WS2_32.dll", "GDI32.dll", "KERNEL32.dll"],
                     "bundle_files": 1,
                     "compressed": 1,
