@@ -32,27 +32,82 @@ def add_discr_to_max(li, discr):
     return li
 
 
+def run_b_balancer(_main_exp, _f_settings, _r_settings):
+    field_settings = modify_settings(_f_settings)
+    row_settings = modify_settings(_r_settings)
+    return
+
+def _make_equal_bonus_fix(parent_cell, child_cells):
+
+    def guarantee_keys(cll):
+        if not isinstance(cll, dict):
+            raise Exception('Get wrong cell data during balancing!')
+        if not cll.has_key('bonus'):
+            cll['bonus'] = 0
+        if not cll.has_key('fixed'):
+            cll['fixed'] = False
+
+    def split_bonus(bonus, cells):
+        pass
+        # Todo
+
+
+    child_sum = 0
+    guarantee_keys(parent_cell)
+    parent_val = parent_cell['val'] + parent_cell['bonus']
+    for cell in child_cells:
+        guarantee_keys(cell)
+        child_sum += cell['val'] + cell['bonus']
+
+    if parent_cell['fixed']:
+        total_bonus = parent_val - child_sum
+        if total_bonus == 0:
+            return
+        else:
+            split_bonus(total_bonus, child_cells)
+    else:
+        parent_cell['bonus'] = child_sum - parent_cell.val
+        parent_cell['fixed'] = True
+
+
+
+def modify_settings(settings):
+    mod_settings = {1: {}, -1: {}, 'lvls': [1, ]}
+    for f in settings:
+        if not settings[f].has_key('balance_lvl'): continue
+        lvl_key = settings[f]['balance_lvl']
+        b_by_key = settings[f]['balance_by']
+        if not mod_settings.has_key(lvl_key):
+            mod_settings[lvl_key] = {}
+        if not mod_settings[lvl_key].has_key(b_by_key):
+            mod_settings[lvl_key][b_by_key] = []
+        mod_settings[lvl_key][b_by_key].append(f)
+    check_lvl = 2
+    while True:
+        if check_lvl in mod_settings:
+            mod_settings['lvls'].append(check_lvl)
+            check_lvl += 1
+        else:
+            break
+
+    mod_settings['lvls'].append(-1)
+    return mod_settings
+
+def run_as_balancer(_maian_exp, _f_settings, _r_settings):
+    field_settings = modify_settings(_f_settings)
+    row_settings = modify_settings(_r_settings)
+
+def run_asv_balancer(_maian_exp, _f_settings, _r_settings):
+    field_settings = modify_settings(_f_settings)
+    row_settings = modify_settings(_r_settings)
+
+
+
+
+
+
 if __name__ == '__main__':
 
     n_sum = sum(li)
     print n_sum
     print sum(balance_list(5, n_sum+5, li))
-
-
-# def recountExp(edbdir):
-#     expdbf = u'%s\Explication.mdb' % edbdir
-#     disp = countDisp(expdbf)
-#     i = 0
-#     while  math.fabs(disp) > 0.0002:
-#         addColumn(expdbf, u'EXPLICATIONALL', u'f_disp', u'double Null')
-#         adddisp = disp/sum_crtab
-#         sumupd = u'update EXPLICATIONALL set f_1 = round((f_1 + f_1*%s),4), f_disp = f_1*%s where f_RowNumber = 1 ' % (adddisp, adddisp)
-#         runQuery(expdbf, sumupd)
-#         disp = countDisp(expdbf)
-#         i+=1
-#         if i == 10:
-#             '''
-#             TODO:
-#             Need to make window for asking in GUI
-#             '''
-#             print u'Произведено 10 итераций распределения невязки. Продолжить?'

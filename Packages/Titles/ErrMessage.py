@@ -34,7 +34,7 @@ def lost_fields(tab, failed_fields):
         msg = u'\nВ таблице %s отсутствует либо не соответствует типу поле:'%tab
     for f in failed_fields:
         if isinstance(f, (tuple,list)):
-            f = u' --> требуемый тип данных: '.join(f)
+            f = f[0] + u' --> требуемый тип данных: ' + u' или '.join(f[1])
         msg += u'\n%s' % unicode(f)
     return msg
 

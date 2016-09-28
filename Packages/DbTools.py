@@ -243,11 +243,11 @@ class DbControl(object):
             bad_fields = []
             for field in self.db_schema[tab]:
                 f_name = self.db_schema[tab][field]['name']
-                f_type = self.db_schema[tab][field]['type']
+                f_types = self.db_schema[tab][field]['type']
                 if f_name not in loaded_tab_schema:
                     bad_fields.append(f_name)
-                elif loaded_tab_schema[f_name] != f_type:
-                    bad_fields.append((f_name, f_type))
+                elif loaded_tab_schema[f_name] not in f_types:
+                    bad_fields.append((f_name, f_types))
             if bad_fields:
                 fails[tab] = tuple(bad_fields)
         return fails

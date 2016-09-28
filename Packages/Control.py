@@ -24,6 +24,7 @@ class CtrControl(DbControl):
             return failed_obj
         else:
             return False
+
 class DataControl(CtrControl):
     def __init__(self, sprav_holder, file_path, temp_db_path):
         self.errors_protocol = []

@@ -71,11 +71,10 @@ def round_and_modify(data_dict, settings):
     """
     modified = data_dict.copy()
     modified = round_row_data(modified, **settings)
-    ga = 10**settings['accuracy']
     for key, val in modified.items():
         modified[key] = {
             'val': val,
-            'tail' : data_dict[key]/ga-val
+            'tail': data_dict[key]/10000 - val
         }
     return modified
 

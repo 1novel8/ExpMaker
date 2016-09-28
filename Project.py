@@ -10,7 +10,7 @@ import cPickle as Pickle
 from PyQt4 import QtGui, QtCore
 
 from Packages import Control, Convert, ExpA, FormB, Sprav
-from Packages.Exports import ToXL, ToMdb
+from Packages.Exports import ToXL, ToMdb, Balance
 from Packages.Titles import LoadMessg, WidgNames, Events, ToolTip, ErrMessage
 
 Expl = 2
@@ -268,14 +268,12 @@ class ExpAThread(QtCore.QThread):
             return sv_data
 
     def do_s_balance(self, e_dict):
-        #TODO: BALANCE is running here
-        #TODO: change e_dict
-        pass
+        Balance.run_as_balancer(e_dict, self.sprav.expa_f_str, self.sprav.expa_r_str)
+
+
 
     def do_sv_balance(self, e_dict):
-        #TODO: BALANCE is running here
-        #TODO: change e_dict
-        pass
+        Balance.run_asv_balancer(e_dict, self.sprav.expa_f_str, self.sprav.expa_r_str)
 
     def run(self):
         if self.__single_exp:
@@ -422,9 +420,7 @@ class ExpBThread(QtCore.QThread):
         return matr
 
     def do_balance(self, e_dict):
-        #TODO: BALANCE is running here
-        #TODO: change e_dict
-        pass
+        Balance.run_b_balancer(e_dict, self.sprav.expb_f_str, self.sprav.expb_r_str)
 
     def run(self):
         if not self.got_result:
@@ -432,8 +428,8 @@ class ExpBThread(QtCore.QThread):
             exp_dict = expB.create_exp_dict(self.round_settings)
         else:
             exp_dict = self.got_result
-        if self.round_settings['balance']:
-            self.do_balance(exp_dict)
+        # if self.round_settings['balance']:
+        self.do_balance(exp_dict)
         exp_matr = self.prepare_b_matr(exp_dict)
         if self.out_xl_mode:
             self.run_xl_export(exp_matr)
