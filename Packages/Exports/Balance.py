@@ -34,6 +34,32 @@ import math
 #     return li
 
 
+def _assert_equal(parent_cell, child_cells):
+    """
+    :param parent_cell: test parent cell
+    :param child_cells: test child cells
+    @:return boolean
+    """
+    is_equal = True
+
+    if not parent_cell['fixed']:
+        is_equal = False
+    for ch_cell in child_cells:
+        if not ch_cell['fixed']:
+            is_equal = False
+            break
+    if not is_equal:
+        return is_equal
+
+    child_sum = 0
+    parent_val = parent_cell['val'] + parent_cell['bonus']
+    for cell in child_cells:
+        # guarantee_keys(cell)
+        child_sum += cell['val'] + cell['bonus']
+    if parent_val != child_sum:
+        is_equal = False
+    return is_equal
+
 
 def _make_equal_bonus_fix(parent_cell, child_cells):
 
@@ -46,6 +72,7 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
     """
     accuracy = 0
     def guarantee_keys(cll):
+        # TODO: it can be deprecated after adding bonus and fixed keys to all cells by function prepare_matrix
         if not isinstance(cll, dict):
             raise Exception('Get wrong cell data during balancing!')
         if not cll.has_key('bonus'):
@@ -109,10 +136,10 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
                 cells[bonus_cell_key]['bonus'] = bonus
 
     child_sum = 0
-    guarantee_keys(parent_cell)
+    # guarantee_keys(parent_cell)
     parent_val = parent_cell['val'] + parent_cell['bonus']
     for cell in child_cells:
-        guarantee_keys(cell)
+        # guarantee_keys(cell)
         child_sum += cell['val'] + cell['bonus']
 
     if parent_cell['fixed']:
@@ -148,9 +175,23 @@ def modify_settings(settings):
     mod_settings['lvls'].append(-1)
     return mod_settings
 
+
+def prepare_matrix(matr):
+    for row in matr:
+        for field in matr[row]:
+            try:
+                matr[row][field]['bonus'] = 0
+                matr[row][field]['fixed'] = False
+            except KeyError:
+                raise Exception('Get wrong cell data during balancing!')
+            except Exception:
+                raise Exception('Get wrong cell data during balancing!')
+
+
 def run_as_balancer(_maian_exp, _f_settings, _r_settings):
     field_settings = modify_settings(_f_settings)
     row_settings = modify_settings(_r_settings)
+
 
 def run_asv_balancer(_maian_exp, _f_settings, _r_settings):
     field_settings = modify_settings(_f_settings)
@@ -160,49 +201,160 @@ def run_asv_balancer(_maian_exp, _f_settings, _r_settings):
 def run_b_balancer(_main_exp, _f_settings, _r_settings):
     field_settings = modify_settings(_f_settings)
     row_settings = modify_settings(_r_settings)
+    prepare_matrix(_main_exp)
     try:
-        _main_exp['25']['bonus'] = _main_exp['by_SHAPE']['total'] - _main_exp['25']['total']
-        _main_exp['25']['fixed'] = True
+        _main_exp['25']['total']['bonus'] = _main_exp['by_SHAPE']['total']['val'] - _main_exp['25']['total']['val']
+        _main_exp['25']['total']['fixed'] = True
     except KeyError:
         print 'Balancing Failed. No sense to balance without by_SHAPE or 25 row key'
         return _main_exp
     #TODO: Add by_SHAPE row to * array
 
-    def run_matrix_balancing_by_base_row(base_row, depend_rows):
-        for field_stage in _f_settings['lvls']:
-            for lvl_f_key in _f_settings[field_stage]:
-                # 1...balancing_matrix_stage_1 balancing fields by total
-                p_cell = _main_exp[base_row][lvl_f_key]
+    def run_matrix_clockwise_balancing(base_r, depend_rs, base_f, depend_fs):
+        """
+            includes 3 steps :
+                1) right --> depend rows balancing;
+                2) down collecting;
+                3) <-- asserting and improving;
+            :param base_r: row to start
+            :param depend_rs: balancing rows where all base fields are fixed
+            :param base_f: field to start
+            :param depend_fs: balancing fields
+            """
+    # 1...balancing_matrix_stage_1 balancing by depend fields from base field in every row
+        for row_key in depend_rs:
+            p_cell = _main_exp[row_key][base_f]
+            ch_cells = []
+            for f_key in depend_fs:
+                try:
+                    ch_cells.append(_main_exp[row_key][f_key])
+                except KeyError:
+                    print 'Fail on first clockwise balancing phase'
+            _make_equal_bonus_fix(p_cell, ch_cells)
 
-                ch_cells = []
-                for f_key in _f_settings[field_stage][lvl_f_key]:
-                    try:
-                        ch_cells.append(_main_exp[base_row][f_key])
-                    except KeyError:
-                        print 'Fail on first balancing phase'
+    # 2...balancing_matrix_stage_2 collecting fixed fields from previous step to total row
+        for f_key in depend_fs:
+            p_cell = _main_exp[base_r][f_key]
+            ch_cells = []
+            for row_key in depend_rs:
+                try:
+                    ch_cells.append(_main_exp[row_key][f_key])
+                except KeyError:
+                    print 'Fail on second clockwise balancing phase'
+            _make_equal_bonus_fix(p_cell, ch_cells)
+
+    # 3...balancing_matrix_stage_3 asserting fields by total in base row
+        p_cell = _main_exp[base_r][base_f]
+        ch_cells = []
+        for f_key in depend_fs:
+            try:
+                ch_cells.append(_main_exp[base_r][f_key])
+            except KeyError:
+                print 'Fail on third clockwise balancing phase'
+
+        if _assert_equal(p_cell, ch_cells):
+            print 'BLOCK OK'
+        else:
+            print 'FAILED'
+            # raise Exception('Balabcing failed. Please check your input')
+
+    def run_matrix_anticlockwise_balancing(base_r, depend_rs, base_f, depend_fs):
+        """
+        includes 4 steps :
+            1) right --> balancing;
+            2) up balancing;
+            3) left <-- collecting;
+            4) down - improving
+        :param base_r: row to start
+        :param depend_rs: balancing rows
+        :param base_f: field to start
+        :param depend_fs: balancing fields
+        """
+
+    # 1...balancing_matrix_stage_1 balancing fields by total
+        p_cell = _main_exp[base_r][base_f]
+        ch_cells = []
+        for f_key in depend_fs:
+            try:
+                ch_cells.append(_main_exp[base_r][f_key])
+            except KeyError:
+                print 'Fail on first anticlockwise balancing phase'
+
                 # ch_cells = _f_settings[field_stage][lvl_f_key].map(lambda x: _main_exp[base_row][x])
-                #TODO: debug this lambda not to change _main_exp
-                _make_equal_bonus_fix(p_cell, ch_cells)
-                # 2...balancing_matrix_stage_2 balancing fixed fields from previous step by depend rows
-                #TODO: write another steps
-                # 3...balancing_matrix_stage_3 making total field of every depend row to fixed
-                        # something like :
-                        # if _main_exp[depend_row][total][fixed]:
-                        #     anther algorythm
-                        # else:
-                        #     the same one
-                    # two different algorythms, wether total field of depend rows is fixed
-                    # (to be sure make main def to return success or fail_key if all parameters cells are fixed)
-                # 4...balancing_matrix_stage_4 asserting the results; should be balanced
+                # TODO: debug this lambda not to change _main_exp
+        _make_equal_bonus_fix(p_cell, ch_cells)
 
+    # 2...balancing_matrix_stage_2 balancing fixed fields from previous step by depend rows
+        for f_key in depend_fs:
+            p_cell = _main_exp[base_r][f_key]
+            ch_cells = []
+            for row_key in depend_rs:
+                try:
+                    ch_cells.append(_main_exp[row_key][f_key])
+                except KeyError:
+                    print 'Fail on second anticlockwise balancing phase'
+            _make_equal_bonus_fix(p_cell, ch_cells)
 
-    for row_stage in _r_settings['lvls']:
-        for lvl_r_key in _r_settings[row_stage]:
+    # 3...balancing_matrix_stage_3 making total field of every depend row to fixed
+        for row_key in depend_rs:
+            p_cell = _main_exp[row_key][base_f]
+            ch_cells = []
+            for f_key in depend_fs:
+                try:
+                    ch_cells.append(_main_exp[row_key][f_key])
+                except KeyError:
+                    print 'Fail on third anticlockwise balancing phase'
+            _make_equal_bonus_fix(p_cell, ch_cells)
+
+    # 4...balancing_matrix_stage_4 asserting the results; should be balanced
+        p_cell = _main_exp[base_r][base_f]
+        for row_key in depend_rs:
+            try:
+                ch_cells.append(_main_exp[row_key][base_f])
+            except KeyError:
+                print 'Fail on fourth anticlockwise balancing phase'
+
+        if _assert_equal(p_cell, ch_cells):
+            print 'BLOCK OK'
+        else:
+            print 'FAILED'
+            # raise Exception('Balabcing failed. Please check your input')
+
+    def run_matrix_balancing_by_base_row(base_row, depend_rows, is_first_lvl = False):
+        for field_stage in field_settings['lvls']:
+            for lvl_f_key in field_settings[field_stage]:
+                # if is_first_lvl:
+                #     run_matrix_anticlockwise_balancing(base_row, depend_rows, lvl_f_key, field_settings[field_stage][lvl_f_key])
+                #     continue
+                # TODO: You can use this to upgrade performance
+                base_fields_fixed = True #need clockwise balancing
+                for row in depend_rows:
+                    if not _main_exp[row][lvl_f_key]['fixed']:
+                        base_fields_fixed = False
+                        break
+
+                if base_fields_fixed:
+                    run_matrix_clockwise_balancing(
+                        base_row,
+                        depend_rows,
+                        lvl_f_key,
+                        field_settings[field_stage][lvl_f_key]
+                    )
+                else:
+                    run_matrix_anticlockwise_balancing(
+                        base_row,
+                        depend_rows,
+                        lvl_f_key,
+                        field_settings[field_stage][lvl_f_key]
+                    )
+
+    for row_stage in row_settings['lvls']:
+        for lvl_r_key in row_settings[row_stage]:
             if lvl_r_key == '*':
                 print 'Not matrix balancing'
                 #TODO: run balancing by fields only for one row of rows in _r_settings['*'] array
             else:
-                if _r_settings['lvls'].index(row_stage) == 0: #first stage
+                if row_settings['lvls'].index(row_stage) == 0: #first stage
                     try:
                         #setting base cells for first step fixed
                         first_f_lvl_key = field_settings['lvls'][0] # should be equal to 1
@@ -211,7 +363,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                     except KeyError:
                         raise Exception('Failed on setting main cells to fixed')
 
-                run_matrix_balancing_by_base_row(lvl_r_key, _r_settings[lvl_r_key])
+                run_matrix_balancing_by_base_row(lvl_r_key, row_settings[row_stage][lvl_r_key])
 
 
 
