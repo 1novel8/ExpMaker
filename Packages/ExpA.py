@@ -29,13 +29,14 @@ def sum_dict_values(basic, add_dicts_li, add_ok = True):
     else:
         raise TypeError('Wrong basic parameter received')
 
-def round_row_data(data, accuracy = 4, show_small = True, small_accur = 3, **kwargs):
+def round_row_data(data, accuracy = 4, show_small = False, small_accur = 3, **kwargs):
     to_ga = 10000.0
     def rnd(digit):
-        if show_small:
-            return complex_round(digit/to_ga, accuracy, small_accur)
-        else:
-            return round(digit/to_ga, accuracy)
+        return round(digit/to_ga, accuracy)
+        # if show_small:
+        #     return complex_round(digit/to_ga, accuracy, small_accur)
+        # else:
+        #     return round(digit/to_ga, accuracy)
     try:
         if isinstance(data, dict):
             d = {}

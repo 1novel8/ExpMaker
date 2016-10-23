@@ -54,12 +54,80 @@ def _assert_equal(parent_cell, child_cells):
     child_sum = 0
     parent_val = parent_cell['val'] + parent_cell['bonus']
     for cell in child_cells:
-        # guarantee_keys(cell)
         child_sum += cell['val'] + cell['bonus']
     if parent_val != child_sum:
         is_equal = False
     return is_equal
 
+
+def get_inds_with_false_key(cells, key):
+    inds_false_key = []
+    for ind in xrange(len(cells)):
+        if not cells[ind][key]:
+            inds_false_key.append(ind)
+    return inds_false_key
+
+current_wins = lambda last_winner, current, is_positive: last_winner < current if is_positive else last_winner > current
+
+def run_bonus_competition(cells, cell_ind_array, is_positive,competition_by='tail'):
+    winner_tail_i = cell_ind_array[0]
+    for i in cell_ind_array[1:]:
+        if current_wins(cells[winner_tail_i][competition_by], cells[i][competition_by], is_positive):
+            winner_tail_i = i
+    return winner_tail_i
+
+
+def get_bonus_cell_ind(cells, is_positive):
+    winner_i = run_bonus_competition(cells, range(len(cells)), is_positive)
+    winner_cell = cells[winner_i]
+
+    # small values < 0 could be and should be in tail!
+    zero_val_winned = False
+    if not winner_cell['bonus'] and not winner_cell['fixed']:
+        if winner_cell['val'] > 1:
+            return winner_i  # seems all ok
+        else:
+            zero_val_winned = True
+    no_bonus_items = get_inds_with_false_key(cells, 'bonus')
+    if zero_val_winned:
+        no_bonus_items.remove(winner_i)
+    if len(no_bonus_items):
+        if len(no_bonus_items) < len(cells):  # still ok
+            winner_i = run_bonus_competition(cells, no_bonus_items, is_positive)
+            #     0 val cell can be a winner. It can't be. So we make winner by max value
+            if cells[winner_i]['val'] <= 1:
+                winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
+        else:  # all cells has bonuses
+            winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
+
+        if not cells[winner_i]['fixed']:
+            return winner_i  # it is possible
+        else:
+            no_fixed_items = get_inds_with_false_key(cells, 'fixed')
+            if len(no_fixed_items) < len(cells):
+                return run_bonus_competition(cells, no_fixed_items, True, 'val')
+
+    # problem in fixed statement (all fixed)
+    # print 'Seems something went wrong, you have tried to give bonus for fixed cell'
+    raise Exception('Seems something went wrong, you have tried to give bonus for fixed cell')
+
+
+def split_bonus(bonus, cells, accuracy):
+    try:
+        bonus_count = math.fabs(bonus / accuracy)
+    except ZeroDivisionError:
+        bonus_count = math.fabs(bonus)
+    bonus /= bonus_count
+
+    for bonusInd in xrange(int(bonus_count)):
+        bonus_cell_key = get_bonus_cell_ind(cells, bonus > 0)
+        try:
+            cells[bonus_cell_key]['bonus'] += bonus
+        except KeyError:
+            print 'Something went wrong while Balancing'
+            cells[bonus_cell_key]['bonus'] = bonus
+            # TODO: Uncomment here after debugging
+            # raise Exception('Something went wrong while Balancing')
 
 def _make_equal_bonus_fix(parent_cell, child_cells):
 
@@ -71,69 +139,14 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
     :return:
     """
     accuracy = 0
-    def guarantee_keys(cll):
-        # TODO: it can be deprecated after adding bonus and fixed keys to all cells by function prepare_matrix
-        if not isinstance(cll, dict):
-            raise Exception('Get wrong cell data during balancing!')
-        if not cll.has_key('bonus'):
-            cll['bonus'] = 0
-        if not cll.has_key('fixed'):
-            cll['fixed'] = False
-
-
-    def get_bonus_cell_ind(cells, is_positive):
-        current_wins = lambda last_winner, current: last_winner < current if is_positive else last_winner > current
-
-        def run_bonus_competition(cell_ind_array, competition_by ='tail'):
-            winner_tail_i = cell_ind_array[0]
-            for i in cell_ind_array[1:]:
-                if current_wins(cells[winner_tail_i][competition_by], cells[i][competition_by]):
-                    winner_tail_i = i
-            return winner_tail_i
-
-
-        def get_inds_without_key(key):
-            inds_without_key = []
-            for ind in xrange(len(cells)):
-                if key in cells[ind]:
-                    inds_without_key.append(ind)
-            return inds_without_key
-
-        winner_i = run_bonus_competition(range(len(cells)))
-        winner_cell = cells[winner_i]
-        if 'bonus' not in winner_cell and 'fixed' not in winner_cell:
-            return winner_i # seems all ok
-        else:
-            no_bonus_items = get_inds_without_key('bonus')
-            if len(no_bonus_items):
-                if len(no_bonus_items) < len(cells): # still ok
-                    winner_i = run_bonus_competition(no_bonus_items)
-                else: #all cells has bonuses
-                    winner_i = run_bonus_competition(range(len(cells)), 'val')
-                if 'fixed' not in cells[winner_i]:
-                    return winner_i # it is possible
-                else:
-                    no_fixed_items = get_inds_without_key('fixed')
-                    if len(no_fixed_items) < len(cells):
-                        return run_bonus_competition(no_fixed_items, 'val')
-
-            pass  # problem in fixed statement (all fixed)
-            print 'Seems something went wrong, you have tried to give bonus for fixed cell'
-
-
-    def split_bonus(bonus, cells):
-        try:
-            bonus_count = math.fabs(bonus/accuracy)
-        except ZeroDivisionError:
-            bonus_count = math.fabs(bonus)
-        bonus /= bonus_count
-        for bonusInd in xrange(bonus_count):
-            bonus_cell_key = get_bonus_cell_ind(cells, bonus > 0 )
-            try:
-                cells[bonus_cell_key]['bonus'] += bonus
-            except KeyError:
-                print('Something went wrong while Balancing')
-                cells[bonus_cell_key]['bonus'] = bonus
+    # def guarantee_keys(cll):
+    #     # TODO: it can be deprecated after adding bonus and fixed keys to all cells by function prepare_matrix
+    #     if not isinstance(cll, dict):
+    #         raise Exception('Get wrong cell data during balancing!')
+    #     if not cll.has_key('bonus'):
+    #         cll['bonus'] = 0
+    #     if not cll.has_key('fixed'):
+    #         cll['fixed'] = False
 
     child_sum = 0
     # guarantee_keys(parent_cell)
@@ -144,12 +157,14 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
 
     if parent_cell['fixed']:
         total_bonus = round(parent_val - child_sum, accuracy)
-        if total_bonus == 0:
-            return
-        else:
-            split_bonus(total_bonus, child_cells)
+        if total_bonus != 0:
+            split_bonus(total_bonus, child_cells, accuracy)
+
+    #         TODO: MAKE FIXED CHILDS IF NOT FAULT
+        for cll in child_cells:
+            cll['fixed'] = True
     else:
-        parent_cell['bonus'] = child_sum - parent_cell.val
+        parent_cell['bonus'] = child_sum - parent_cell['val']
         parent_cell['fixed'] = True
 
 
@@ -284,6 +299,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                 # TODO: debug this lambda not to change _main_exp
         _make_equal_bonus_fix(p_cell, ch_cells)
 
+
     # 2...balancing_matrix_stage_2 balancing fixed fields from previous step by depend rows
         for f_key in depend_fs:
             p_cell = _main_exp[base_r][f_key]
@@ -308,6 +324,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
 
     # 4...balancing_matrix_stage_4 asserting the results; should be balanced
         p_cell = _main_exp[base_r][base_f]
+        ch_cells = []
         for row_key in depend_rs:
             try:
                 ch_cells.append(_main_exp[row_key][base_f])
