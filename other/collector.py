@@ -60,7 +60,7 @@ def get_dbf_table(file_path):
             if key[0] != '_':
                 new_rec[key] = rec[key]
         out_table.append(new_rec)
-
+    db.unload()
     return out_table
 
 
@@ -146,15 +146,21 @@ def get_table_code(dbf_name):
 
 def handle_int(val):
     try:
+        if not val:
+            return 0
         return int(val)
     except Exception:
-        raise
+        print val
+        raise Exception('Unsupported type')
 
 
 def handle_float(val):
     try:
+        if not val:
+            return 0.0
         return float(val)
     except Exception:
+        print val
         raise Exception('Unsupported type')
 
 def synchronize_by_type(val, type):
@@ -189,6 +195,7 @@ def collect_data_to_mdb(dbf_path, mdb_path, required_mdb_str):
                     continue
                 else:
                     raise Exception('%s field type for table %s doesnt match with requirement' % (field, should_be_t_name))
+        mdb_db.clear_table(should_be_t_name)
 
     del mdb_out_structure
 
@@ -220,6 +227,9 @@ def collect_data_to_mdb(dbf_path, mdb_path, required_mdb_str):
                         print 'for dbf %s field %s was not found' % (dbf_name, f)
                 #TODO: make fileds that are comes not from dbf
                 if f == 'NR_User':
+                    num_rab = synchronize_by_type(row[dbf_fields['Num_Rab']], 'INTEGER')
+                    f_val = tab_code + '%04d' % num_rab
+                if f == 'UserN_CO':
                     f_val = tab_code
 
                 # synchronizing with type

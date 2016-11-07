@@ -211,6 +211,14 @@ class DBConn(object):
         except Exception as err:
             raise DbError('failed to insert row. Check input types')
 
+
+    def clear_table(self, table_name):
+        query = u'DELETE * FROM %s' % table_name
+        try:
+            self.exec_query(query)
+        except Exception as err:
+            raise DbError('failed to clear table %s' % table_name)
+
     def __del__(self):
         self.close_conn()
 
