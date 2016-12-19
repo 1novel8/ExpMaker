@@ -71,8 +71,9 @@ def round_and_modify(data_dict, settings):
     :param settings: settings instance with parameters that round_row_data def required
     :return: dict with modified structure. after round tails are saved
     """
+    setts = settings if isinstance(settings, dict) else settings.__dict__
     modified = data_dict.copy()
-    modified = round_row_data(modified, **settings)
+    modified = round_row_data(modified, **setts)
     for key, val in modified.items():
         modified[key] = {
             'val': val,

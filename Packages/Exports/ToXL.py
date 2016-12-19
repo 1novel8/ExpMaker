@@ -61,7 +61,7 @@ def get_sheet_by_name(work_book, sh_name = None):
         work_book.create_sheet(title=sheet_name, index=0)
     return work_book.get_sheet_by_name(sheet_name)
 
-def exp_matrix(matrix, start_f, start_r, templ_path, save_as, sh_name = None):
+def exp_matrix(matrix, start_f, start_r, templ_path, save_as, is_xls_start, sh_name = None):
     """
     You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
     """
@@ -73,11 +73,12 @@ def exp_matrix(matrix, start_f, start_r, templ_path, save_as, sh_name = None):
     export_matrix_to_sheet(sheet, matrix, start_f, start_r)
     try:
         w_book.save(save_as)
-        os.system(u'start excel.exe %s' % save_as)
+        if is_xls_start:
+            os.system(u'start excel.exe %s' % save_as)
     except IOError:
         raise XlsIOError(2, save_as)
 
-def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_obj_n, a_path, a_sh_name, **kwargs):
+def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_obj_n, a_path, a_sh_name, is_xls_start, **kwargs):
     excel_path = os.path.dirname(expl_file)+ u'\\%s_xlsx_files' % os.path.basename(expl_file)[4:-4]
     if not os.path.exists(excel_path):
         os.makedirs(excel_path)
@@ -88,7 +89,8 @@ def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_ob
     export_matrix_to_sheet(sheet, fa_data, a_l, a_n)
     if not os.path.isfile(dest_filename):
         w_book.save(filename=dest_filename)
-        os.system(u'start excel.exe %s' % dest_filename)
+        if is_xls_start:
+            os.system(u'start excel.exe %s' % dest_filename)
     else:
         try:
             os.remove(dest_filename)
@@ -96,8 +98,9 @@ def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_ob
             print err
             raise XlsIOError(1, dest_filename)
         w_book.save(filename=dest_filename)
-        os.system(u'start excel.exe %s' % unicode(dest_filename))
-        raise XlsIOError(3,dest_filename)
+        if is_xls_start:
+            os.system(u'start excel.exe %s' % unicode(dest_filename))
+        # raise XlsIOError(3,dest_filename)
 
 
 if __name__ == u'__main__':

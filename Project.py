@@ -278,12 +278,12 @@ class ExpAThread(QtCore.QThread):
             return sv_data
 
     def do_s_balance(self, e_dict):
-        Balance.run_as_balancer(e_dict, self.sprav.expa_f_str, self.sprav.expa_r_str)
+        Balance.run_as_balancer(e_dict, self.sprav_holder.expa_f_str, self.sprav_holder.expa_r_str)
 
 
 
     def do_sv_balance(self, e_dict):
-        Balance.run_asv_balancer(e_dict, self.sprav.expa_f_str, self.sprav.expa_r_str)
+        Balance.run_asv_balancer(e_dict, self.sprav_holder.expa_f_str, self.sprav_holder.expa_r_str)
 
     def run(self):
         if self.__single_exp:
@@ -374,7 +374,7 @@ class ExpAThread(QtCore.QThread):
         exl_file_path = os.path.join(os.path.dirname(self.exp_db_file), exl_file_name)
         xl_s = self.xl_settings
         try:
-            ToXL.exp_matrix(matrix, save_as = exl_file_path, start_f = xl_s.a_sv_l, start_r = xl_s.a_sv_n, sh_name = xl_s.a_sv_sh_name, templ_path = xl_s.a_sv_path)
+            ToXL.exp_matrix(matrix, save_as = exl_file_path, start_f = xl_s.a_sv_l, start_r = xl_s.a_sv_n, sh_name = xl_s.a_sv_sh_name, is_xls_start= xl_s.is_xls_start, templ_path = xl_s.a_sv_path)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -393,8 +393,9 @@ class ExpAThread(QtCore.QThread):
         except Exception as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
         else:
-            export_db.run_db()
             self.emit(QtCore.SIGNAL(u'exp_sv_success()'))
+            if self.xl_settings.is_mdb_start:
+                export_db.run_db()
 
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, sprav, settings, parent = None):
@@ -433,7 +434,8 @@ class ExpBThread(QtCore.QThread):
         return matr
 
     def do_balance(self, e_dict):
-        Balance.run_b_balancer(e_dict, self.sprav.expb_f_str, self.sprav.expb_r_str)
+        if self.balance_settings.include_b_balance:
+            Balance.run_b_balancer(e_dict, self.sprav.expb_f_str, self.sprav.expb_r_str)
 
     def run(self):
         if not self.got_result:
@@ -442,8 +444,7 @@ class ExpBThread(QtCore.QThread):
         else:
             exp_dict = self.got_result
         # if self.round_settings['balance']:
-        if self.balance_settings.include_b_balance:
-            self.do_balance(exp_dict)
+        self.do_balance(exp_dict)
         exp_matr = self.prepare_b_matr(exp_dict)
         if self.out_xl_mode:
             self.run_xl_export(exp_matr)
@@ -455,7 +456,7 @@ class ExpBThread(QtCore.QThread):
         exl_file_path = os.path.join(os.path.dirname(self.exp_file), exl_file_name)
         xls = self.xl_settings
         try:
-            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, templ_path = xls.b_path)
+            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, is_xls_start = xls.is_xls_start, templ_path = xls.b_path)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -468,14 +469,15 @@ class ExpBThread(QtCore.QThread):
         for f in fields[2:]:
             f_str[f] = 'DOUBLE NULL'
         try:
-            export_db = ToMdb.DbExporter(self.exp_file,templ_db_path)
+            export_db = ToMdb.DbExporter(self.exp_file, templ_db_path)
             export_db.create_table(t_name, f_str, fields)
             export_db.run_export(t_name, fb_matr[1:], fields)
         except Exception as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
         else:
-            self.emit(QtCore.SIGNAL(u'success()')) 
-            export_db.run_db()
+            self.emit(QtCore.SIGNAL(u'success()'))
+            if self.xl_settings.is_mdb_start:
+                export_db.run_db()
 
 
 class LoadingThread(QtCore.QThread):
@@ -497,10 +499,10 @@ class LoadingThread(QtCore.QThread):
             count+=1
 
 class SettingsWindow(QtGui.QMainWindow):
-    def __init__(self, parent = None, title = u'' ):
+    def __init__(self, parent = None, title = u'', width = 710, height = 450):
         super(SettingsWindow, self).__init__(parent)
         self.setWindowTitle(title)
-        self.resize(690, 450)
+        self.resize(width, height)
         self.main_frame = QtGui.QFrame(self)
         self.main_layout = QtGui.QGridLayout(self.main_frame)
         self.main_frame.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -906,40 +908,55 @@ class MainWindow(QtGui.QMainWindow):
         block_2.add_widget(table_2)
         block_3.add_widget(table_3)
 
-        btn = QtGui.QPushButton(u"Применить", self.xls_window.main_frame)
-        btn.setStyleSheet(u'background-color: %s;color: white; border-radius: 45; padding:0px'%color1)
-        btn.setFixedHeight(90)
-        btn.setFixedWidth(90)
-        self.xls_window.add_widget(block_1, 0,0,3,3)
-        self.xls_window.add_widget(block_2, 3,0,3,3)
-        self.xls_window.add_widget(block_3, 0,3,3,3)
-        self.xls_window.add_widget(btn, 3,3,1,1)
+        self.edit_xls_start = QtGui.QCheckBox(u'Запуск .xls файлов по завершению расчетов')
+        self.edit_xls_start.setChecked(xl_settings.is_xls_start)
+
+        self.edit_mdb_start = QtGui.QCheckBox(u'Запуск .mdb файлов по завершению расчетов')
+        self.edit_mdb_start.setChecked(xl_settings.is_mdb_start)
+
+
+        btn = QtGui.QPushButton(u"Сохранить изменения", self.xls_window.main_frame)
+        # btn.setStyleSheet(u'background-color: %s;color: white; border-radius: 5%; padding:0px'%color1)
+        # btn.setFixedHeight(90)
+        # btn.setFixedWidth(90)
+        self.xls_window.add_widget(block_1, 0,0,5,5)
+        self.xls_window.add_widget(block_2, 5,0,5,5)
+        self.xls_window.add_widget(block_3, 0,5,5,5)
+        self.xls_window.add_widget(self.edit_xls_start, 6,6,1,4)
+        self.xls_window.add_widget(self.edit_mdb_start, 7,6,1,4)
+        self.xls_window.add_widget(btn, 9,7,1,3)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_xl_data)
         self.xls_window.show()
 
     def show_balance_settings_window(self):
         balance_settings = self.settings.balance
 
-        self.balance_window = SettingsWindow(self, u'Настройки балансировки')
-        self.edit_b_balance = QtGui.QCheckBox('include_B_balance')
+        self.balance_window = SettingsWindow(self, u'Настройки балансировки', 400, 250)
+        self.edit_b_balance = QtGui.QCheckBox(u'Включить баланс в расчет экспликации Ф22зем')
         self.edit_b_balance.setChecked(balance_settings.include_b_balance)
-        self.edit_a_balance = QtGui.QCheckBox('include_a_balance')
+        self.edit_a_balance = QtGui.QCheckBox(u'Включить баланс в расчет одиночной экспликации А (Not yet implemented)')
         self.edit_a_balance.setChecked(balance_settings.include_a_balance)
-        self.edit_a_sv_balance = QtGui.QCheckBox('include_aSV_balance')
+        self.edit_a_sv_balance = QtGui.QCheckBox(u'Включить баланс в расчет сводной экспликации А (Not yet implemented)')
         self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
 
         btn = QtGui.QPushButton(u"Сохранить изменения", self.balance_window.main_frame)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_balance_data)
 
         self.balance_window.add_widget(self.edit_a_balance, 0,0,3,3)
-        self.balance_window.add_widget(self.edit_a_sv_balance, 2,0,3,3)
-        self.balance_window.add_widget(self.edit_b_balance, 4,0,3,3)
-        self.balance_window.add_widget(btn, 5,3,1,1)
+        self.balance_window.add_widget(self.edit_a_sv_balance, 1,0,3,3)
+        self.balance_window.add_widget(self.edit_b_balance, 2,0,3,3)
+        self.balance_window.add_widget(btn, 4,2,1,1)
         self.balance_window.show()
 
 
     def update_balance_data(self):
-        print 'update_balance_data'
+        self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
+        self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
+        self.settings.balance.include_b_balance  = bool(self.edit_b_balance.isChecked())
+
+        self.add_event_log(u'Установлены новые настройки запуска баланса')
+        self.balance_window.close()
+        self.update_settings()
 
     def update_xl_data(self):
         self.settings.xls.a_sh_name = unicode(self.sh_edit_ea.text())
@@ -953,6 +970,8 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.xls.a_obj_n = int(self.cmb_num_ea_obj.currentText())
         self.settings.xls.a_sv_n = int(self.cmb_num_ea_sv.currentText())
         self.settings.xls.b_n = int(self.cmb_num_eb.currentText())
+        self.settings.xls.is_xls_start = bool(self.edit_xls_start.isChecked())
+        self.settings.xls.is_mdb_start = bool(self.edit_mdb_start.isChecked())
 
         self.add_event_log(u'Установлены новые настройки выгрузки в Excel')
         self.xls_window.close()

@@ -204,13 +204,21 @@ def prepare_matrix(matr):
 
 
 def run_as_balancer(_maian_exp, _f_settings, _r_settings):
-    field_settings = modify_settings(_f_settings)
-    row_settings = modify_settings(_r_settings)
+    print 'Not yet implemented'
+    # field_settings = modify_settings(_f_settings)
+    # row_settings = modify_settings(_r_settings)
 
 
 def run_asv_balancer(_maian_exp, _f_settings, _r_settings):
-    field_settings = modify_settings(_f_settings)
-    row_settings = modify_settings(_r_settings)
+    print 'Not yet implemented'
+    # field_settings = modify_settings(_f_settings)
+    # row_settings = modify_settings(_r_settings)
+
+
+def mergeBonusesToValues(nested_exp_doc):
+    for row in nested_exp_doc:
+        for field in nested_exp_doc[row]:
+            nested_exp_doc[row][field]['val'] += nested_exp_doc[row][field]['bonus']
 
 
 def run_b_balancer(_main_exp, _f_settings, _r_settings):
@@ -381,7 +389,8 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                         raise Exception('Failed on setting main cells to fixed')
 
                 run_matrix_balancing_by_base_row(lvl_r_key, row_settings[row_stage][lvl_r_key])
-
+    mergeBonusesToValues(_main_exp)
+    q =1
 
 
 if __name__ == '__main__':

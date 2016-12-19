@@ -82,6 +82,8 @@ class Settings(object):
                 'a_sh_name': u'RB экспликация А',
                 'a_sv_sh_name': u'Активный',
                 'b_sh_name': u'Активный',  # RB Форма22 зем.
+                'is_mdb_start': False,
+                'is_xls_start': False
             },
             'rnd': {
                 'a_s_accuracy': 4,
