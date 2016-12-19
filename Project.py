@@ -12,7 +12,7 @@ from PyQt4 import QtGui, QtCore
 from Packages import Control, Convert, ExpA, FormB, Sprav
 from Packages.Exports import ToXL, ToMdb, Balance
 from Packages.Titles import LoadMessg, WidgNames, Events, ToolTip, ErrMessage
-
+from Packages.Settings import Settings
 Expl = 2
 project_dir = os.getcwd()
 spr_dir = os.path.join(project_dir, 'Spr')
@@ -33,6 +33,7 @@ class MainActiveThread(QtCore.QThread):
         self.__op = None
         self.__file_path = None
         self.spr_path_info = None
+        self.settings_dict = None
         self.__args = []
 
     def change_op(self, file_path, num_op, args):
@@ -42,8 +43,12 @@ class MainActiveThread(QtCore.QThread):
         :param args: if need
         """
         self.__op = num_op
-        self.__file_path = file_path
+        if file_path:
+            self.__file_path = file_path
         self.__args = args
+
+    def update_settings_dict(self, settings_dict):
+        self.settings_dict = settings_dict
 
     def run(self):
         """
@@ -136,15 +141,18 @@ class MainActiveThread(QtCore.QThread):
             else:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_wrong_default)
 
+    def set_settings_changes(self, loaded_settings):
+        self.emit(QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), loaded_settings)
+
     def load_pkl_op1_2(self):
         try:
             with open(self.__file_path, 'rb') as inp:
                 loaded_data = Pickle.load(inp)
                 inp.close()
-            loading_password = loaded_data.pop()
+            loading_password = loaded_data[-1]
             if loading_password == u'Sprav':
-                new_spr_di = loaded_data[0]
-                self.set_spr_changes(new_spr_di)
+                self.set_spr_changes(loaded_data[0])
+                self.set_settings_changes(loaded_data[1])
             else:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_valid)
         except IOError:
@@ -172,10 +180,11 @@ class MainActiveThread(QtCore.QThread):
                 self.__file_path+= u'.pkl'
             try:
                 with open(self.__file_path,u'wb') as output:
-                    Pickle.dump([self.current_sprav_dict, u"Sprav"], output, 2)
+                    Pickle.dump([self.current_sprav_dict, self.settings_dict, u"Sprav"], output, 2)
                     self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'), Events.spr_saved)
             except:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_saved)
+
 
     def control_spr_db(self, full=True):
         sprav_contr = Sprav.SprControl(self.__file_path, full)
@@ -196,7 +205,6 @@ class MainActiveThread(QtCore.QThread):
         else:
             #TODO: call exp structure control here. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
             return True
-
 
 
 class ControlThread(QtCore.QThread):
@@ -234,6 +242,7 @@ class ConvertThread(QtCore.QThread):
             else:
                 self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.empty_crostab)
 
+
 class ExpAThread(QtCore.QThread):
     def __init__(self, e_db_f, rows, sprav_holder, settings, parent = None):
         super(ExpAThread, self).__init__(parent)
@@ -242,6 +251,7 @@ class ExpAThread(QtCore.QThread):
         self.exp_tree = self.expsA.make_exp_tree()
         self.rnd_settings = settings.rnd
         self.xl_settings = settings.xls
+        self.balance_settings = settings.balance
         self.sprav_holder = sprav_holder
         self.__out_to_xl = True
         self.__single_exp = None
@@ -279,13 +289,15 @@ class ExpAThread(QtCore.QThread):
         if self.__single_exp:
             self.__single_exp.add_data(self.sprav_holder)
             counted_exp = self.__single_exp.round_expl_data(self.rnd_settings)
-            self.do_s_balance(counted_exp)
+            if self.balance_settings.include_a_balance:
+                self.do_s_balance(counted_exp)
             matrix = self.prepare_s_matr(counted_exp)
             self.export_s_to_xl(matrix[1:])
             self.__single_exp = None
         else:
             sv_data = self.get_sv_data()
-            self.do_sv_balance(sv_data)
+            if self.balance_settings.include_a_sv_balance:
+                self.do_sv_balance(sv_data)
             matrix = self.prepare_sv_matr(sv_data)
             if self.__out_to_xl:
                 self.export_sv_to_xl(matrix)
@@ -351,7 +363,7 @@ class ExpAThread(QtCore.QThread):
 
     def export_s_to_xl(self, matrix):
         try:
-            ToXL.exp_single_fa(matrix, self.__args[0], self.__single_exp.obj_name, self.exp_db_file, **self.xl_settings)
+            ToXL.exp_single_fa(matrix, self.__args[0], self.__single_exp.obj_name, self.exp_db_file, **self.xl_settings.__dict__)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -362,7 +374,7 @@ class ExpAThread(QtCore.QThread):
         exl_file_path = os.path.join(os.path.dirname(self.exp_db_file), exl_file_name)
         xl_s = self.xl_settings
         try:
-            ToXL.exp_matrix(matrix, save_as = exl_file_path, start_f = xl_s[u'a_sv_l'], start_r = xl_s[u'a_sv_n'], sh_name = xl_s[u'a_sv_sh_name'], templ_path = xl_s[u'a_sv_path'])
+            ToXL.exp_matrix(matrix, save_as = exl_file_path, start_f = xl_s.a_sv_l, start_r = xl_s.a_sv_n, sh_name = xl_s.a_sv_sh_name, templ_path = xl_s.a_sv_path)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -393,6 +405,7 @@ class ExpBThread(QtCore.QThread):
         self.out_xl_mode = True
         self.xl_settings = settings.xls
         self.round_settings = settings.rnd
+        self.balance_settings = settings.balance
         self.got_result = None
 
     def set_output_mode(self, is_xls):
@@ -429,7 +442,8 @@ class ExpBThread(QtCore.QThread):
         else:
             exp_dict = self.got_result
         # if self.round_settings['balance']:
-        self.do_balance(exp_dict)
+        if self.balance_settings.include_b_balance:
+            self.do_balance(exp_dict)
         exp_matr = self.prepare_b_matr(exp_dict)
         if self.out_xl_mode:
             self.run_xl_export(exp_matr)
@@ -441,7 +455,7 @@ class ExpBThread(QtCore.QThread):
         exl_file_path = os.path.join(os.path.dirname(self.exp_file), exl_file_name)
         xls = self.xl_settings
         try:
-            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls[u'b_l'], start_r = xls[u'b_n'], sh_name = xls[u'b_sh_name'], templ_path = xls[u'b_path'])
+            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, templ_path = xls.b_path)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -462,6 +476,7 @@ class ExpBThread(QtCore.QThread):
         else:
             self.emit(QtCore.SIGNAL(u'success()')) 
             export_db.run_db()
+
 
 class LoadingThread(QtCore.QThread):
     def __init__(self, parent = None):
@@ -511,54 +526,60 @@ class ColoredBlock(QtGui.QFrame):
             args[0] +=1
         self.box.addWidget(widget, *args)
 
-class Settings(object):
-    def __init__(self):
-        self.__xls_default = {
-            'a_sv_l':u'A',
-            'a_sv_n':6,
-            'a_l':u'F',
-            'a_n':16,
-            'a_obj_l':u'M',
-            'a_obj_n':4,
-            'b_l':u'B',
-            'b_n':7,
-            'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
-            'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
-            'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
-            'a_sh_name': u'RB экспликация А',
-            'a_sv_sh_name': u'Активный',
-            'b_sh_name': u'Активный',   #RB Форма22 зем.
-        }
-        self.__round_default = {
-            'a_s_accuracy': 4,
-            'b_accuracy':   0,
-            'a_sv_accuracy': 4,
-            'balance':  False,
-            'show_small':   True,
-            'small_accur':  3,
-        }
-        self.set_xls(self.__xls_default)
-        self.set_round(self.__round_default)
 
-    @property
-    def xls(self):
-        return self.__xls
-    @property
-    def rnd(self):
-        return self.__round
 
-    def set_xls(self, new_setts):
-        if len(new_setts) == len(set(new_setts.keys()+self.__xls_default.keys())):
-            self.__xls = new_setts
-        else:
-            self.__xls = self.__xls_default
-            raise Exception(u'Not enough settings')
-    def set_round(self, new_rnd_setts):
-        if len(new_rnd_setts) == len(set(new_rnd_setts.keys()+self.__round_default.keys())):
-            self.__round = new_rnd_setts
-        else:
-            self.__round = self.__round_default
-            raise Exception(u'Not enough settings')
+
+
+# class SettingsDeprecated(object):
+#     def __init__(self):
+#
+#
+#         self.__xls_default = {
+#             'a_sv_l':u'A',
+#             'a_sv_n':6,
+#             'a_l':u'F',
+#             'a_n':16,
+#             'a_obj_l':u'M',
+#             'a_obj_n':4,
+#             'b_l':u'B',
+#             'b_n':7,
+#             'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
+#             'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
+#             'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
+#             'a_sh_name': u'RB экспликация А',
+#             'a_sv_sh_name': u'Активный',
+#             'b_sh_name': u'Активный',   #RB Форма22 зем.
+#         }
+#         self.__round_default = {
+#             'a_s_accuracy': 4,
+#             'b_accuracy': 0,
+#             'small_accur': 3,
+#             'a_sv_accuracy': 4,
+#             'show_small': True
+#         }
+#         self.set_xls(self.__xls_default)
+#         self.set_round(self.__round_default)
+#
+#     @property
+#     def xls(self):
+#         return self.__xls
+#     @property
+#     def rnd(self):
+#         return self.__round
+#
+#     def set_xls(self, new_setts):
+#         if len(new_setts) == len(set(new_setts.keys()+self.__xls_default.keys())):
+#             self.__xls = new_setts
+#         else:
+#             self.__xls = self.__xls_default
+#             raise Exception(u'Not enough settings')
+#
+#     def set_round(self, new_rnd_setts):
+#         if len(new_rnd_setts) == len(set(new_rnd_setts.keys()+self.__round_default.keys())):
+#             self.__round = new_rnd_setts
+#         else:
+#             self.__round = self.__round_default
+#             raise Exception(u'Not enough settings')
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -655,7 +676,10 @@ class MainWindow(QtGui.QMainWindow):
             mes = self._load_message+dots
             self.statusBar().showMessage(mes)
         self.__is_xls_mode = True
-        self.settings = Settings()
+
+        # self.settings = SettingsDeprecated()
+        self.settings = Settings(xls_templates_dir, spr_default_path)
+
         self.connect(self.control_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_control_btn()"))
         self.connect(self.convert_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_convert_btn()"))
         self.connect(self.exp_a_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_a_btn()"))
@@ -665,6 +689,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.connect(self.load_thr, QtCore.SIGNAL(u's_loading(const QString&)'), set_status)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.set_sprav_holder)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), self.settings_loaded)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'spr_error_occured(const QString&)'), self.show_sprav_error)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.load_save_db_err)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'control_warning(const QString&)'), self.show_error)
@@ -811,6 +836,9 @@ class MainWindow(QtGui.QMainWindow):
         settings_xls = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_1, self)
         settings_xls.setStatusTip(ToolTip.settings_xls)
         settings_xls.setShortcut(u'Ctrl+E')
+        settings_balance = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_2, self)
+        settings_balance.setStatusTip(ToolTip.settings_balance)
+        settings_balance.setShortcut(u'Ctrl+B')
 
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
@@ -820,7 +848,9 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(spr_choose_mdb, QtCore.SIGNAL(u'triggered()'), self.load_sprav)
         self.connect(spr_save_spr, QtCore.SIGNAL(u'triggered()'), self.save_sprav)
         self.connect(spr_info, QtCore.SIGNAL(u'triggered()'), self.show_spr_info)
+
         self.connect(settings_xls, QtCore.SIGNAL(u'triggered()'), self.show_xl_settings_window)
+        self.connect(settings_balance, QtCore.SIGNAL(u'triggered()'), self.show_balance_settings_window)
 
         menu = self.menuBar()
         menu_file = menu.addMenu(WidgNames.menu_1)
@@ -834,9 +864,10 @@ class MainWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_save_spr)
         menu_sprav.addAction(spr_info)
         menu_settings.addAction(settings_xls)
+        menu_settings.addAction(settings_balance)
 
     def show_xl_settings_window(self):
-        xl_s = self.settings.xls
+        xl_settings = self.settings.xls
         color1 = u'#35B953'
         color2 = u'#51D04C'
         self.xls_window = SettingsWindow(self, u'Настройки выгрузки в Excel')
@@ -846,20 +877,20 @@ class MainWindow(QtGui.QMainWindow):
         # lbl_2.setAlignment(QtCore.Qt.AlignCenter)
         letters = lambda x: [x,]+[unicode(chr(x)) for x in range(65,91)]
         digits = lambda x: [unicode(x),]+[unicode(i) for i in range(1,100)]
-        self.sh_edit_ea = QtGui.QLineEdit(xl_s['a_sh_name'])
-        self.sh_edit_easv = QtGui.QLineEdit(xl_s['a_sv_sh_name'])
-        self.sh_edit_eb = QtGui.QLineEdit(xl_s['b_sh_name'])
+        self.sh_edit_ea = QtGui.QLineEdit(xl_settings.a_sh_name)
+        self.sh_edit_easv = QtGui.QLineEdit(xl_settings.a_sv_sh_name)
+        self.sh_edit_eb = QtGui.QLineEdit(xl_settings.b_sh_name)
         self.sh_edit_ea.setMinimumWidth(150)
         self.sh_edit_easv.setMinimumWidth(150)
         self.sh_edit_eb.setMinimumWidth(150)
-        self.cmb_let_ea = CombBox(data=letters(xl_s['a_l']))
-        self.cmb_let_ea_obj = CombBox(data=letters(xl_s['a_obj_l']))
-        self.cmb_let_ea_sv = CombBox(data=letters(xl_s['a_sv_l']))
-        self.cmb_let_eb = CombBox(data=letters(xl_s['b_l']))
-        self.cmb_num_ea = CombBox(data=digits(xl_s['a_n']))
-        self.cmb_num_ea_obj = CombBox(data=digits(xl_s['a_obj_n']))
-        self.cmb_num_ea_sv = CombBox(data=digits(xl_s['a_sv_n']))
-        self.cmb_num_eb = CombBox(data=digits(xl_s['b_n']))
+        self.cmb_let_ea = CombBox(data=letters(xl_settings.a_l))
+        self.cmb_let_ea_obj = CombBox(data=letters(xl_settings.a_obj_l))
+        self.cmb_let_ea_sv = CombBox(data=letters(xl_settings.a_sv_l))
+        self.cmb_let_eb = CombBox(data=letters(xl_settings.b_l))
+        self.cmb_num_ea = CombBox(data=digits(xl_settings.a_n))
+        self.cmb_num_ea_obj = CombBox(data=digits(xl_settings.a_obj_n))
+        self.cmb_num_ea_sv = CombBox(data=digits(xl_settings.a_sv_n))
+        self.cmb_num_eb = CombBox(data=digits(xl_settings.b_n))
         table_1 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
         table_2 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
         table_3 = SettingsTable(WidgNames.xls_table_header, self.xls_window)
@@ -886,21 +917,46 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_xl_data)
         self.xls_window.show()
 
+    def show_balance_settings_window(self):
+        balance_settings = self.settings.balance
+
+        self.balance_window = SettingsWindow(self, u'Настройки балансировки')
+        self.edit_b_balance = QtGui.QCheckBox('include_B_balance')
+        self.edit_b_balance.setChecked(balance_settings.include_b_balance)
+        self.edit_a_balance = QtGui.QCheckBox('include_a_balance')
+        self.edit_a_balance.setChecked(balance_settings.include_a_balance)
+        self.edit_a_sv_balance = QtGui.QCheckBox('include_aSV_balance')
+        self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
+
+        btn = QtGui.QPushButton(u"Сохранить изменения", self.balance_window.main_frame)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_balance_data)
+
+        self.balance_window.add_widget(self.edit_a_balance, 0,0,3,3)
+        self.balance_window.add_widget(self.edit_a_sv_balance, 2,0,3,3)
+        self.balance_window.add_widget(self.edit_b_balance, 4,0,3,3)
+        self.balance_window.add_widget(btn, 5,3,1,1)
+        self.balance_window.show()
+
+
+    def update_balance_data(self):
+        print 'update_balance_data'
+
     def update_xl_data(self):
-        xl_d = self.settings.xls
-        xl_d['a_sh_name'] = unicode(self.sh_edit_ea.text())
-        xl_d['a_sv_sh_name'] = unicode(self.sh_edit_easv.text())
-        xl_d['b_sh_name'] = unicode(self.sh_edit_eb.text())
-        xl_d['a_l'] = unicode(self.cmb_let_ea.currentText())
-        xl_d['a_obj_l'] = unicode(self.cmb_let_ea_obj.currentText())
-        xl_d['a_sv_l'] = unicode(self.cmb_let_ea_sv.currentText())
-        xl_d['b_l'] = unicode(self.cmb_let_eb.currentText())
-        xl_d['a_n'] = int(self.cmb_num_ea.currentText())
-        xl_d['a_obj_n'] = int(self.cmb_num_ea_obj.currentText())
-        xl_d['a_sv_n'] = int(self.cmb_num_ea_sv.currentText())
-        xl_d['b_n'] = int(self.cmb_num_eb.currentText())
+        self.settings.xls.a_sh_name = unicode(self.sh_edit_ea.text())
+        self.settings.xls.a_sv_sh_name = unicode(self.sh_edit_easv.text())
+        self.settings.xls.b_sh_name = unicode(self.sh_edit_eb.text())
+        self.settings.xls.a_l = unicode(self.cmb_let_ea.currentText())
+        self.settings.xls.a_obj_l = unicode(self.cmb_let_ea_obj.currentText())
+        self.settings.xls.a_sv_l = unicode(self.cmb_let_ea_sv.currentText())
+        self.settings.xls.b_l = unicode(self.cmb_let_eb.currentText())
+        self.settings.xls.a_n = int(self.cmb_num_ea.currentText())
+        self.settings.xls.a_obj_n = int(self.cmb_num_ea_obj.currentText())
+        self.settings.xls.a_sv_n = int(self.cmb_num_ea_sv.currentText())
+        self.settings.xls.b_n = int(self.cmb_num_eb.currentText())
+
         self.add_event_log(u'Установлены новые настройки выгрузки в Excel')
         self.xls_window.close()
+        self.update_settings()
 
     def open_file(self):
         db_f = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.open_file, project_dir, u'Valid files (*.mdb *.pkl);; All files (*)', options=QtGui.QFileDialog.DontUseNativeDialog))
@@ -980,10 +1036,10 @@ class MainWindow(QtGui.QMainWindow):
             return False
 
     def change_edb_file(self):
-        if self.__is_session:
+        if self.__is_session and self.e_db_file:
             base_name = os.path.basename(self.e_db_file)
         else:
-            base_name = u'Exp_' +os.path.basename(self.db_file)
+            base_name = u'Exp_' + os.path.basename(self.db_file)
         got_path = self.get_edb_path()
         self.set_export_src(got_path, base_name)
 
@@ -1194,7 +1250,16 @@ class MainWindow(QtGui.QMainWindow):
         save_file = unicode(QtGui.QFileDialog(self).getSaveFileName(self, WidgNames.save_dialog, options=QtGui.QFileDialog.DontUseNativeDialog))
         if save_file:
             self.add_loading(LoadMessg.spr_saving)
+            self.main_load_save_thr.update_settings_dict(self.settings.get_settings_dict())
+            self.settings.last_hold_pkl_dir = save_file
             self.run_main_thr(save_file,4)
+
+    def update_settings(self):
+        self.main_load_save_thr.update_settings_dict(self.settings.get_settings_dict())
+        self.run_main_thr(self.settings.last_hold_pkl_dir, 4)
+
+    def settings_loaded(self, settings_dict):
+        self.settings.update_settings(settings_dict)
 
     def say_saved(self, msg):
         self.set_status_ready(False)

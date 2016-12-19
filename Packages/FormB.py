@@ -114,7 +114,7 @@ class ExpFormaB(object):
             if cr_old == count_ready: break
         for key in exp_dict:
             exp_dict[key].pop(u'ready')
-        round_setts['accuracy'] = round_setts['b_accuracy']
+        round_setts.accuracy = round_setts.b_accuracy
         self.__round_fb(exp_dict, round_setts)
         return exp_dict
 

@@ -96,7 +96,7 @@ def exp_single_fa(fa_data, f22_ind, obj_name, expl_file, a_l, a_n, a_obj_l, a_ob
             print err
             raise XlsIOError(1, dest_filename)
         w_book.save(filename=dest_filename)
-        os.system(u'start excel.exe %s' % dest_filename)
+        os.system(u'start excel.exe %s' % unicode(dest_filename))
         raise XlsIOError(3,dest_filename)
 
 

@@ -30,6 +30,7 @@ def sum_dict_values(basic, add_dicts_li, add_ok = True):
         raise TypeError('Wrong basic parameter received')
 
 def round_row_data(data, accuracy = 4, show_small = False, small_accur = 3, **kwargs):
+    #TODO: Remake inputs without __dict__
     to_ga = 10000.0
     def rnd(digit):
         return round(digit/to_ga, accuracy)
@@ -67,7 +68,7 @@ def complex_round(digit, accuracy, small_accur):
 def round_and_modify(data_dict, settings):
     """
     :param data_dict: dictionary with field keys and their float values
-    :param settings: dict with parameters which round_row_data def required
+    :param settings: settings instance with parameters that round_row_data def required
     :return: dict with modified structure. after round tails are saved
     """
     modified = data_dict.copy()
@@ -116,9 +117,9 @@ class DataComb(object):
     def round_expl_data(self, round_setts):
         rounded_e_data = {}
         if self.expl_data:
-            round_setts['accuracy'] = round_setts['a_s_accuracy']
+            round_setts.accuracy = round_setts.a_s_accuracy
             for row in self.expl_data:
-                rounded_e_data[row] = round_and_modify(self.expl_data[row], round_setts)
+                rounded_e_data[row] = round_and_modify(self.expl_data[row], round_setts.__dict__)
         return rounded_e_data
 
 
@@ -273,7 +274,7 @@ class ExpFA(object):
                         return {}
             self.__add_total_rows(sv_exp)
             sv_exp['sh_sum'] = self.__make_shape_row()
-            round_setts['accuracy'] = round_setts['a_sv_accuracy']
+            round_setts.accuracy = round_setts.a_sv_accuracy
             self.__round_sv(sv_exp, round_setts)
             sv_exp['texts'] = sv_texts
             return sv_exp
@@ -291,10 +292,10 @@ class ExpFA(object):
         """
         for key1 in sv_nested_di:
             if key1 in ('total', 'sh_sum'):
-                sv_nested_di[key1] = round_and_modify(sv_nested_di[key1], round_setts)
+                sv_nested_di[key1] = round_and_modify(sv_nested_di[key1], round_setts.__dict__)
             else:
                 for key2, data_d in sv_nested_di[key1].items():
-                    sv_nested_di[key1][key2] = round_and_modify(data_d, round_setts)
+                    sv_nested_di[key1][key2] = round_and_modify(data_d, round_setts.__dict__)
 
     def __get_sv_row_text(self, soato_key, obj_text):
         cc_kod = unicode(soato_key)[:-3]
