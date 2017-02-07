@@ -84,7 +84,7 @@ class DBConn(object):
 
 
     @staticmethod
-    def is_valid_dbf_file(f):
+    def is_valid_mdb_file(f):
         if not os.path.isfile(f):
             return False
         if not f.lower()[-3:] == u'mdb':
@@ -98,7 +98,7 @@ class DBConn(object):
             mdb_out_structure = mdb_db.get_tabs_with_field_names()
             del mdb_db
             if len(mdb_out_structure):
-                return 'ok'
+                return 'OK'
             else:
                 raise Exception('Database is empty')
         except Exception as err:

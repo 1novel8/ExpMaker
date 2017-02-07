@@ -7,24 +7,26 @@ import glob
 sys.argv.append('py2exe')
 
 data = [('Images', glob.glob('Images\\*')),
+        ('Conf', glob.glob('conf\\*')),
         ('Style', glob.glob('Style\\*.css')),
         # ('Spr\\XL_forms', glob.glob('Spr\\XL_forms\\*')),
         # ('Spr', glob.glob('Spr\\*')),
-        ('', glob.glob('*.mdb'))
+        ('', glob.glob('*.mdb')),
+        ('', glob.glob('template.xlsx'))
 ]
 target = {
 'script' : "executor.py",
 'version' : "1.0",
 'company_name' : "BELGIPROZEM",
 'copyright' : "",
-'name' : "Collector",
-'dest_base' : "Collector",
-"icon_resources": [(1, "Images\\e.ico")]
+'name' : "KOc_Viewer",
+'dest_base' : "KOc_Viewer",
+"icon_resources": [(1, "Images\\excel.ico")]
 }
 setup(
     data_files =data,
     windows = [target],
-    options = {"py2exe": {"includes":["sip", "packages", "openpyxl", "os", "pyodbc", "time", "decimal", "datetime", "shutil", "sys", "PyQt4"],
+    options = {"py2exe": {"includes":["sip", "packages", "openpyxl", "os", "pyodbc", "time", "re", "decimal", "datetime", "shutil", "sys", "PyQt4"],
                     "dll_excludes": ["MSVCP90.dll", "CRYPT32.dll" , "COMDLG32.dll", "IMM32.dll" , "ole32.dll", "WINSPOOL.DRV", "WINMM.dll","USER32.dll", "SHELL32.dll", "ODBC32.dll", "ADVAPI32.dll", "WS2_32.dll", "GDI32.dll", "KERNEL32.dll"],
                     "bundle_files": 1,
                     "compressed": 1,

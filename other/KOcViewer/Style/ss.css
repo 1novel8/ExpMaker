@@ -46,6 +46,7 @@ QPushButton:focus{
     border-radius: 5%;
     font-weight: 900;
     font-family: cursive;
+
     }
 
 QPushButton:hover{
@@ -63,5 +64,5 @@ QTextEdit {
 }
 
 QLabel {
-    padding: 0 8px;
+    padding: 0 4px;
 }
