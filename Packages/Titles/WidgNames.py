@@ -17,6 +17,7 @@ exit_spr_5 = u'Информация о текущем справочнике'
 exit_settings_1 = u'Вывод в Excel'
 
 exit_settings_2 = u'Настройки баланса'
+exit_settings_3 = u'Настройки точности'
 
 
 sprav_info_box = u'Используемый справочник...'

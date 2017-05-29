@@ -69,7 +69,17 @@ def get_inds_with_false_key(cells, key):
 
 current_wins = lambda last_winner, current, is_positive: last_winner < current if is_positive else last_winner > current
 
-def run_bonus_competition(cells, cell_ind_array, is_positive,competition_by='tail'):
+
+
+def run_bonus_competition(cells, cell_ind_array, is_positive, competition_by='tail'):
+    """
+
+    :param cells:
+    :param cell_ind_array:
+    :param is_positive: What value is searching for
+    :param competition_by:
+    :return: index of winner cell
+    """
     winner_tail_i = cell_ind_array[0]
     for i in cell_ind_array[1:]:
         if current_wins(cells[winner_tail_i][competition_by], cells[i][competition_by], is_positive):
@@ -77,50 +87,131 @@ def run_bonus_competition(cells, cell_ind_array, is_positive,competition_by='tai
     return winner_tail_i
 
 
-def get_bonus_cell_ind(cells, is_positive):
-    winner_i = run_bonus_competition(cells, range(len(cells)), is_positive)
+count = 0
+def get_bonus_cell_ind(cells, is_positive, accuracy, possible_indexes = None):
+    if len(cells) == 1:
+        raise Exception("Wrong input data format")
+
+
+    global count
+    possible_bonus_items = []
+    if isinstance(possible_indexes, (list, tuple)):
+        # self calling
+        possible_bonus_items = possible_indexes
+        count += 1
+        if count > 10:
+            raise Exception('Balancing caused recursive loop')
+            # protection from recursive calling
+    else:
+        # calling first time
+        count = 0
+        possible_bonus_items = range(len(cells))
+        bonus_items = get_inds_with_false_key(cells, 'bonus')
+        # if need with fixed items comment this
+        fixed_items = get_inds_with_false_key(cells, 'fixed')
+        for i in range(len(cells)):
+            if i in bonus_items:
+                possible_bonus_items.remove(i)
+                continue
+            if i in fixed_items:
+                possible_bonus_items.remove(i)
+                continue
+            if is_positive and cells[i]['val'] < 0:
+                possible_bonus_items.remove(i)
+                continue
+            if not is_positive and cells[i]['val'] > 0:
+                possible_bonus_items.remove(i)
+
+
+    if len(possible_bonus_items) <= 1:
+        # Counts only by max value
+        return run_bonus_competition(cells, range(len(cells)), True, 'val')
+
+    winner_i = run_bonus_competition(cells, possible_bonus_items, is_positive)
     winner_cell = cells[winner_i]
-
+    min_bonus = 10**accuracy
+    if winner_cell['fixed']:
+        print 'something went wrong. Winner cell already fixed'
     # small values < 0 could be and should be in tail!
-    zero_val_winned = False
-    if not winner_cell['bonus'] and not winner_cell['fixed']:
-        if winner_cell['val'] > 1:
-            return winner_i  # seems all ok
-        else:
-            zero_val_winned = True
-    no_bonus_items = get_inds_with_false_key(cells, 'bonus')
+    zero_val_winned = winner_cell['val'] < 2 * min_bonus
+
     if zero_val_winned:
-        no_bonus_items.remove(winner_i)
-    if len(no_bonus_items):
-        if len(no_bonus_items) < len(cells):  # still ok
-            winner_i = run_bonus_competition(cells, no_bonus_items, is_positive)
-            #     0 val cell can be a winner. It can't be. So we make winner by max value
-            if cells[winner_i]['val'] <= 1:
-                winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
-        else:  # all cells has bonuses
-            winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
-
-        if not cells[winner_i]['fixed']:
-            return winner_i  # it is possible
+        if is_positive:
+            return winner_i
         else:
-            no_fixed_items = get_inds_with_false_key(cells, 'fixed')
-            if len(no_fixed_items) < len(cells):
-                return run_bonus_competition(cells, no_fixed_items, True, 'val')
+            possible_bonus_items.remove(winner_i)
+            return get_bonus_cell_ind(cells, is_positive, accuracy, possible_bonus_items)
+    else:
+        return winner_i
 
-    # problem in fixed statement (all fixed)
-    # print 'Seems something went wrong, you have tried to give bonus for fixed cell'
-    raise Exception('Seems something went wrong, you have tried to give bonus for fixed cell')
+
+
+# deprecated
+# def get_bonus_cell_ind(cells, is_positive, accuracy):
+#     if len(cells) == 1:
+#         raise Exception("Wrong input data format")
+#
+#     winner_i = run_bonus_competition(cells, range(len(cells)), is_positive)
+#     winner_cell = cells[winner_i]
+#     min_bonus = 10**accuracy
+#     if winner_cell['fixed']:
+#         print 'something went wrong. Winner cell already fixed'
+#     # small values < 0 could be and should be in tail!
+#     zero_val_winned = winner_cell['val'] < min_bonus
+#
+#     if not winner_cell['bonus'] and not zero_val_winned: #and not winner_cell['fixed']
+#         return winner_i  # seems all ok like need to be
+#
+#
+#     no_bonus_items = get_inds_with_false_key(cells, 'bonus')
+#     if zero_val_winned:
+#         no_bonus_items.remove(winner_i)
+#         if is_positive and not winner_cell['bonus']:
+#                 return winner_i
+#
+#     if len(no_bonus_items):
+#         if len(no_bonus_items) < len(cells):  # still ok
+#             winner_i = run_bonus_competition(cells, no_bonus_items, is_positive)
+#             #     0 val cell can be a winner. It can't be. So we make winner by max value
+#             if cells[winner_i]['val'] <= 2*min_bonus:
+#                 print 'by value'
+#                 winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
+#                 print cells[winner_i]
+#         else:  # all cells has bonuses
+#             print 3333
+#             winner_i = run_bonus_competition(cells, range(len(cells)), True, 'val')
+#             return winner_i #can be commented
+#
+#         if not cells[winner_i]['fixed']:
+#             return winner_i  # it is possible
+#         else:
+#             print 'Warning'
+#             no_fixed_items = get_inds_with_false_key(cells, 'fixed')
+#             if len(no_fixed_items):
+#                 return run_bonus_competition(cells, no_fixed_items, True, 'val')
+#             else:
+#                 print 'tried to give bonus for fixed cell'
+#                 return winner_i
+#                 # raise Exception('Seems something went wrong, you have tried to give bonus for fixed cell')
+#     else:
+#         print 'all cells has bonuses'
+#     # problem in fixed statement (all fixed)
+#     print 'Seems something went wrong, you have tried to give bonus for fixed cell'
+#     return winner_i
 
 
 def split_bonus(bonus, cells, accuracy):
-    try:
-        bonus_count = math.fabs(bonus / accuracy)
-    except ZeroDivisionError:
-        bonus_count = math.fabs(bonus)
+    # try:
+    #     bonus_count = math.fabs(bonus / accuracy)
+    # except ZeroDivisionError:
+    #     bonus_count = math.fabs(bonus)
+    bonus_count = math.fabs(bonus * 10**accuracy)
+    if bonus_count:
+        print bonus_count, bonus
     bonus /= bonus_count
 
     for bonusInd in xrange(int(bonus_count)):
-        bonus_cell_key = get_bonus_cell_ind(cells, bonus > 0)
+        bonus_cell_key = get_bonus_cell_ind(cells, bonus > 0, accuracy)
         try:
             cells[bonus_cell_key]['bonus'] += bonus
         except KeyError:
@@ -129,7 +220,7 @@ def split_bonus(bonus, cells, accuracy):
             # TODO: Uncomment here after debugging
             # raise Exception('Something went wrong while Balancing')
 
-def _make_equal_bonus_fix(parent_cell, child_cells):
+def _make_equal_bonus_fix(parent_cell, child_cells, accuracy):
 
     """
     Caution. This method changes the input objects
@@ -138,7 +229,7 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
     :param child_cells: array of cells
     :return:
     """
-    accuracy = 0
+    accuracy = int(accuracy)
     # def guarantee_keys(cll):
     #     # TODO: it can be deprecated after adding bonus and fixed keys to all cells by function prepare_matrix
     #     if not isinstance(cll, dict):
@@ -154,6 +245,7 @@ def _make_equal_bonus_fix(parent_cell, child_cells):
     for cell in child_cells:
         # guarantee_keys(cell)
         child_sum += cell['val'] + cell['bonus']
+
 
     if parent_cell['fixed']:
         total_bonus = round(parent_val - child_sum, accuracy)
@@ -196,7 +288,10 @@ def prepare_matrix(matr):
         for field in matr[row]:
             try:
                 matr[row][field]['bonus'] = 0
-                matr[row][field]['fixed'] = False
+                if matr[row][field]['val'] == 0 and matr[row][field]['tail'] == 0:
+                    matr[row][field]['fixed'] = True
+                else:
+                    matr[row][field]['fixed'] = False
             except KeyError:
                 raise Exception('Get wrong cell data during balancing!')
             except Exception:
@@ -221,7 +316,7 @@ def mergeBonusesToValues(nested_exp_doc):
             nested_exp_doc[row][field]['val'] += nested_exp_doc[row][field]['bonus']
 
 
-def run_b_balancer(_main_exp, _f_settings, _r_settings):
+def run_b_balancer(_main_exp, _f_settings, _r_settings, accuracy):
     field_settings = modify_settings(_f_settings)
     row_settings = modify_settings(_r_settings)
     prepare_matrix(_main_exp)
@@ -253,7 +348,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                     ch_cells.append(_main_exp[row_key][f_key])
                 except KeyError:
                     print 'Fail on first clockwise balancing phase'
-            _make_equal_bonus_fix(p_cell, ch_cells)
+            _make_equal_bonus_fix(p_cell, ch_cells, accuracy)
 
     # 2...balancing_matrix_stage_2 collecting fixed fields from previous step to total row
         for f_key in depend_fs:
@@ -264,7 +359,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                     ch_cells.append(_main_exp[row_key][f_key])
                 except KeyError:
                     print 'Fail on second clockwise balancing phase'
-            _make_equal_bonus_fix(p_cell, ch_cells)
+            _make_equal_bonus_fix(p_cell, ch_cells, accuracy)
 
     # 3...balancing_matrix_stage_3 asserting fields by total in base row
         p_cell = _main_exp[base_r][base_f]
@@ -305,7 +400,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
 
                 # ch_cells = _f_settings[field_stage][lvl_f_key].map(lambda x: _main_exp[base_row][x])
                 # TODO: debug this lambda not to change _main_exp
-        _make_equal_bonus_fix(p_cell, ch_cells)
+        _make_equal_bonus_fix(p_cell, ch_cells, accuracy)
 
 
     # 2...balancing_matrix_stage_2 balancing fixed fields from previous step by depend rows
@@ -317,7 +412,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                     ch_cells.append(_main_exp[row_key][f_key])
                 except KeyError:
                     print 'Fail on second anticlockwise balancing phase'
-            _make_equal_bonus_fix(p_cell, ch_cells)
+            _make_equal_bonus_fix(p_cell, ch_cells, accuracy)
 
     # 3...balancing_matrix_stage_3 making total field of every depend row to fixed
         for row_key in depend_rs:
@@ -328,7 +423,7 @@ def run_b_balancer(_main_exp, _f_settings, _r_settings):
                     ch_cells.append(_main_exp[row_key][f_key])
                 except KeyError:
                     print 'Fail on third anticlockwise balancing phase'
-            _make_equal_bonus_fix(p_cell, ch_cells)
+            _make_equal_bonus_fix(p_cell, ch_cells, accuracy)
 
     # 4...balancing_matrix_stage_4 asserting the results; should be balanced
         p_cell = _main_exp[base_r][base_f]

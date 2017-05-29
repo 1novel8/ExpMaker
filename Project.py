@@ -436,7 +436,7 @@ class ExpBThread(QtCore.QThread):
 
     def do_balance(self, e_dict):
         if self.balance_settings.include_b_balance:
-            Balance.run_b_balancer(e_dict, self.sprav.expb_f_str, self.sprav.expb_r_str)
+            Balance.run_b_balancer(e_dict, self.sprav.expb_f_str, self.sprav.expb_r_str, self.round_settings.b_accuracy)
 
     def run(self):
         if not self.got_result:
@@ -842,6 +842,9 @@ class MainWindow(QtGui.QMainWindow):
         settings_balance = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_2, self)
         settings_balance.setStatusTip(ToolTip.settings_balance)
         settings_balance.setShortcut(u'Ctrl+B')
+        settings_accuracy= QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_3, self)
+        settings_accuracy.setStatusTip(ToolTip.settings_accuracy)
+        settings_accuracy.setShortcut(u'Ctrl+N')
 
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
@@ -854,6 +857,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.connect(settings_xls, QtCore.SIGNAL(u'triggered()'), self.show_xl_settings_window)
         self.connect(settings_balance, QtCore.SIGNAL(u'triggered()'), self.show_balance_settings_window)
+        self.connect(settings_accuracy, QtCore.SIGNAL(u'triggered()'), self.show_accuracy_settings_window)
 
         menu = self.menuBar()
         menu_file = menu.addMenu(WidgNames.menu_1)
@@ -868,6 +872,7 @@ class MainWindow(QtGui.QMainWindow):
         menu_sprav.addAction(spr_info)
         menu_settings.addAction(settings_xls)
         menu_settings.addAction(settings_balance)
+        menu_settings.addAction(settings_accuracy)
 
     def show_xl_settings_window(self):
         xl_settings = self.settings.xls
@@ -949,6 +954,33 @@ class MainWindow(QtGui.QMainWindow):
         self.balance_window.add_widget(btn, 4,2,1,1)
         self.balance_window.show()
 
+    def show_accuracy_settings_window(self):
+        accuracy_settings = self.settings.rnd
+
+        self.accuracy_window = SettingsWindow(self, u'Настройки точности', 400, 250)
+
+        self.edit_a_accuracy = CombBox(self.accuracy_window, '01234')
+        self.edit_a_sv_accuracy = CombBox(self.accuracy_window, '01234')
+        self.edit_b_accuracy = CombBox(self.accuracy_window, '01234')
+        self.edit_a_accuracy.setCurrentIndex(int(accuracy_settings.a_s_accuracy))
+        self.edit_a_sv_accuracy.setCurrentIndex(int(accuracy_settings.a_sv_accuracy))
+        self.edit_b_accuracy.setCurrentIndex(int(accuracy_settings.b_accuracy))
+        self.lbl_a_accuracy = QtGui.QLabel(u'Точность округления формы А', self.accuracy_window)
+        self.lbl_a_sv_accuracy = QtGui.QLabel(u'Точность округления формы А сводная', self.accuracy_window)
+        self.lbl_b_accuracy = QtGui.QLabel(u'Точность округления формы B', self.accuracy_window)
+
+        btn = QtGui.QPushButton(u"Сохранить изменения", self.accuracy_window.main_frame)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_accuracy_data)
+
+        self.accuracy_window.add_widget(self.lbl_a_accuracy, 0,0,1,5)
+        self.accuracy_window.add_widget(self.edit_a_accuracy, 0,5,1,1)
+        self.accuracy_window.add_widget(self.lbl_a_sv_accuracy, 1,0,1,5)
+        self.accuracy_window.add_widget(self.edit_a_sv_accuracy, 1,5,1,1)
+        self.accuracy_window.add_widget(self.lbl_b_accuracy, 2,0,1,5)
+        self.accuracy_window.add_widget(self.edit_b_accuracy, 2,5,1,1)
+        self.accuracy_window.add_widget(btn, 4,3,1,2)
+        self.accuracy_window.show()
+
 
     def update_balance_data(self):
         self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
@@ -958,6 +990,17 @@ class MainWindow(QtGui.QMainWindow):
         self.add_event_log(u'Установлены новые настройки запуска баланса')
         self.balance_window.close()
         self.update_settings()
+
+    def update_accuracy_data(self):
+        self.settings.rnd.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
+        self.settings.rnd.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
+        self.settings.rnd.b_accuracy = int(self.edit_b_accuracy.get_current_item())
+
+        self.add_event_log(u'Установлены новые настройки округления')
+        self.accuracy_window.close()
+        print self.settings.rnd
+        self.update_settings()
+
 
     def update_xl_data(self):
         self.settings.xls.a_sh_name = unicode(self.sh_edit_ea.text())
@@ -1553,6 +1596,7 @@ class SrcFrame(QtGui.QFrame):
 class CombBox(QtGui.QComboBox):
     def __init__(self, parent = None, data = [], width = 60):
         QtGui.QComboBox.__init__(self, parent)
+        self.data = data
         self.change_data(data)
         self.setStyleSheet(u'font-size: 12px')
         self.set_min_width(width)
@@ -1560,9 +1604,38 @@ class CombBox(QtGui.QComboBox):
 
     def set_min_width(self, width):
         self.setMinimumWidth(width)
+
     def change_data(self, new_data):
         self.clear()
         self.addItems(new_data)
+        self.data = new_data
+
+    def get_current_item(self):
+        if len(self.data):
+            cur_ind = self.currentIndex()
+            return self.data[cur_ind]
+
+
+
+class SelectionBox(QtGui.QComboBox):
+    def __init__(self, parent=None, data=None, width=60):
+        QtGui.QComboBox.__init__(self, parent)
+        self.data = []
+        if data is not None:
+            self.change_data(data)
+        self.set_min_width(width)
+        self.setMaxVisibleItems(20)
+        self.applyStyles()
+        self.setAutoCompletion(True)
+
+    def set_min_width(self, width):
+        # self.scroll(1,3)
+        self.setMinimumWidth(width)
+
+    def change_data(self, new_data):
+        self.clear()
+        self.addItems(new_data)
+        self.data = new_data
 
 class GroupBox(QtGui.QFrame):
     def __init__(self, parent = None, border_color = u'#C3FFF1'):

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+to_ga = 10000.0
+
 def sum_dict_values(basic, add_dicts_li, add_ok = True):
     """
     :param basic: main dict with values you are going to add to
@@ -31,7 +33,7 @@ def sum_dict_values(basic, add_dicts_li, add_ok = True):
 
 def round_row_data(data, accuracy = 4, show_small = False, small_accur = 3, **kwargs):
     #TODO: Remake inputs without __dict__
-    to_ga = 10000.0
+    accuracy = int(accuracy)
     def rnd(digit):
         return round(digit/to_ga, accuracy)
         # if show_small:
@@ -42,7 +44,7 @@ def round_row_data(data, accuracy = 4, show_small = False, small_accur = 3, **kw
         if isinstance(data, dict):
             d = {}
             for k, v in data.items():
-                d[k] = rnd(v)
+                d[k] = rnd(v) if v else 0
             return d
         elif isinstance(data, (list, tuple)):
             return map(rnd, data)
@@ -77,7 +79,7 @@ def round_and_modify(data_dict, settings):
     for key, val in modified.items():
         modified[key] = {
             'val': val,
-            'tail': data_dict[key]/10000 - val
+            'tail': data_dict[key]/to_ga - val
         }
     return modified
 
