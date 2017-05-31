@@ -10,6 +10,9 @@ class DictAsObject(object):
         if isinstance(dict_data, dict):
             self.__dict__.update(dict_data)
 
+    def to_dict(self):
+        return self.__dict__
+
 class Settings(object):
     def __init__(self, xls_templates_dir, store_source):
         self.xls_templates_dir = xls_templates_dir
@@ -30,7 +33,7 @@ class Settings(object):
 
     @staticmethod
     def get_valid_settings_keys():
-        return ['xls', 'rnd', 'balance']
+        return ['xls', 'rnd', 'balance', 'conditions']
 
     def get_settings_dict(self):
         out = {}
@@ -55,7 +58,7 @@ class Settings(object):
         return ok
 
     def set_settings_by_key(self, s_key, s_values):
-        if s_key in ['xls', 'rnd', 'balance']:
+        if s_key in ['xls', 'rnd', 'balance', 'conditions']:
             setattr(self, s_key, DictAsObject(s_values))
 
     def set_default_settings(self):
@@ -96,5 +99,9 @@ class Settings(object):
                 'include_a_balance': False,
                 'include_a_sv_balance': False,
                 'include_b_balance': True,
+            },
+            'conditions': {
+                'melio': '',
+                'custom': ''
             }
         }

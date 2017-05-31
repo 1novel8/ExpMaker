@@ -244,7 +244,7 @@ class CtrRow(object):
             pass
         return False
 
-def _make_crtab_query(fields, n_max):
+def _make_crtab_query(fields, n_max, conditions = None):
     query = u'SELECT '
     for f in fields:
         if '*' in f:
@@ -253,6 +253,14 @@ def _make_crtab_query(fields, n_max):
         else:
             query += f + u', '
     query = query[:-2] + u' FROM %s' % DbStructures.crs_tab
+    cond_li = []
+    if conditions:
+        for key in conditions.keys():
+            if conditions[key]:
+                cond_li.append(unicode(conditions[key]))
+    if len(cond_li):
+        query += ' WHERE ' + ' AND '.join(cond_li)
+    print query
     return query
 
 def collapse_row(row, structure, n_max):
@@ -274,14 +282,14 @@ def collapse_row(row, structure, n_max):
             return_row.append(row.pop(0))
     return return_row, n_survived
 
-def convert(sprav_holder, temp_db_path):
+def convert(sprav_holder, temp_db_path, select_conditions):
     n_max = sprav_holder.max_n
     ctr_conn = DBConn(temp_db_path)
     add_nasp_name_to_soato(ctr_conn)
     add_utype_to_crtab(ctr_conn, n_max)
     users_d, soato_d = data_users_soato(ctr_conn)
     query_structure = sprav_holder.attr_config['ctr_structure']
-    select_ctr_all = _make_crtab_query(query_structure, n_max)
+    select_ctr_all = _make_crtab_query(query_structure, n_max, select_conditions.to_dict())
     sel_result = ctr_conn.exec_sel_query(select_ctr_all)
     del ctr_conn
 

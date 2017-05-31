@@ -18,6 +18,7 @@ exit_settings_1 = u'Вывод в Excel'
 
 exit_settings_2 = u'Настройки баланса'
 exit_settings_3 = u'Настройки точности'
+exit_settings_4 = u'Настройки условий выборки'
 
 
 sprav_info_box = u'Используемый справочник...'

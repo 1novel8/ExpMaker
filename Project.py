@@ -227,12 +227,16 @@ class ControlThread(QtCore.QThread):
                 self.emit(QtCore.SIGNAL(u'control_passed()'))
 
 class ConvertThread(QtCore.QThread):
-    def __init__(self, sprav, parent = None):
+
+    def __init__(self, sprav, settings, parent = None):
         super(ConvertThread, self).__init__(parent)
+        self.conditions_settings = settings.conditions
         self.sprav_holder = sprav
+
+
     def run(self):
         try:
-            converted_data = Convert.convert(self.sprav_holder, tempDB_path)
+            converted_data = Convert.convert(self.sprav_holder, tempDB_path, self.conditions_settings)
         except Exception as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
         else:
@@ -845,6 +849,9 @@ class MainWindow(QtGui.QMainWindow):
         settings_accuracy= QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_3, self)
         settings_accuracy.setStatusTip(ToolTip.settings_accuracy)
         settings_accuracy.setShortcut(u'Ctrl+N')
+        settings_conditions = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_4, self)
+        settings_conditions.setStatusTip(ToolTip.settings_conditions)
+        settings_conditions.setShortcut(u'Ctrl+G')
 
         self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
         self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
@@ -858,6 +865,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(settings_xls, QtCore.SIGNAL(u'triggered()'), self.show_xl_settings_window)
         self.connect(settings_balance, QtCore.SIGNAL(u'triggered()'), self.show_balance_settings_window)
         self.connect(settings_accuracy, QtCore.SIGNAL(u'triggered()'), self.show_accuracy_settings_window)
+        self.connect(settings_conditions, QtCore.SIGNAL(u'triggered()'), self.show_conditions_settings_window)
 
         menu = self.menuBar()
         menu_file = menu.addMenu(WidgNames.menu_1)
@@ -873,6 +881,7 @@ class MainWindow(QtGui.QMainWindow):
         menu_settings.addAction(settings_xls)
         menu_settings.addAction(settings_balance)
         menu_settings.addAction(settings_accuracy)
+        menu_settings.addAction(settings_conditions)
 
     def show_xl_settings_window(self):
         xl_settings = self.settings.xls
@@ -946,7 +955,7 @@ class MainWindow(QtGui.QMainWindow):
         self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
 
         btn = QtGui.QPushButton(u"Сохранить изменения", self.balance_window.main_frame)
-        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_balance_data)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_balance_settings)
 
         self.balance_window.add_widget(self.edit_a_balance, 0,0,3,3)
         self.balance_window.add_widget(self.edit_a_sv_balance, 1,0,3,3)
@@ -970,7 +979,7 @@ class MainWindow(QtGui.QMainWindow):
         self.lbl_b_accuracy = QtGui.QLabel(u'Точность округления формы B', self.accuracy_window)
 
         btn = QtGui.QPushButton(u"Сохранить изменения", self.accuracy_window.main_frame)
-        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_accuracy_data)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_accuracy_settings)
 
         self.accuracy_window.add_widget(self.lbl_a_accuracy, 0,0,1,5)
         self.accuracy_window.add_widget(self.edit_a_accuracy, 0,5,1,1)
@@ -981,8 +990,20 @@ class MainWindow(QtGui.QMainWindow):
         self.accuracy_window.add_widget(btn, 4,3,1,2)
         self.accuracy_window.show()
 
+    def show_conditions_settings_window(self):
+        conditions_settings = self.settings.conditions
+        self.conditions_window = SettingsWindow(self, u'Настройки условий выборки из crostab', 400, 150)
+        self.include_melio = QtGui.QCheckBox(u'Расчет мелиоративных земель')
+        self.include_melio.setChecked(bool(conditions_settings.melio))
+        btn = QtGui.QPushButton(u"Сохранить изменения", self.conditions_window.main_frame)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_conditions_settings)
 
-    def update_balance_data(self):
+        self.conditions_window.add_widget(self.include_melio, 0, 0, 3, 3)
+        self.conditions_window.add_widget(btn, 4, 2, 1, 1)
+        self.conditions_window.show()
+
+
+    def update_balance_settings(self):
         self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
         self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
         self.settings.balance.include_b_balance  = bool(self.edit_b_balance.isChecked())
@@ -991,7 +1012,7 @@ class MainWindow(QtGui.QMainWindow):
         self.balance_window.close()
         self.update_settings()
 
-    def update_accuracy_data(self):
+    def update_accuracy_settings(self):
         self.settings.rnd.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
         self.settings.rnd.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
         self.settings.rnd.b_accuracy = int(self.edit_b_accuracy.get_current_item())
@@ -1001,6 +1022,14 @@ class MainWindow(QtGui.QMainWindow):
         print self.settings.rnd
         self.update_settings()
 
+    def update_conditions_settings(self):
+        if self.include_melio.isChecked():
+            self.settings.conditions.melio = u'MELIOCODE = 1'
+        else:
+            self.settings.conditions.melio = u''
+        self.add_event_log(u'Установлены новые настройки выборки данных из crostab')
+        self.conditions_window.close()
+        self.update_settings()
 
     def update_xl_data(self):
         self.settings.xls.a_sh_name = unicode(self.sh_edit_ea.text())
@@ -1355,7 +1384,7 @@ class MainWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def click_convert_btn(self):
         self.add_event_log(Events.run_convert)
-        self.convert_thr = ConvertThread(self.sprav_holder)
+        self.convert_thr = ConvertThread(self.sprav_holder, self.settings)
         self.add_loading(LoadMessg.loading_convert)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'convert_passed(PyQt_PyObject)'), self.enable_explications)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'convert_passed(PyQt_PyObject)'), lambda:self.add_event_log(Events.convert_passed))
