@@ -638,8 +638,28 @@ class MainWindow(QtGui.QMainWindow):
         self.group_box.hide()
         self.expa_widget = QtGui.QWidget(self)
         self.expa_box = QtGui.QGridLayout(self.expa_widget)
+
+        # self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
+        self.filter_frame = QtGui.QFrame(self)
+        self.filter_box = QtGui.QHBoxLayout(self.filter_frame)
+        self.filter_btn = QtGui.QToolButton(self)
+        self.filter_btn.setText(u'...')
+        self.filter_btn.setAutoRaise(True)
+        self.filter_btn.setStyleSheet(u'color: white; background-color: #2558FF; border-radius: 8%; border: 1px solid white')
+
+        self.filter_activation = QtGui.QCheckBox(u'Фильтр', self)
+        self.filter_activation.setChecked(True)
+
+        self.filter_activation.setFont(QtGui.QFont('Segoe Print', 9))
+        self.filter_activation.stateChanged.connect( lambda x: self.filter_changed())
+        # self.lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.filter_box.addWidget(self.filter_activation)
+        self.filter_box.addWidget(self.filter_btn)
+
+
+        self.expa_box.addWidget(self.filter_frame, 0, 0, 1, 5)
         self.expa_box.addWidget(self.treeView,1,0,21,21)
-        self.expa_box.addWidget(self.group_box,0,20,1,1)
+        self.expa_box.addWidget(self.group_box,0,5,1,16)
 
         self.splitter = QtGui.QSplitter(self)
         self.splitter.addWidget(self.expa_widget)
@@ -693,6 +713,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.btn_a_all, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_svodn_btn()"))
         self.connect(self.btn_a_tree, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_a_tree_btn()"))
         self.connect(self.exp_b_btn, QtCore.SIGNAL(u"clicked()"), QtCore.SLOT(u"click_exp_b_btn()"))
+        self.connect(self.filter_btn, QtCore.SIGNAL(u"clicked()"), self.show_filtering_window)
 
         self.connect(self.load_thr, QtCore.SIGNAL(u's_loading(const QString&)'), set_status)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'sprav_holder(PyQt_PyObject)'), self.set_sprav_holder)
@@ -748,6 +769,7 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_btn.setDisabled(True)            # !!! Here you can enable or disable convert button
         self.exp_a_btn.setEnabled(self.__is_session)
         self.exp_b_btn.setEnabled(self.__is_session)
+        self.filter_frame.setEnabled(self.__is_session)
         self.export_frame.hide()
         self.save_widget.hide()
         self.src_widget.set_lbl_text(self.db_file)
@@ -801,6 +823,7 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_btn.setHidden(hide)
         self.exp_a_btn.setHidden(hide)
         self.exp_b_btn.setHidden(hide)
+        # self.filter_frame.setHidden(hide)
 
 
     def block_btns(self, blocked = True):
@@ -808,6 +831,7 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_btn.blockSignals(blocked)
         self.exp_a_btn.blockSignals(blocked)
         self.exp_b_btn.blockSignals(blocked)
+        self.filter_frame.blockSignals(blocked)
         self.btn_a_all.blockSignals(blocked)
         self.treeView.blockSignals(blocked)
         self.group_box.setDisabled(blocked)
@@ -963,6 +987,31 @@ class MainWindow(QtGui.QMainWindow):
         self.balance_window.add_widget(btn, 4,2,1,1)
         self.balance_window.show()
 
+    def show_filtering_window(self):
+        filter_settings = self.settings.filter
+        print filter_settings.__dict__
+        self.filter_window = SettingsWindow(self, u'Настройки фильтра', 400, 250)
+
+        self.melio_filter_used = QtGui.QCheckBox(u'Вкючить фильтр по полю MELIOCODE')
+        self.melio_filter_used.setChecked(bool(filter_settings.enable_melio))
+        self.melio_filter = QtGui.QTextEdit(self)
+        self.melio_filter.setText(filter_settings.melio)
+        self.servtype_filter_used = QtGui.QCheckBox(u'Вкючить фильтр по полю SERVTYPE')
+        self.servtype_filter_used.setChecked(bool(filter_settings.enable_servtype))
+        self.servtype_filter = QtGui.QTextEdit(self)
+        self.servtype_filter.setText(filter_settings.servtype)
+
+        btn = QtGui.QPushButton(u"Применить фильтр", self.filter_window.main_frame)
+        self.connect(btn, QtCore.SIGNAL(u'clicked()'), lambda: self.filter_changed(True))
+
+        self.filter_window.add_widget(self.melio_filter_used, 0,0,1,2)
+        self.filter_window.add_widget(self.melio_filter, 0,2,1,2)
+        self.filter_window.add_widget(self.servtype_filter_used, 1,0,1,2)
+        self.filter_window.add_widget(self.servtype_filter, 1,2,1,2)
+
+        self.filter_window.add_widget(btn, 4,3,1,1)
+        self.filter_window.show()
+
     def show_accuracy_settings_window(self):
         accuracy_settings = self.settings.rnd
 
@@ -1002,7 +1051,6 @@ class MainWindow(QtGui.QMainWindow):
         self.conditions_window.add_widget(btn, 4, 2, 1, 1)
         self.conditions_window.show()
 
-
     def update_balance_settings(self):
         self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
         self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
@@ -1016,11 +1064,27 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.rnd.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
         self.settings.rnd.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
         self.settings.rnd.b_accuracy = int(self.edit_b_accuracy.get_current_item())
-
         self.add_event_log(u'Установлены новые настройки округления')
         self.accuracy_window.close()
-        print self.settings.rnd
         self.update_settings()
+
+
+    def filter_changed(self, is_details_changed = False):
+        self.settings.filter.enabled = bool(self.filter_activation.isChecked())
+        if is_details_changed:
+            self.settings.filter.melio = self.melio_filter.toPlainText()
+            self.settings.filter.enable_melio = self.melio_filter_used.isChecked()
+
+            self.settings.filter.servtype = self.servtype_filter.toPlainText()
+            self.settings.filter.enable_servtype = self.servtype_filter_used.isChecked()
+            self.filter_window.close()
+        self.add_event_log(u'Изменены условия фильтрации данных для экспликации')
+        self.update_settings()
+        self.filter_exp_data()
+
+    def filter_exp_data(self):
+        # TODO: implementation
+        print 'filtering....'
 
     def update_conditions_settings(self):
         if self.include_melio.isChecked():
@@ -1101,6 +1165,7 @@ class MainWindow(QtGui.QMainWindow):
     def enable_explications(self, converted_data):
         self.exp_a_btn.setEnabled(True)
         self.exp_b_btn.setEnabled(True)
+        self.filter_frame.setEnabled(True)
         self.explication_data = converted_data
         self.current_exp_data = converted_data[:]
         self.show_expl_export()
@@ -1572,6 +1637,7 @@ class ExportFrame(QtGui.QFrame):
         self.rbtn_mdb.setStyleSheet(self.rbtn_style)
         self.lbl.setStyleSheet(self.lbl_style)
 
+
 class SrcFrame(QtGui.QFrame):
     def __init__(self, border_color = u'#00BA4A',parent = None):
         QtGui.QFrame.__init__(self, parent)
@@ -1587,6 +1653,8 @@ class SrcFrame(QtGui.QFrame):
         self.lbl.setAlignment(QtCore.Qt.AlignRight)
         self.h_box.addWidget(self.lbl)
         self.h_box.addWidget(self.btn)
+
+
     def change_border_color(self, color):
         self.btn.setStyleSheet(u'border: 1px solid %s;' % color)
         self.lbl.setStyleSheet(u'border: 2px solid %s;' % color)

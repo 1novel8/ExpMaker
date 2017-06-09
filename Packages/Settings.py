@@ -33,7 +33,7 @@ class Settings(object):
 
     @staticmethod
     def get_valid_settings_keys():
-        return ['xls', 'rnd', 'balance', 'conditions']
+        return ['xls', 'rnd', 'balance', 'conditions', 'filter']
 
     def get_settings_dict(self):
         out = {}
@@ -44,9 +44,12 @@ class Settings(object):
     @staticmethod
     def validate_settings(settings_dict):
         ok = True
+        default = Settings.get_default_settings('')
         if isinstance(settings_dict, dict):
             for k in settings_dict.keys():
                 if k not in Settings.get_valid_settings_keys():
+                    ok = False
+                elif isinstance(default[k], dict) and len(default[k].keys()) != len(settings_dict.keys()):
                     ok = False
         else:
             ok = False
@@ -58,12 +61,13 @@ class Settings(object):
         return ok
 
     def set_settings_by_key(self, s_key, s_values):
-        if s_key in ['xls', 'rnd', 'balance', 'conditions']:
+        if s_key in Settings.get_valid_settings_keys():
             setattr(self, s_key, DictAsObject(s_values))
 
     def set_default_settings(self):
         d_settings = Settings.get_default_settings(self.xls_templates_dir)
         for k, v in d_settings.items():
+
             self.set_settings_by_key(k,v)
 
 
@@ -82,9 +86,9 @@ class Settings(object):
                 'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
                 'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
                 'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
-                'a_sh_name': u'RB экспликация А',
-                'a_sv_sh_name': u'Активный',
-                'b_sh_name': u'Активный',  # RB Форма22 зем.
+                'a_sh_name': u'',
+                'a_sv_sh_name': u'',
+                'b_sh_name': u'',  # RB Форма22 зем.
                 'is_mdb_start': False,
                 'is_xls_start': False
             },
@@ -103,5 +107,12 @@ class Settings(object):
             'conditions': {
                 'melio': '',
                 'custom': ''
+            },
+            'filter': {
+                'enabled': False,
+                'enable_melio': True,
+                'enable_servtype': True,
+                'melio': '',
+                'servtype': ''
             }
         }

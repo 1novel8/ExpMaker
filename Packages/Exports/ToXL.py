@@ -53,12 +53,14 @@ def try_load_wb(l_path):
         raise XlsIOError(1, l_path)
 
 def get_sheet_by_name(work_book, sh_name = None):
+    if not sh_name:
+        return work_book.active
     sh_name = unicode(sh_name)
     if sh_name in work_book.sheetnames:
         sheet_name = sh_name
     else:
-        sheet_name = sh_name if sh_name else default_sheet_name
-        work_book.create_sheet(title=sheet_name, index=0)
+        sheet_name = sh_name
+        work_book.create_sheet(title=sh_name, index=0)
     return work_book.get_sheet_by_name(sheet_name)
 
 def exp_matrix(matrix, start_f, start_r, templ_path, save_as, is_xls_start, sh_name = None):
