@@ -641,6 +641,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
         self.filter_frame = QtGui.QFrame(self)
+        self.filter_frame.setHidden(True)
         self.filter_box = QtGui.QHBoxLayout(self.filter_frame)
         self.filter_btn = QtGui.QToolButton(self)
         self.filter_btn.setText(u'...')
@@ -703,7 +704,7 @@ class MainWindow(QtGui.QMainWindow):
             mes = self._load_message+dots
             self.statusBar().showMessage(mes)
         self.__is_xls_mode = True
-
+        self._not_filtered_data = []
         # self.settings = SettingsDeprecated()
         self.settings = Settings(xls_templates_dir, spr_default_path)
 
@@ -724,7 +725,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'successfully_saved(const QString&)'), self.say_saved)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), self.session_loaded)
         self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'db_file_opened()'), self.db_file_opened)
-        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
+        self.connect(self.main_load_save_thr, QtCore.SIGNAL(u'finished()'), self.stop_loading)
         self.connect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.click_tree_cell)
         self.connect(self.group_box.first_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.first_combo_changed)
         self.connect(self.group_box.second_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.second_combo_changed)
@@ -769,7 +770,7 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_btn.setDisabled(True)            # !!! Here you can enable or disable convert button
         self.exp_a_btn.setEnabled(self.__is_session)
         self.exp_b_btn.setEnabled(self.__is_session)
-        self.filter_frame.setEnabled(self.__is_session)
+        self.filter_frame.setHidden(not self.__is_session)
         self.export_frame.hide()
         self.save_widget.hide()
         self.src_widget.set_lbl_text(self.db_file)
@@ -990,24 +991,29 @@ class MainWindow(QtGui.QMainWindow):
     def show_filtering_window(self):
         filter_settings = self.settings.filter
         print filter_settings.__dict__
-        self.filter_window = SettingsWindow(self, u'Настройки фильтра', 400, 250)
+        self.filter_window = SettingsWindow(self, u'Настройки фильтра',300, 150)
 
-        self.melio_filter_used = QtGui.QCheckBox(u'Вкючить фильтр по полю MELIOCODE')
-        self.melio_filter_used.setChecked(bool(filter_settings.enable_melio))
-        self.melio_filter = QtGui.QTextEdit(self)
-        self.melio_filter.setText(filter_settings.melio)
-        self.servtype_filter_used = QtGui.QCheckBox(u'Вкючить фильтр по полю SERVTYPE')
-        self.servtype_filter_used.setChecked(bool(filter_settings.enable_servtype))
-        self.servtype_filter = QtGui.QTextEdit(self)
-        self.servtype_filter.setText(filter_settings.servtype)
+        self.melio_filter_used = QtGui.QRadioButton(u'Вкючить фильтр по полю MELIOCODE', self.filter_window)
+        self.servtype_filter_used = QtGui.QRadioButton(u'Вкючить фильтр по полю SERVTYPE', self.filter_window)
+        # self.melio_filter_used.setChecked(bool(filter_settings.enable_melio))
+        # self.servtype_filter_used.setChecked(bool(filter_settings.enable_servtype))
+
+        self.melio_filter_used.setChecked(filter_settings.enable_melio)
+        self.servtype_filter_used.setChecked(not filter_settings.enable_melio)
+
+
+        # self.melio_filter = QtGui.QTextEdit(self)
+        # self.melio_filter.setText(filter_settings.melio)
+        # self.servtype_filter = QtGui.QTextEdit(self)
+        # self.servtype_filter.setText(filter_settings.servtype)
 
         btn = QtGui.QPushButton(u"Применить фильтр", self.filter_window.main_frame)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), lambda: self.filter_changed(True))
 
         self.filter_window.add_widget(self.melio_filter_used, 0,0,1,2)
-        self.filter_window.add_widget(self.melio_filter, 0,2,1,2)
         self.filter_window.add_widget(self.servtype_filter_used, 1,0,1,2)
-        self.filter_window.add_widget(self.servtype_filter, 1,2,1,2)
+        # self.filter_window.add_widget(self.melio_filter, 0,2,1,2)
+        # self.filter_window.add_widget(self.servtype_filter, 1,2,1,2)
 
         self.filter_window.add_widget(btn, 4,3,1,1)
         self.filter_window.show()
@@ -1070,21 +1076,53 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def filter_changed(self, is_details_changed = False):
+        self.block_btns()
+        self.statusBar().showMessage(u'Фильтрация данных')
         self.settings.filter.enabled = bool(self.filter_activation.isChecked())
         if is_details_changed:
-            self.settings.filter.melio = self.melio_filter.toPlainText()
             self.settings.filter.enable_melio = self.melio_filter_used.isChecked()
 
-            self.settings.filter.servtype = self.servtype_filter.toPlainText()
-            self.settings.filter.enable_servtype = self.servtype_filter_used.isChecked()
+            # self.settings.filter.enable_servtype = self.servtype_filter_used.isChecked()
+            # self.settings.filter.melio = self.melio_filter.toPlainText()
+            # self.settings.filter.servtype = self.servtype_filter.toPlainText()
             self.filter_window.close()
-        self.add_event_log(u'Изменены условия фильтрации данных для экспликации')
-        self.update_settings()
-        self.filter_exp_data()
+            self.add_event_log(u'Изменены условия фильтрации данных для экспликации')
+            self.update_settings()
+        self.apply_exp_data_filter()
 
-    def filter_exp_data(self):
-        # TODO: implementation
-        print 'filtering....'
+    def apply_exp_data_filter(self):
+        if self.settings.filter.enabled:
+            filtered_rows = filter(self.filter_item, self._not_filtered_data)
+        else:
+            if len(self.explication_data[0]) == len(self._not_filtered_data):
+                return
+            else:
+                filtered_rows = self._not_filtered_data[:]
+        self.explication_data[0] = filtered_rows
+        self.current_exp_data = self.explication_data[:]
+        print len(self.explication_data[0])
+        self.show_first_combo()
+        self.stop_loading()
+
+    def filter_item(self, item):
+        if self.settings.filter.enable_melio:
+            param = item.get_el_by_fkey('mc')
+        else:
+            param = item.get_el_by_fkey('srvtype')
+        if param:
+            return True
+        else:
+            return False
+        #
+        # if self.settings.filter.enable_servtype:
+        #     if item['structure']['mc'] != self.settings.filter.melio:
+        #         return False
+        # if self.settings.filter.enable_melio:
+        #     if item['structure']['srvtype'] != self.settings.filter.servtype:
+        #         return False
+        # TODO: fix conditions
+        # return True
+
 
     def update_conditions_settings(self):
         if self.include_melio.isChecked():
@@ -1151,7 +1189,10 @@ class MainWindow(QtGui.QMainWindow):
         if save_file:
             if save_file[-4:] != u'.pkl':
                 save_file+= u'.pkl'
+
+
             exp_data = self.explication_data[:]
+            exp_data[0] = self._not_filtered_data
             exp_data.extend([self.e_db_file, u'Salt'])
             self.run_main_thr(save_file, 6, exp_data)
 
@@ -1165,13 +1206,18 @@ class MainWindow(QtGui.QMainWindow):
     def enable_explications(self, converted_data):
         self.exp_a_btn.setEnabled(True)
         self.exp_b_btn.setEnabled(True)
-        self.filter_frame.setEnabled(True)
         self.explication_data = converted_data
-        self.current_exp_data = converted_data[:]
+        self._not_filtered_data = converted_data[0][:]
+        self.current_exp_data = self.explication_data[:]
         self.show_expl_export()
         if not self.__is_session:
             self.change_edb_file()
-        self.set_status_ready()
+
+        self.filter_frame.setHidden(False)
+        self.settings.filter.enabled = False
+        self.filter_activation.setChecked(False)
+
+        self.stop_loading()
 
     def get_edb_path(self):
         exp_path = unicode(QtGui.QFileDialog(self).getExistingDirectory(self, WidgNames.save_exp_dialog, project_dir, options=QtGui.QFileDialog.DontUseNativeDialog))
@@ -1315,7 +1361,10 @@ class MainWindow(QtGui.QMainWindow):
         if ate_kod:
             recovery_soato_d = {0:ate_kod}
         else:
-            recovery_soato_d = {0:names[0][1][:-3]}
+            if len(names):
+                recovery_soato_d = {0:names[0][1][:-3]}
+            else:
+                recovery_soato_d = {0:'not found'}
         combo_data = [u'* ' + first_combo_row]
         sorted_names = sorted(names)
         max_len = 0
@@ -1347,7 +1396,7 @@ class MainWindow(QtGui.QMainWindow):
             self.explication_data[2][u'%s000'%nongrouped ]= u'NonGrouped!'
         return soato_group
 
-    def set_status_ready(self, unlock_btns = True):
+    def stop_loading(self, unlock_btns = True):
         self.load_thr.terminate()
         if unlock_btns:
             self.block_btns(False)
@@ -1399,7 +1448,7 @@ class MainWindow(QtGui.QMainWindow):
             self.main_load_save_thr.start()
 
     def set_sprav_holder(self, sprav):
-        self.set_status_ready(False)
+        self.stop_loading(False)
         self.sprav_holder = sprav
         self.add_event_log(Events.load_sprav_success)
 
@@ -1419,7 +1468,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.update_settings(settings_dict)
 
     def say_saved(self, msg):
-        self.set_status_ready(False)
+        self.stop_loading(False)
         self.add_event_log(msg)
 
     def show_spr_info(self):
@@ -1443,7 +1492,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.control_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
         self.connect(self.control_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(
             ErrMessage.control_failed))
-        self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
+        self.connect(self.control_thr, QtCore.SIGNAL(u'finished()'), self.stop_loading)
         self.control_thr.start()
 
     @QtCore.pyqtSlot()
@@ -1457,7 +1506,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.convert_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
         self.connect(self.convert_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(
             ErrMessage.convert_failed))
-        self.connect(self.convert_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
+        self.connect(self.convert_thr, QtCore.SIGNAL(u'finished()'), self.stop_loading)
         self.convert_thr.start()
 
     @QtCore.pyqtSlot()
@@ -1472,7 +1521,7 @@ class MainWindow(QtGui.QMainWindow):
     def reset_expa_thread(self):
         self.exp_a_thr = None
         self.exp_a_thr = ExpAThread(self.e_db_file, self.current_exp_data, self.sprav_holder, self.settings)
-        self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
+        self.connect(self.exp_a_thr, QtCore.SIGNAL(u'finished()'), self.stop_loading)
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'exp_sv_success()'), lambda: self.add_event_log(Events.finished_exp_a_sv))
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'exp_s_success()'), lambda: self.add_event_log(Events.finished_exp_a_s))
         self.connect(self.exp_a_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
@@ -1507,7 +1556,7 @@ class MainWindow(QtGui.QMainWindow):
         self.exp_b_thr = ExpBThread(self.e_db_file, self.explication_data[0], self.sprav_holder, self.settings)
         self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), self.show_error)
         self.connect(self.exp_b_thr, QtCore.SIGNAL(u'error_occured(const QString&)'), lambda:self.add_event_log(Events.exp_b_finished_with_err))
-        self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.set_status_ready)
+        self.connect(self.exp_b_thr, QtCore.SIGNAL(u'finished()'), self.stop_loading)
         self.connect(self.exp_b_thr, QtCore.SIGNAL(u'success()'), lambda:self.add_event_log(Events.finish_exp_b))
         self.exp_b_thr.set_output_mode(self.__is_xls_mode)
         self.exp_b_thr.start()
@@ -1579,7 +1628,7 @@ class MainWindow(QtGui.QMainWindow):
         self.convert_btn.setDisabled(True)
         self.convert_thr = None
         self.add_event_log(Events.convert_failed)
-        self.set_status_ready()
+        self.stop_loading()
         self.convert_table.show()
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S"  )
         self.convert_table.table.add_span_row(event_time)
@@ -1866,6 +1915,10 @@ class TableWidget(QtGui.QWidget):
             self.hide()
     def clear_all(self):
         self.table.clear_all()
+
+
+
+
 if __name__ == u'__main__':
     app = QtGui.QApplication(sys.argv)
     exp_maker = MainWindow()
