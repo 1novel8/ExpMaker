@@ -49,15 +49,15 @@ class Settings(object):
             for k in settings_dict.keys():
                 if k not in Settings.get_valid_settings_keys():
                     ok = False
-                elif isinstance(default[k], dict) and len(default[k].keys()) != len(settings_dict.keys()):
+                elif isinstance(default[k], dict) and len(default[k].keys()) != len(settings_dict[k].keys()):
                     ok = False
         else:
             ok = False
-        if ok:
-            try:
-                ok = os.path.isfile(settings_dict['xls']['a_sv_path'])
-            except:
-                ok = False
+        # if ok:
+        #     try:
+        #         ok = os.path.isfile(settings_dict['xls']['a_sv_path'])
+        #     except:
+        #         ok = False
         return ok
 
     def set_settings_by_key(self, s_key, s_values):
@@ -86,6 +86,11 @@ class Settings(object):
                 'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
                 'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
                 'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
+                'default_paths': {
+                    'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
+                    'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
+                    'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
+                },
                 'a_sh_name': u'',
                 'a_sv_sh_name': u'',
                 'b_sh_name': u'',  # RB Форма22 зем.

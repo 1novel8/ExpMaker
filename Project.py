@@ -13,6 +13,7 @@ from Packages import Control, Convert, ExpA, FormB, Sprav
 from Packages.Exports import ToXL, ToMdb, Balance
 from Packages.Titles import LoadMessg, WidgNames, Events, ToolTip, ErrMessage
 from Packages.Settings import Settings
+import shutil
 
 Expl = 2
 project_dir = os.getcwd()
@@ -460,8 +461,24 @@ class ExpBThread(QtCore.QThread):
         exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.join(os.path.dirname(self.exp_file), exl_file_name)
         xls = self.xl_settings
+
+
+
+        if os.path.isfile(exl_file_path):
+            try:
+                os.remove(exl_file_path)
+            except Exception as err:
+                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Не удалось заменить файл экспорта. '
+                                                                      u'\nВозможное решение: закройте файл и повторите попытку')
+                return
+        template = xls.b_path
+        if not template or not os.path.isfile(template):
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Не верно указан шаблон для экспорта')
+        shutil.copyfile(template, exl_file_path)
+
+
         try:
-            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, is_xls_start = xls.is_xls_start, templ_path = xls.b_path)
+            ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, is_xls_start = xls.is_xls_start, templ_path = exl_file_path)
         except ToXL.XlsIOError as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
         else:
@@ -730,6 +747,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.group_box.first_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.first_combo_changed)
         self.connect(self.group_box.second_cmb, QtCore.SIGNAL(u'currentIndexChanged (const QString&)'), self.second_combo_changed)
 
+        self.set_default_xl_paths()
         self.show()
         self.run_main_thr()
         try:
@@ -782,8 +800,8 @@ class MainWindow(QtGui.QMainWindow):
     def set_sources_widgets(self):
         self.export_frame = ExportFrame()
         self.src_widget = SrcFrame()
-        self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
         self.src_widget.set_lbl_text(WidgNames.src_widg)
+        self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
         self.export_frame.hide()
         self.gridLayout.addWidget(self.export_frame, 9,0,1,2)
         self.save_widget = SrcFrame(u'#9556FF')
@@ -909,22 +927,24 @@ class MainWindow(QtGui.QMainWindow):
         menu_settings.addAction(settings_conditions)
 
     def show_xl_settings_window(self):
+        self.set_default_xl_paths()
         xl_settings = self.settings.xls
         color1 = u'#35B953'
         color2 = u'#51D04C'
         self.xls_window = SettingsWindow(self, u'Настройки выгрузки в Excel')
+        self.xls_window.resize(800, 530)
         block_1 = ColoredBlock(u'Экспорт выборочной экспликации А', parent=self.xls_window, color =color1)
         block_2 = ColoredBlock(u'Экспорт сводной экспликации А', parent = self.xls_window, color =color2)
-        block_3 = ColoredBlock(u'Экспорт экспликации по форме 22.Зем', parent = self.xls_window, color=color2)
+        block_3 = ColoredBlock(u'Экспорт экспликации по форме 22.Зем', parent = self.xls_window, color=color1)
         # lbl_2.setAlignment(QtCore.Qt.AlignCenter)
         letters = lambda x: [x,]+[unicode(chr(x)) for x in range(65,91)]
         digits = lambda x: [unicode(x),]+[unicode(i) for i in range(1,100)]
         self.sh_edit_ea = QtGui.QLineEdit(xl_settings.a_sh_name)
         self.sh_edit_easv = QtGui.QLineEdit(xl_settings.a_sv_sh_name)
         self.sh_edit_eb = QtGui.QLineEdit(xl_settings.b_sh_name)
-        self.sh_edit_ea.setMinimumWidth(150)
-        self.sh_edit_easv.setMinimumWidth(150)
-        self.sh_edit_eb.setMinimumWidth(150)
+        self.sh_edit_ea.setMinimumWidth(250)
+        self.sh_edit_easv.setMinimumWidth(250)
+        self.sh_edit_eb.setMinimumWidth(250)
         self.cmb_let_ea = CombBox(data=letters(xl_settings.a_l))
         self.cmb_let_ea_obj = CombBox(data=letters(xl_settings.a_obj_l))
         self.cmb_let_ea_sv = CombBox(data=letters(xl_settings.a_sv_l))
@@ -948,6 +968,25 @@ class MainWindow(QtGui.QMainWindow):
         block_2.add_widget(table_2)
         block_3.add_widget(table_3)
 
+        self.xl_b_src_widget = SrcFrame()
+        self.xl_a_src_widget = SrcFrame()
+        self.xl_a_sv_src_widget = SrcFrame()
+
+        a_lbl = QtGui.QLabel(WidgNames.xl_a_src_widget, self)
+        a_sv_lbl = QtGui.QLabel(WidgNames.xl_a_sv_src_widget, self)
+        b_lbl = QtGui.QLabel(WidgNames.xl_b_src_widget, self)
+
+        b_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        a_sv_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        a_lbl.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.xl_b_src_widget.set_lbl_text(xl_settings.b_path)
+        self.xl_a_src_widget.set_lbl_text(xl_settings.a_path)
+        self.xl_a_sv_src_widget.set_lbl_text(xl_settings.a_sv_path)
+
+
+
+
         self.edit_xls_start = QtGui.QCheckBox(u'Запуск .xls файлов по завершению расчетов')
         self.edit_xls_start.setChecked(xl_settings.is_xls_start)
 
@@ -959,13 +998,26 @@ class MainWindow(QtGui.QMainWindow):
         # btn.setStyleSheet(u'background-color: %s;color: white; border-radius: 5%; padding:0px'%color1)
         # btn.setFixedHeight(90)
         # btn.setFixedWidth(90)
-        self.xls_window.add_widget(block_1, 0,0,5,5)
-        self.xls_window.add_widget(block_2, 5,0,5,5)
-        self.xls_window.add_widget(block_3, 0,5,5,5)
-        self.xls_window.add_widget(self.edit_xls_start, 6,6,1,4)
-        self.xls_window.add_widget(self.edit_mdb_start, 7,6,1,4)
-        self.xls_window.add_widget(btn, 9,7,1,3)
+        self.xls_window.add_widget(block_1, 0,0,10,6)
+        self.xls_window.add_widget(block_2, 10,0,4,6)
+        self.xls_window.add_widget(block_3, 14,0,4,6)
+
+
+        self.xls_window.add_widget(a_lbl , 3,8,1,5)
+        self.xls_window.add_widget(self.xl_a_src_widget, 4,8,1,5)
+        self.xls_window.add_widget(a_sv_lbl, 6,8,1,5)
+        self.xls_window.add_widget(self.xl_a_sv_src_widget, 7,8,1,5)
+        self.xls_window.add_widget(b_lbl, 10,8,1,5)
+        self.xls_window.add_widget(self.xl_b_src_widget, 11,8,1,5)
+
+        self.xls_window.add_widget(self.edit_xls_start, 13, 8, 1, 5)
+        self.xls_window.add_widget(self.edit_mdb_start, 14, 8, 1, 5)
+
+        self.xls_window.add_widget(btn, 17, 10,1,2)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_xl_data)
+        self.connect(self.xl_a_src_widget.btn, QtCore.SIGNAL(u'clicked()'), lambda: self.select_xls_path('a'))
+        self.connect(self.xl_a_sv_src_widget.btn, QtCore.SIGNAL(u'clicked()'), lambda: self.select_xls_path('a_sv'))
+        self.connect(self.xl_b_src_widget.btn, QtCore.SIGNAL(u'clicked()'), lambda: self.select_xls_path('b'))
         self.xls_window.show()
 
     def show_balance_settings_window(self):
@@ -1022,13 +1074,23 @@ class MainWindow(QtGui.QMainWindow):
         accuracy_settings = self.settings.rnd
 
         self.accuracy_window = SettingsWindow(self, u'Настройки точности', 400, 250)
+        possible_vals = ['-2', '-1', '0', '1', '2', '3', '4']
+        self.edit_a_accuracy = CombBox(self.accuracy_window,data=possible_vals)
+        self.edit_a_sv_accuracy = CombBox(self.accuracy_window,data=possible_vals)
+        self.edit_b_accuracy = CombBox(self.accuracy_window, data=possible_vals)
 
-        self.edit_a_accuracy = CombBox(self.accuracy_window, '01234')
-        self.edit_a_sv_accuracy = CombBox(self.accuracy_window, '01234')
-        self.edit_b_accuracy = CombBox(self.accuracy_window, '01234')
-        self.edit_a_accuracy.setCurrentIndex(int(accuracy_settings.a_s_accuracy))
-        self.edit_a_sv_accuracy.setCurrentIndex(int(accuracy_settings.a_sv_accuracy))
-        self.edit_b_accuracy.setCurrentIndex(int(accuracy_settings.b_accuracy))
+        if str(accuracy_settings.a_s_accuracy) not in possible_vals:
+            accuracy_settings.a_s_accuracy = 0
+        if str(accuracy_settings.a_sv_accuracy) not in possible_vals:
+            accuracy_settings.a_sv_accuracy = 0
+        if str(accuracy_settings.b_accuracy) not in possible_vals:
+            accuracy_settings.b_accuracy = 0
+
+
+
+        self.edit_a_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.a_s_accuracy)))
+        self.edit_a_sv_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.a_sv_accuracy)))
+        self.edit_b_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.b_accuracy)))
         self.lbl_a_accuracy = QtGui.QLabel(u'Точность округления формы А', self.accuracy_window)
         self.lbl_a_sv_accuracy = QtGui.QLabel(u'Точность округления формы А сводная', self.accuracy_window)
         self.lbl_b_accuracy = QtGui.QLabel(u'Точность округления формы B', self.accuracy_window)
@@ -1164,6 +1226,36 @@ class MainWindow(QtGui.QMainWindow):
                 self.run_main_thr(self.db_file, op = 5)
             else:
                 self.show_error(ErrMessage.wrong_file)
+
+
+    def select_xls_path(self, expl_type):
+        templ_path = unicode(QtGui.QFileDialog(self).getOpenFileName(self, WidgNames.open_file, project_dir + '/Spr/xls_forms',
+                                                               u'Valid files (*.xls *.xlsx);; All files (*)',
+                                                               options=QtGui.QFileDialog.DontUseNativeDialog))\
+            .replace('/', '\\')
+
+        if os.path.isfile(templ_path) and 'xls' in templ_path:
+            if expl_type == 'a':
+                self.settings.xls.a_path = templ_path
+                self.xl_a_src_widget.set_lbl_text(templ_path)
+            elif expl_type == 'a_sv':
+                self.settings.xls.a_sv_path = templ_path
+                self.xl_a_sv_src_widget.set_lbl_text(templ_path)
+            elif expl_type == 'b':
+                self.settings.xls.b_path = templ_path
+                self.xl_b_src_widget.set_lbl_text(templ_path)
+        else:
+            self.show_error(ErrMessage.wrong_xl_file)
+
+    def set_default_xl_paths(self):
+        xls_s = self.settings.xls
+        if not os.path.isfile(xls_s.a_path) or 'xls' not in xls_s.a_path:
+            xls_s.a_path = xls_s.default_paths['a_path']
+        if not os.path.isfile(xls_s.a_sv_path) or 'xls' not in xls_s.a_sv_path:
+            xls_s.a_sv_path = xls_s.default_paths['a_sv_path']
+        if not os.path.isfile(xls_s.b_path) or 'xls' not in xls_s.b_path:
+            xls_s.b_path = xls_s.default_paths['b_path']
+
 
     def db_file_opened(self):
         self.__is_session = False
