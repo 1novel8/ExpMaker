@@ -552,60 +552,6 @@ class ColoredBlock(QtGui.QFrame):
 
 
 
-
-
-# class SettingsDeprecated(object):
-#     def __init__(self):
-#
-#
-#         self.__xls_default = {
-#             'a_sv_l':u'A',
-#             'a_sv_n':6,
-#             'a_l':u'F',
-#             'a_n':16,
-#             'a_obj_l':u'M',
-#             'a_obj_n':4,
-#             'b_l':u'B',
-#             'b_n':7,
-#             'a_path': u'%s\\FA.xlsx' % xls_templates_dir,
-#             'a_sv_path': u'%s\\FA_svod.xlsx' % xls_templates_dir,
-#             'b_path': u'%s\\FB.xlsx' % xls_templates_dir,
-#             'a_sh_name': u'RB экспликация А',
-#             'a_sv_sh_name': u'Активный',
-#             'b_sh_name': u'Активный',   #RB Форма22 зем.
-#         }
-#         self.__round_default = {
-#             'a_s_accuracy': 4,
-#             'b_accuracy': 0,
-#             'small_accur': 3,
-#             'a_sv_accuracy': 4,
-#             'show_small': True
-#         }
-#         self.set_xls(self.__xls_default)
-#         self.set_round(self.__round_default)
-#
-#     @property
-#     def xls(self):
-#         return self.__xls
-#     @property
-#     def rnd(self):
-#         return self.__round
-#
-#     def set_xls(self, new_setts):
-#         if len(new_setts) == len(set(new_setts.keys()+self.__xls_default.keys())):
-#             self.__xls = new_setts
-#         else:
-#             self.__xls = self.__xls_default
-#             raise Exception(u'Not enough settings')
-#
-#     def set_round(self, new_rnd_setts):
-#         if len(new_rnd_setts) == len(set(new_rnd_setts.keys()+self.__round_default.keys())):
-#             self.__round = new_rnd_setts
-#         else:
-#             self.__round = self.__round_default
-#             raise Exception(u'Not enough settings')
-
-
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
@@ -615,6 +561,22 @@ class MainWindow(QtGui.QMainWindow):
         self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
         self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
         self.gridLayout = QtGui.QGridLayout(self.central_widget)
+
+        self.logo_img = QtGui.QLabel(self.central_widget)
+        self.logo_img.setGeometry(10, 10, 100, 100)
+        self.logo_img.setPixmap(QtGui.QPixmap(u'%s\\Images\\logo.png' % project_dir))
+        self.logo_img.setMaximumHeight(40)
+        self.logo_img.setMaximumWidth(40)
+        self.logo_img.setScaledContents(True)
+
+        self.logo_title_lbl = QtGui.QLabel(WidgNames.main_logo_title, self.central_widget)
+        self.logo_widg = QtGui.QFrame(self.central_widget)
+
+        self.logo_box = QtGui.QGridLayout(self.logo_widg)
+        self.logo_box.addWidget(self.logo_img, 0,0,2,2)
+        self.logo_box.addWidget(self.logo_title_lbl,0,2,1,100)
+        self.logo_box.addWidget(QtGui.QLabel(''), 1,2,1,100)
+
         self.l1 = QtGui.QLabel(WidgNames.l1_title,self.central_widget)
         self.l2 = QtGui.QLabel(WidgNames.l2_title,self.central_widget)
         self.l3 = QtGui.QLabel(WidgNames.l3_title,self.central_widget)
@@ -674,7 +636,6 @@ class MainWindow(QtGui.QMainWindow):
         self.filter_box.addWidget(self.filter_activation)
         self.filter_box.addWidget(self.filter_btn)
 
-
         self.expa_box.addWidget(self.filter_frame, 0, 0, 1, 5)
         self.expa_box.addWidget(self.treeView,1,0,21,21)
         self.expa_box.addWidget(self.group_box,0,5,1,16)
@@ -685,20 +646,24 @@ class MainWindow(QtGui.QMainWindow):
         self.splitter.addWidget(self.convert_table)
         self.splitter.addWidget(self.event_table)
         self.tree_text_widg = QtGui.QWidget()
+
         self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
         self.tree_text_box.addWidget(self.splitter)
 
-        self.gridLayout.addWidget(self.l1, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self.l2, 2, 0, 1, 1)
-        self.gridLayout.addWidget(self.l3, 4, 0, 1, 1)
-        self.gridLayout.addWidget(self.l4, 7, 0, 1, 1)
-        self.gridLayout.addWidget(self.control_btn, 1, 1, 1, 1)
-        self.gridLayout.addWidget(self.convert_btn, 2, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_a_btn, 4, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_tree,  4, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_all,  5, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_b_btn, 7, 1, 1, 1)
-        self.gridLayout.addWidget(self.tree_text_widg, 0, 2, 15, 11)
+        # self.gridLayout.addWidget(self.logo_img, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.logo_widg, 0, 0, 1, 11)
+
+        self.gridLayout.addWidget(self.l1, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.l2, 4, 0, 1, 1)
+        self.gridLayout.addWidget(self.l3, 5, 0, 1, 1)
+        self.gridLayout.addWidget(self.l4, 8, 0, 1, 1)
+        self.gridLayout.addWidget(self.control_btn, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.convert_btn, 4, 1, 1, 1)
+        self.gridLayout.addWidget(self.exp_a_btn, 5, 1, 1, 1)
+        self.gridLayout.addWidget(self.btn_a_tree,  5, 1, 1, 1)
+        self.gridLayout.addWidget(self.btn_a_all,  6, 1, 1, 1)
+        self.gridLayout.addWidget(self.exp_b_btn, 8, 1, 1, 1)
+        self.gridLayout.addWidget(self.tree_text_widg, 1, 2, 15, 11)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
         self.setCentralWidget(self.central_widget)
@@ -801,13 +766,13 @@ class MainWindow(QtGui.QMainWindow):
         self.export_frame = ExportFrame()
         self.src_widget = SrcFrame()
         self.src_widget.set_lbl_text(WidgNames.src_widg)
-        self.gridLayout.addWidget(self.src_widget, 0,0,1,2)
+        self.gridLayout.addWidget(self.src_widget, 1,0,1,2)
         self.export_frame.hide()
-        self.gridLayout.addWidget(self.export_frame, 9,0,1,2)
+        self.gridLayout.addWidget(self.export_frame, 10,0,1,2)
         self.save_widget = SrcFrame(u'#9556FF')
         self.save_widget.set_lbl_text(WidgNames.save_widg)
         self.save_widget.hide()
-        self.gridLayout.addWidget(self.save_widget, 10,0,1,2)
+        self.gridLayout.addWidget(self.save_widget, 11,0,1,2)
         self.connect(self.export_frame.rbtn_mdb, QtCore.SIGNAL(u'clicked()'), self.set_mdb_mode)
         self.connect(self.export_frame.rbtn_xls, QtCore.SIGNAL(u'clicked()'), self.set_xls_mode)
         self.connect(self.src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.open_file)
@@ -1023,20 +988,20 @@ class MainWindow(QtGui.QMainWindow):
     def show_balance_settings_window(self):
         balance_settings = self.settings.balance
 
-        self.balance_window = SettingsWindow(self, u'Настройки балансировки', 400, 250)
-        self.edit_b_balance = QtGui.QCheckBox(u'Включить баланс в расчет экспликации Ф22зем')
+        self.balance_window = SettingsWindow(self, WidgNames.balance_settings_main_title, 300, 150)
+        self.edit_b_balance = QtGui.QCheckBox(WidgNames.b_balance_enable_title) #u'Включить баланс в расчет экспликации Ф22зем'
         self.edit_b_balance.setChecked(balance_settings.include_b_balance)
-        self.edit_a_balance = QtGui.QCheckBox(u'Включить баланс в расчет одиночной экспликации А (Not yet implemented)')
-        self.edit_a_balance.setChecked(balance_settings.include_a_balance)
-        self.edit_a_sv_balance = QtGui.QCheckBox(u'Включить баланс в расчет сводной экспликации А (Not yet implemented)')
-        self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
+        # self.edit_a_balance = QtGui.QCheckBox(u'Включить баланс в расчет одиночной экспликации А (Not yet implemented)')
+        # self.edit_a_balance.setChecked(balance_settings.include_a_balance)
+        # self.edit_a_sv_balance = QtGui.QCheckBox(u'Включить баланс в расчет сводной экспликации А (Not yet implemented)')
+        # self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
 
         btn = QtGui.QPushButton(u"Сохранить изменения", self.balance_window.main_frame)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_balance_settings)
 
-        self.balance_window.add_widget(self.edit_a_balance, 0,0,3,3)
-        self.balance_window.add_widget(self.edit_a_sv_balance, 1,0,3,3)
-        self.balance_window.add_widget(self.edit_b_balance, 2,0,3,3)
+        # self.balance_window.add_widget(self.edit_a_balance, 0,0,3,3)
+        # self.balance_window.add_widget(self.edit_a_sv_balance, 1,0,3,3)
+        self.balance_window.add_widget(self.edit_b_balance, 1,0,3,3)
         self.balance_window.add_widget(btn, 4,2,1,1)
         self.balance_window.show()
 

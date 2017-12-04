@@ -3,6 +3,7 @@
 
 from DbTools import DBConn, DbControl
 import DbStructures
+import json
 
 class SprControl(DbControl):
     def __init__(self, db_path, is_full):
@@ -111,11 +112,11 @@ class SpravHolder(object):
         table = DbStructures.s_ustype
         data_dict['user_types'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['user_type']['name'], table))
         table = DbStructures.s_slnad
-        data_dict['slnad_codes'] = self.select_to_str(u'select %s from %s' %(spr_cfg[table]['sl_nad_code']['name'], table))
+        data_dict['slnad_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['sl_nad_code']['name'], table))
         table = DbStructures.s_state
-        data_dict['state_codes'] = self.select_to_str(u'select %s from %s'%(spr_cfg[table]['state_code']['name'], table))
+        data_dict['state_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['state_code']['name'], table))
         table = DbStructures.s_mc
-        data_dict['melio_codes'] = self.select_to_str(u'select %s from %s'%(spr_cfg[table]['mc']['name'], table))
+        data_dict['melio_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['mc']['name'], table))
         self._s_conn.close_conn()
         return data_dict
 
@@ -386,14 +387,13 @@ class SpravHolder(object):
             't': tab_name,
             'row_id':   tab_str['row_id']['name'],
             'row_key':  tab_str['row_key']['name'],
-            'f22_value':tab_str['f22_value']['name'],
-            'sort_by':  tab_str['sort_by']['name'],
-            'sort_codes':tab_str['sort_codes']['name'],
+            'f22_value': tab_str['f22_value']['name'],
+            'sort_filter':  tab_str['sort_filter']['name'],
             'sum_conditions':tab_str['sum_conditions']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        query = u'select %(row_id)s, %(row_key)s, %(f22_value)s, %(sort_by)s, %(sort_codes)s, %(sum_conditions)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
+        query = u'select %(row_id)s, %(row_key)s, %(f22_value)s, %(sort_filter)s, %(sum_conditions)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
         r_selected = self._s_conn.get_tab_dict(query)
         b_f_names = self.__sorted_keys['b_f']
         r_props = {}
@@ -402,20 +402,14 @@ class SpravHolder(object):
             self.__sorted_keys['b_r'].append(r_key)
             r_props[r_key] = {}
         for row in r_selected.values():
+            print len(row)
             r_key = row[0]
             r_props[r_key] = {'r_name': row[1]}       #work with val_f22
-            s_by, s_cds, sum_cnds = row[2:5]
-            if s_by in valid_aliases:
-                s_cds = self.split_str_change_type(s_cds, ",", valid_aliases[s_by]['f_type'], tab_name, r_key)
-                if s_cds:
-                    r_props[r_key]['s_by'] = s_by # артибут, по которму производится сортировка
-                    r_props[r_key]['s_codes'] = s_cds
-                else:
-                    self.raise_strct_err(tab_name, r_key)
-            elif not s_by:
-                r_props[r_key]['s_by'] = None
-            else:
+            try:
+                r_props[r_key]['sort_filter'] = SpravHolder.parse_filter_data(row[2], valid_aliases)
+            except Exception as err:
                 self.raise_strct_err(tab_name, r_key)
+            sum_cnds = row[3]
 
             if sum_cnds:
                 conditions = self.split_line(sum_cnds, u';')
@@ -472,8 +466,18 @@ class SpravHolder(object):
                                 self.raise_strct_err(tab_name, r_key)
                         else:
                             self.raise_strct_err(tab_name, r_key)
-        self._add_balance_props(r_selected.values(), 0, 5, 6 ,r_props, tab_name)
+        self._add_balance_props(r_selected.values(), 0, 4, 5, r_props, tab_name)
         return  r_props
+
+    @staticmethod
+    def parse_filter_data(data, fields_validation):
+        parsed_data = {}
+        if data:
+            parsed_data = json.loads(data)
+            for k,v in parsed_data.items():
+                if k not in fields_validation:
+                    raise Exception('Failed to parse filter data. Key name is not valid')
+        return parsed_data
 
     @staticmethod
     def split_str_change_type(string, splitter, result_type, tab, row):

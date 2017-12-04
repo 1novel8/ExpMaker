@@ -189,6 +189,25 @@ class CtrRow(object):
             val = val[n]
         return val in codes
 
+
+
+    def check_filter_match(self, n, sort_filter):
+        """
+        Checks if row matches the filter
+        :param n: N of the checking part
+        :param sort_filter: an object containing filter params
+        :return: Boolean
+        """
+        if not isinstance(sort_filter, dict) or not len(sort_filter.keys()):
+            return False
+        # match_result = True
+        for k, v in sort_filter.items():
+            if not isinstance(v, (list, tuple)):
+                v = [v]
+            if not self.has_code(n, k, v):
+                return False
+        return True
+
     def bgd_control(self, s_h):
         if self.n == 1:
             if self.bgd1_control(s_h, 0):

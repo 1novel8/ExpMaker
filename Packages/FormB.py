@@ -24,9 +24,9 @@ class ExpFormaB(object):
                 need_params = row.simplify_to_d(n, need_keys)
                 fbrow_dict[u'by_SHAPE'].append(need_params)
                 for key, fb_row in r_str:
-                    if fb_row[u's_by']:
-                        if row.has_code(n, fb_row[u's_by'], fb_row[u's_codes']):
-                            fbrow_dict[key].append(need_params)
+                    if row.check_filter_match(n, fb_row[u'sort_filter']):
+                        fbrow_dict[key].append(need_params)
+
         self.r_structure[u'by_SHAPE'] = {u'r_name': u'Всего:', u's_by': None}
         return fbrow_dict
 
