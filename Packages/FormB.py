@@ -19,15 +19,19 @@ class ExpFormaB(object):
         keys_not_used = ('ctr_structure', 'id', 'usern_sad', 'part', 'usern')
         need_keys = [k for k in aliases if k not in keys_not_used]
         r_str = self.r_structure.items()
+
         for row in ct_rows:
             for n in range(row.n):
                 need_params = row.simplify_to_d(n, need_keys)
                 fbrow_dict[u'by_SHAPE'].append(need_params)
                 for key, fb_row in r_str:
-                    if row.check_filter_match(n, fb_row[u'sort_filter']):
-                        fbrow_dict[key].append(need_params)
+                    try:
+                        if row.check_filter_match(n, fb_row[u'sort_filter']):
+                            fbrow_dict[key].append(need_params)
+                    except KeyError:
+                        fb_row[u'sort_filter'] = {}
 
-        self.r_structure[u'by_SHAPE'] = {u'r_name': u'Всего:', u's_by': None}
+        self.r_structure[u'by_SHAPE'] = {u'r_name': u'Всего:', u'sort_filter': {}}
         return fbrow_dict
 
     def make_fbr_params(self, rows):

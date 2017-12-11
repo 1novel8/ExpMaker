@@ -43,7 +43,7 @@ class XlsIOError(Exception):
 
 def export_matrix_to_sheet(xl_sheet, matrix, start_f, start_r):
     max_letter = get_xl_letter(len(matrix[0]), start_f)
-    cells_tmp =  tuple(xl_sheet.iter_rows(u'%s%d:%s%d' % (start_f, start_r, max_letter,len(matrix)+start_r)))
+    cells_tmp =  tuple(xl_sheet[u'%s%d:%s%d' % (start_f, start_r, max_letter,len(matrix)+start_r)])
     add_values_cells(matrix,cells_tmp)
 
 def try_load_wb(l_path):
