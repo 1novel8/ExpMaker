@@ -84,9 +84,10 @@ def round_and_modify(data_dict, settings):
     return modified
 
 class DataComb(object):
-    def __init__(self, data_li, full_inf, main_inf, soato_inf, soato_code):
+    def __init__(self, data_li, full_inf, main_inf, soato_inf, soato_code, nusname):
         self.soato_inf = soato_inf
         self.soato_code = soato_code
+        self.nusname = nusname
         self.__init_data = data_li
         self.expl_data = {}
         self.obj_name = main_inf
@@ -182,7 +183,10 @@ class ExpFA(object):
     def __init__(self, input_data, sprav_holder):
         self.sprav_holder = sprav_holder
         self.errors_occured = {}
-        self.usersInfo, self.soatoInfo = input_data[-2:]
+        self.usersInfo, self.soatoInfo = input_data[1:3]
+        self.shape_area_sum = 0
+        if len(input_data) > 3 and input_data[3]['shape_sum_enabled']:
+            self.shape_area_sum = input_data[3]['shape_sum']
         self.cc_soato_d = self.get_cc_soato_d()
         self.datadict = self.make_datadict(input_data[0])     #Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
         self.exps_dict = self.make_comb_data()     #Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instance
@@ -230,6 +234,7 @@ class ExpFA(object):
                         u'main_inf': u'%s %s' % (dop_inf, main_inf),
                         u'soato_inf': soato_inf,
                         u'soato_code': row.soato,
+                        u'nusname': nusn,
                         u'full_inf': self.get_full_e_name(main_inf, dop_inf, soato_inf, nusn),
                     }
         return f22_dict
@@ -265,10 +270,11 @@ class ExpFA(object):
                     comb_li['main_inf'],
                     comb_li['soato_inf'],
                     comb_li['soato_code'],
+                    comb_li['nusname'],
                 )
         return comb_dicts
 
-    def calc_all_exps_by_soato(self, round_setts):
+    def calc_all_exps_by_ss(self, round_setts):
         sv_exp = {}
         sv_texts = {}
         if self.exps_dict:
@@ -277,21 +283,27 @@ class ExpFA(object):
                 sv_texts[key1] = {}
                 for key2 in self.exps_dict[key1]:
                     exp_obj = self.exps_dict[key1][key2]
-
-                    soato_key = exp_obj.soato_code[:-3] + '000'
+                    if exp_obj.nusname == 1:
+                        continue
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
                         # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
-                    if not sv_exp[key1].has_key(soato_key):
-                        sv_exp[key1][soato_key] = sv_row
-                    if soato_key == exp_obj.soato_code and not sv_texts[key1].has_key(soato_key):
-                        sv_texts[key1][soato_key] = self.cc_soato_d[exp_obj.soato_code[:-3]]
-                    sv_exp[key1][soato_key] = sum_dict_values(sv_exp[key1][soato_key], (sv_row,))
+                    soato_total_key = exp_obj.soato_code[:-3]
+                    if sv_exp[key1].has_key(soato_total_key):
+                        sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                    else:
+                        sv_exp[key1][soato_total_key] = sv_row
+                        sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
+
+
 
             self.__add_total_rows(sv_exp)
-            sv_exp['sh_sum'] = self.__make_shape_row()
+            # sv_exp['sh_sum'] = self.__make_shape_row()
+            if self.shape_area_sum:
+                sv_exp['sh_init_sum'] = self.__make_init_shape_row()
+
             round_setts.accuracy = round_setts.a_sv_accuracy
             self.__round_sv(sv_exp, round_setts)
             sv_exp['texts'] = sv_texts
@@ -300,32 +312,43 @@ class ExpFA(object):
             self.errors_occured[0] = u'No data'
             return sv_exp
 
-    def calc_all_exps_by_nas_punkts(self, round_setts):
+    def calc_all_exps_by_np(self, round_setts):
         sv_exp = {}
         sv_texts = {}
-        # TODO: remake logic for nas punkts
         if self.exps_dict:
             for key1 in self.exps_dict:
                 sv_exp[key1] = {}
                 sv_texts[key1] = {}
                 for key2 in self.exps_dict[key1]:
                     exp_obj = self.exps_dict[key1][key2]
+                    if exp_obj.nusname == 1:
+                        continue
 
-                    soato_key = exp_obj.soato_code[:-3] + '000'
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
                         # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
 
-                    if not sv_exp[key1].has_key(soato_key):
-                        sv_exp[key1][soato_key] = sv_row
-                    if soato_key == exp_obj.soato_code and not sv_texts[key1].has_key(soato_key):
-                        sv_texts[key1][soato_key] = self.cc_soato_d[exp_obj.soato_code[:-3]]
-                    sv_exp[key1][soato_key] = sum_dict_values(sv_exp[key1][soato_key], (sv_row,))
+                    soato_total_key = exp_obj.soato_code[:-3]
+                    soato_code = exp_obj.soato_code
+                    if sv_exp[key1].has_key(soato_code):
+                        sv_exp[key1][soato_code] = sum_dict_values(sv_exp[key1][soato_code], (sv_row,))
+                    else:
+                        sv_exp[key1][soato_code] = sv_row
+                        sv_texts[key1][soato_code] = self.__get_sv_row_text(key2, exp_obj.obj_name)
+
+                    if sv_exp[key1].has_key(soato_total_key):
+                        sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                    else:
+                        sv_exp[key1][soato_total_key] = sv_row
+                        sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
 
             self.__add_total_rows(sv_exp)
-            sv_exp['sh_sum'] = self.__make_shape_row()
+            # sv_exp['sh_sum'] = self.__make_shape_row()
+            if self.shape_area_sum:
+                sv_exp['sh_init_sum'] = self.__make_init_shape_row()
+
             round_setts.accuracy = round_setts.a_sv_accuracy
             self.__round_sv(sv_exp, round_setts)
             sv_exp['texts'] = sv_texts
@@ -352,6 +375,9 @@ class ExpFA(object):
                         return {}
             self.__add_total_rows(sv_exp)
             sv_exp['sh_sum'] = self.__make_shape_row()
+            if self.shape_area_sum:
+                sv_exp['sh_init_sum'] = self.__make_init_shape_row()
+
             round_setts.accuracy = round_setts.a_sv_accuracy
             self.__round_sv(sv_exp, round_setts)
             sv_exp['texts'] = sv_texts
@@ -369,7 +395,7 @@ class ExpFA(object):
         !Caution! It changes the input object!
         """
         for key1 in sv_nested_di:
-            if key1 in ('total', 'sh_sum'):
+            if key1 in ('total', 'sh_sum', 'sh_init_sum'):
                 sv_nested_di[key1] = round_and_modify(sv_nested_di[key1], round_setts.__dict__)
             else:
                 for key2, data_d in sv_nested_di[key1].items():
@@ -387,8 +413,14 @@ class ExpFA(object):
         for k1 in self.datadict:
             for k2 in self.datadict[k1]:
                 conv_rows.extend(self.datadict[k1][k2]['r_params'])
-        shape_comb = DataComb(conv_rows, u'Shape_sum:', u'', u'', None)
+        shape_comb = DataComb(conv_rows, u'Shape_sum:', u'', u'', None, 0)
         return shape_comb.make_sv_row(self.sprav_holder)
+
+    def __make_init_shape_row(self):
+
+        tmpl = dict.fromkeys(self.sprav_holder.str_orders['sv_f'], 0)
+        tmpl['total'] = self.shape_area_sum
+        return tmpl
 
     def __add_total_rows(self, sv_e):
         """

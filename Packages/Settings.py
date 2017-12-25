@@ -111,6 +111,7 @@ class Settings(object):
             },
             'conditions': {
                 'melio': '',
+                'groupping_by': '',
                 'custom': ''
             },
             'filter': {

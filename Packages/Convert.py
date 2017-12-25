@@ -310,6 +310,7 @@ def convert(sprav_holder, temp_db_path, select_conditions):
     query_structure = sprav_holder.attr_config['ctr_structure']
     select_ctr_all = _make_crtab_query(query_structure, n_max, select_conditions.to_dict())
     sel_result = ctr_conn.exec_sel_query(select_ctr_all)
+    shape_area_sum = get_shape_area_sum(ctr_conn)
     del ctr_conn
 
     rows_ok = []
@@ -332,11 +333,24 @@ def convert(sprav_holder, temp_db_path, select_conditions):
         if got_errors:
             return whats_err
         else:
-            save_info = [rows_ok, users_d, soato_d]
+            additional_params = {
+                'shape_sum': shape_area_sum,
+                'shape_sum_enabled': True
+            }
+            save_info = [rows_ok, users_d, soato_d, additional_params]
             return save_info
     else:
         raise Exception('Ошибка при загрузке данных из crostab. Connection failed')
 
+def get_shape_area_sum(ct_conn):
+    format_d = {
+        'cr_tab': DbStructures.crs_tab,
+        'sh_area': DbStructures.db_structure[DbStructures.crs_tab]['shape_area']['name']
+    }
+    print format_d
+    sel_result = ct_conn.exec_sel_query(u'select sum(%(sh_area)s) from %(cr_tab)s' % format_d)
+    print sel_result[0]
+    return sel_result[0][0]
 
 def data_users_soato(ct_conn):
     """

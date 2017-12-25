@@ -257,6 +257,7 @@ class ExpAThread(QtCore.QThread):
         self.exp_tree = self.expsA.make_exp_tree()
         self.rnd_settings = settings.rnd
         self.xl_settings = settings.xls
+        self.group_sv_by = settings.conditions.groupping_by
         self.balance_settings = settings.balance
         self.sprav_holder = sprav_holder
         self.__out_to_xl = True
@@ -272,7 +273,12 @@ class ExpAThread(QtCore.QThread):
         self.__out_to_xl = is_xls
 
     def get_sv_data(self):
-        sv_data = self.expsA.calc_all_exps(self.rnd_settings)
+        if self.group_sv_by == 'cc':
+            sv_data = self.expsA.calc_all_exps_by_ss(self.rnd_settings)
+        elif self.group_sv_by == 'np':
+            sv_data = self.expsA.calc_all_exps_by_np(self.rnd_settings)
+        else:
+            sv_data = self.expsA.calc_all_exps(self.rnd_settings)
         errs_occured = self.expsA.errors_occured
         if errs_occured:
             for key in errs_occured:
@@ -358,12 +364,20 @@ class ExpAThread(QtCore.QThread):
                 n+=1
             digits = map(lambda x: sv_dict[f22_key]['total'][x]['val'], f_orders)
             push_to_matr(f22_key+u'*', u'Итого:', digits)
-        # добавление итоговой строки total
-        digits = map(lambda x: sv_dict['total'][x]['val'], f_orders)
-        push_to_matr(u'**', u'Всего:', digits)
-        # добовление информационной строки Shape_area
-        digits = map(lambda x: sv_dict['sh_sum'][x]['val'], f_orders)
-        push_to_matr(u'***', u'Shape_Area (для сравнения):', digits)
+
+        if sv_dict.has_key('total'):
+            # добавление итоговой строки total
+            digits = map(lambda x: sv_dict['total'][x]['val'], f_orders)
+            push_to_matr(u'**', u'Всего:', digits)
+        if sv_dict.has_key('sh_sum'):
+            # добовление информационной строки Shape_area
+            digits = map(lambda x: sv_dict['sh_sum'][x]['val'], f_orders)
+            push_to_matr(u'***', u'Shape_Area (для сравнения):', digits)
+        if sv_dict.has_key('sh_init_sum'):
+            # добовление информационной строки Shape_area
+            digits = map(lambda x: sv_dict['sh_init_sum'][x]['val'], f_orders)
+            push_to_matr(u'***', u'Фактическая сумма Shape_Area (для сравнения):', digits)
+
         del self.n
         return matr
 
@@ -1077,11 +1091,32 @@ class MainWindow(QtGui.QMainWindow):
         self.conditions_window = SettingsWindow(self, u'Настройки условий выборки из crostab', 400, 150)
         self.include_melio = QtGui.QCheckBox(u'Расчет мелиоративных земель')
         self.include_melio.setChecked(bool(conditions_settings.melio))
+
+        self.group_by_cc_activated = QtGui.QRadioButton(u'Группировать по сельским советам', self.conditions_window)
+        self.group_by_np_activated = QtGui.QRadioButton(u'Группировать по населенным пунктам', self.conditions_window)
+        self.group_not_activated = QtGui.QRadioButton(u'Без группировки', self.conditions_window)
+        if conditions_settings.groupping_by == 'cc':
+            self.group_by_cc_activated.setChecked(True)
+        elif conditions_settings.groupping_by == 'np':
+            self.group_by_np_activated.setChecked(True)
+        else:
+            self.group_not_activated.setChecked(True)
+
+
+        selection_title_lbl = QtGui.QLabel(u'      Настройка выборки данных из crostab:', self.conditions_window)
+        groupping_title_lbl = QtGui.QLabel(u'\n      Настройка группировки сводной экспликации:', self.conditions_window)
         btn = QtGui.QPushButton(u"Сохранить изменения", self.conditions_window.main_frame)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_conditions_settings)
 
-        self.conditions_window.add_widget(self.include_melio, 0, 0, 3, 3)
-        self.conditions_window.add_widget(btn, 4, 2, 1, 1)
+        self.conditions_window.add_widget(selection_title_lbl, 0, 0, 1, 6)
+        self.conditions_window.add_widget(self.include_melio, 1, 1, 1, 5)
+        self.conditions_window.add_widget(groupping_title_lbl, 2, 0, 1, 6)
+
+        self.conditions_window.add_widget(self.group_by_cc_activated, 3,1,1,5)
+        self.conditions_window.add_widget(self.group_by_np_activated, 4,1,1,5)
+        self.conditions_window.add_widget(self.group_not_activated, 5,1,1,5)
+
+        self.conditions_window.add_widget(btn, 6, 5, 1, 1)
         self.conditions_window.show()
 
     def update_balance_settings(self):
@@ -1156,7 +1191,14 @@ class MainWindow(QtGui.QMainWindow):
             self.settings.conditions.melio = u'MELIOCODE = 1'
         else:
             self.settings.conditions.melio = u''
-        self.add_event_log(u'Установлены новые настройки выборки данных из crostab')
+
+        if self.group_by_cc_activated.isChecked():
+            self.settings.conditions.groupping_by = u'cc'
+        elif self.group_by_np_activated.isChecked():
+            self.settings.conditions.groupping_by = u'np'
+        else:
+            self.settings.conditions.groupping_by = u''
+        self.add_event_log(u'Установлены новые настройки выборки и группировки данных')
         self.conditions_window.close()
         self.update_settings()
 
@@ -1381,15 +1423,21 @@ class MainWindow(QtGui.QMainWindow):
         self.group_box.second_cmb.show()
         # self.group_box.second_cmb.set_width(ate_len*7)
 
+    def set_shape_sum_enabled(self, val):
+        if self.current_exp_data and len(self.current_exp_data) > 3:
+            self.current_exp_data[3]['shape_sum_enabled'] = val
+
     def first_combo_changed(self):
         curr_ind = self.group_box.get_first_index()
         self.group_box.second_cmb.hide()
         if curr_ind != -1:
             if curr_ind == 0:
                 self.current_exp_data = self.explication_data[:]
+                self.set_shape_sum_enabled(True)
             else:
                 curr_soato = self.cmb1_recover_d[curr_ind]
                 self.current_exp_data[0] = self.ate_expl_data_dict[curr_soato]
+                self.set_shape_sum_enabled(False)
                 if self.group_soatos[curr_soato]:
                     self.show_second_combo(curr_soato)
 
