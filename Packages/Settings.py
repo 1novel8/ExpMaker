@@ -13,6 +13,10 @@ class DictAsObject(object):
     def to_dict(self):
         return self.__dict__
 
+    def make_copy(self):
+        return self.__dict__.copy()
+
+
 class Settings(object):
     def __init__(self, xls_templates_dir, store_source):
         self.xls_templates_dir = xls_templates_dir

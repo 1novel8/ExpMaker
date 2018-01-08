@@ -308,7 +308,7 @@ def convert(sprav_holder, temp_db_path, select_conditions):
     add_utype_to_crtab(ctr_conn, n_max)
     users_d, soato_d = data_users_soato(ctr_conn)
     query_structure = sprav_holder.attr_config['ctr_structure']
-    select_ctr_all = _make_crtab_query(query_structure, n_max, select_conditions.to_dict())
+    select_ctr_all = _make_crtab_query(query_structure, n_max, select_conditions)
     sel_result = ctr_conn.exec_sel_query(select_ctr_all)
     shape_area_sum = get_shape_area_sum(ctr_conn)
     del ctr_conn
@@ -347,9 +347,7 @@ def get_shape_area_sum(ct_conn):
         'cr_tab': DbStructures.crs_tab,
         'sh_area': DbStructures.db_structure[DbStructures.crs_tab]['shape_area']['name']
     }
-    print format_d
     sel_result = ct_conn.exec_sel_query(u'select sum(%(sh_area)s) from %(cr_tab)s' % format_d)
-    print sel_result[0]
     return sel_result[0][0]
 
 def data_users_soato(ct_conn):

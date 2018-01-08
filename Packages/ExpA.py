@@ -84,7 +84,7 @@ def round_and_modify(data_dict, settings):
     return modified
 
 class DataComb(object):
-    def __init__(self, data_li, full_inf, main_inf, soato_inf, soato_code, nusname):
+    def __init__(self, data_li, full_inf, main_inf, soato_inf, soato_code, nusname, group_as_sad):
         self.soato_inf = soato_inf
         self.soato_code = soato_code
         self.nusname = nusname
@@ -92,6 +92,7 @@ class DataComb(object):
         self.expl_data = {}
         self.obj_name = main_inf
         self.full_obj_name = full_inf
+        self.group_as_sad = group_as_sad
         self.errors = {}
 
     def add_data(self, spr):
@@ -229,6 +230,14 @@ class ExpFA(object):
                     soato_inf = self.get_cc_name(row.soato)
                     main_inf = self.usersInfo[group_key] if nusn == 1 else self.soatoInfo[group_key]
                     dop_inf = row.dopname[n] if row.dopname[n] else u''
+
+                    group_as_sad = False
+                    if f22_key == u'07':
+                        slnad = row.get_el_by_fkey('slnad')
+                        usern_sad = row.get_el_by_fkey('usern_sad')
+                        if slnad == 2 and not usern_sad:
+                            group_as_sad = True
+
                     f22_dict[f22_key][group_key] = {
                         u'r_params': [row_params, ],
                         u'main_inf': u'%s %s' % (dop_inf, main_inf),
@@ -236,6 +245,7 @@ class ExpFA(object):
                         u'soato_code': row.soato,
                         u'nusname': nusn,
                         u'full_inf': self.get_full_e_name(main_inf, dop_inf, soato_inf, nusn),
+                        u'group_as_sad': group_as_sad
                     }
         return f22_dict
 
@@ -271,6 +281,7 @@ class ExpFA(object):
                     comb_li['soato_inf'],
                     comb_li['soato_code'],
                     comb_li['nusname'],
+                    comb_li['group_as_sad'],
                 )
         return comb_dicts
 
@@ -283,23 +294,36 @@ class ExpFA(object):
                 sv_texts[key1] = {}
                 for key2 in self.exps_dict[key1]:
                     exp_obj = self.exps_dict[key1][key2]
-                    if exp_obj.nusname == 1:
-                        continue
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
                         # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
-                    soato_total_key = exp_obj.soato_code[:-3]
-                    if sv_exp[key1].has_key(soato_total_key):
-                        sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+
+                    if exp_obj.group_as_sad:
+                        soato_total_key = exp_obj.soato_code[:-3]
+                        if sv_exp[key1].has_key(soato_total_key):
+                            sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_total_key] = sv_row
+                            title = self.cc_soato_d[soato_total_key] + u' Сад'
+                            sv_texts[key1][soato_total_key] = u'%s. Всего:' % title
+
+                    elif exp_obj.nusname == 1:
+                        sv_exp[key1][key2] = sv_row
+                        sv_texts[key1][key2] = self.__get_sv_row_text(key2, exp_obj.obj_name)
+                        if exp_obj.errors:
+                            self.errors_occured[1] = exp_obj.errors
+                            return {}
                     else:
-                        sv_exp[key1][soato_total_key] = sv_row
-                        sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
+                        soato_total_key = exp_obj.soato_code[:-3]
+                        if sv_exp[key1].has_key(soato_total_key):
+                            sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_total_key] = sv_row
+                            sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
 
-
-
-            self.__add_total_rows(sv_exp)
+            self.__add_total_rows(sv_exp, None)
             # sv_exp['sh_sum'] = self.__make_shape_row()
             if self.shape_area_sum:
                 sv_exp['sh_init_sum'] = self.__make_init_shape_row()
@@ -321,30 +345,47 @@ class ExpFA(object):
                 sv_texts[key1] = {}
                 for key2 in self.exps_dict[key1]:
                     exp_obj = self.exps_dict[key1][key2]
-                    if exp_obj.nusname == 1:
-                        continue
-
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
                         # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
 
-                    soato_total_key = exp_obj.soato_code[:-3]
-                    soato_code = exp_obj.soato_code
-                    if sv_exp[key1].has_key(soato_code):
-                        sv_exp[key1][soato_code] = sum_dict_values(sv_exp[key1][soato_code], (sv_row,))
-                    else:
-                        sv_exp[key1][soato_code] = sv_row
-                        sv_texts[key1][soato_code] = self.__get_sv_row_text(key2, exp_obj.obj_name)
+                    if exp_obj.group_as_sad:
+                        soato_total_key = exp_obj.soato_code[:-3]
+                        soato_code = exp_obj.soato_code
+                        if sv_exp[key1].has_key(soato_code):
+                            sv_exp[key1][soato_code] = sum_dict_values(sv_exp[key1][soato_code], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_code] = sv_row
+                            sv_texts[key1][soato_code] = exp_obj.soato_inf + u'Сад.'
 
-                    if sv_exp[key1].has_key(soato_total_key):
-                        sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
-                    else:
-                        sv_exp[key1][soato_total_key] = sv_row
-                        sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
+                        if sv_exp[key1].has_key(soato_total_key):
+                            sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_total_key] = sv_row
+                            sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
 
-            self.__add_total_rows(sv_exp)
+
+                    elif exp_obj.nusname == 1:
+                        sv_exp[key1][key2] = sv_row
+                        sv_texts[key1][key2] = self.__get_sv_row_text(key2, exp_obj.obj_name)
+                    else:
+                        soato_total_key = exp_obj.soato_code[:-3]
+                        soato_code = exp_obj.soato_code
+                        if sv_exp[key1].has_key(soato_code):
+                            sv_exp[key1][soato_code] = sum_dict_values(sv_exp[key1][soato_code], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_code] = sv_row
+                            sv_texts[key1][soato_code] = self.__get_sv_row_text(key2, exp_obj.obj_name)
+
+                        if sv_exp[key1].has_key(soato_total_key):
+                            sv_exp[key1][soato_total_key] = sum_dict_values(sv_exp[key1][soato_total_key], (sv_row,))
+                        else:
+                            sv_exp[key1][soato_total_key] = sv_row
+                            sv_texts[key1][soato_total_key] = u'%s. Всего:' % self.cc_soato_d[soato_total_key]
+
+            self.__add_total_rows(sv_exp, sv_texts)
             # sv_exp['sh_sum'] = self.__make_shape_row()
             if self.shape_area_sum:
                 sv_exp['sh_init_sum'] = self.__make_init_shape_row()
@@ -373,7 +414,7 @@ class ExpFA(object):
                         #TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
-            self.__add_total_rows(sv_exp)
+            self.__add_total_rows(sv_exp, sv_texts)
             sv_exp['sh_sum'] = self.__make_shape_row()
             if self.shape_area_sum:
                 sv_exp['sh_init_sum'] = self.__make_init_shape_row()
@@ -422,7 +463,8 @@ class ExpFA(object):
         tmpl['total'] = self.shape_area_sum
         return tmpl
 
-    def __add_total_rows(self, sv_e):
+
+    def __add_total_rows(self, sv_e, sv_t):
         """
         Caution! this method changes enter parameter sv_e
         :param sv_e: Sv explication data only
@@ -433,7 +475,8 @@ class ExpFA(object):
         for key1 in sv_e:
             total_f22 = tmpl.copy()
             for key2 in sv_e[key1]:
-                total_f22 = sum_dict_values(total_f22, (sv_e[key1][key2],))
+                if not sv_t or u'Всего:' not in sv_t[key1][key2]:
+                    total_f22 = sum_dict_values(total_f22, (sv_e[key1][key2],))
             sv_e[key1]['total'] = total_f22
             total_all = sum_dict_values(total_all, (total_f22,))
         sv_e['total'] = total_all

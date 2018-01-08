@@ -231,7 +231,11 @@ class ConvertThread(QtCore.QThread):
 
     def __init__(self, sprav, settings, parent = None):
         super(ConvertThread, self).__init__(parent)
-        self.conditions_settings = settings.conditions
+        self.conditions_settings = settings.conditions.make_copy()
+        # TODO: remove kostyl, move groupping conditions to separated settings
+        if self.conditions_settings.has_key('groupping_by'):
+            del self.conditions_settings['groupping_by']
+
         self.sprav_holder = sprav
 
 
@@ -258,6 +262,8 @@ class ExpAThread(QtCore.QThread):
         self.rnd_settings = settings.rnd
         self.xl_settings = settings.xls
         self.group_sv_by = settings.conditions.groupping_by
+
+        print 11111, self.group_sv_by
         self.balance_settings = settings.balance
         self.sprav_holder = sprav_holder
         self.__out_to_xl = True
@@ -278,7 +284,8 @@ class ExpAThread(QtCore.QThread):
         elif self.group_sv_by == 'np':
             sv_data = self.expsA.calc_all_exps_by_np(self.rnd_settings)
         else:
-            sv_data = self.expsA.calc_all_exps(self.rnd_settings)
+            sv_data = self.expsA.calc_all_exps_by_np(self.rnd_settings)
+            # sv_data = self.expsA.calc_all_exps(self.rnd_settings)
         errs_occured = self.expsA.errors_occured
         if errs_occured:
             for key in errs_occured:
@@ -1021,7 +1028,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_filtering_window(self):
         filter_settings = self.settings.filter
-        print filter_settings.__dict__
         self.filter_window = SettingsWindow(self, u'Настройки фильтра',300, 150)
 
         self.melio_filter_used = QtGui.QRadioButton(u'Вкючить фильтр по полю MELIOCODE', self.filter_window)
@@ -1092,15 +1098,19 @@ class MainWindow(QtGui.QMainWindow):
         self.include_melio = QtGui.QCheckBox(u'Расчет мелиоративных земель')
         self.include_melio.setChecked(bool(conditions_settings.melio))
 
-        self.group_by_cc_activated = QtGui.QRadioButton(u'Группировать по сельским советам', self.conditions_window)
-        self.group_by_np_activated = QtGui.QRadioButton(u'Группировать по населенным пунктам', self.conditions_window)
-        self.group_not_activated = QtGui.QRadioButton(u'Без группировки', self.conditions_window)
+        self.group_by_cc_activated = QtGui.QCheckBox(u'Группировать по сельским советам', self.conditions_window)
+        # self.group_by_np_activated = QtGui.QRadioButton(u'Группировать по населенным пунктам', self.conditions_window)
+        # self.group_not_activated = QtGui.QRadioButton(u'Без группировки', self.conditions_window)
+        # if conditions_settings.groupping_by == 'cc':
+        #     self.group_by_cc_activated.setChecked(True)
+        # elif conditions_settings.groupping_by == 'np':
+        #     self.group_by_np_activated.setChecked(True)
+        # else:
+        #     self.group_not_activated.setChecked(True)
         if conditions_settings.groupping_by == 'cc':
             self.group_by_cc_activated.setChecked(True)
-        elif conditions_settings.groupping_by == 'np':
-            self.group_by_np_activated.setChecked(True)
         else:
-            self.group_not_activated.setChecked(True)
+            self.group_by_cc_activated.setChecked(False)
 
 
         selection_title_lbl = QtGui.QLabel(u'      Настройка выборки данных из crostab:', self.conditions_window)
@@ -1113,8 +1123,8 @@ class MainWindow(QtGui.QMainWindow):
         self.conditions_window.add_widget(groupping_title_lbl, 2, 0, 1, 6)
 
         self.conditions_window.add_widget(self.group_by_cc_activated, 3,1,1,5)
-        self.conditions_window.add_widget(self.group_by_np_activated, 4,1,1,5)
-        self.conditions_window.add_widget(self.group_not_activated, 5,1,1,5)
+        # self.conditions_window.add_widget(self.group_by_np_activated, 4,1,1,5)
+        # self.conditions_window.add_widget(self.group_not_activated, 5,1,1,5)
 
         self.conditions_window.add_widget(btn, 6, 5, 1, 1)
         self.conditions_window.show()
@@ -1162,7 +1172,6 @@ class MainWindow(QtGui.QMainWindow):
                 filtered_rows = self._not_filtered_data[:]
         self.explication_data[0] = filtered_rows
         self.current_exp_data = self.explication_data[:]
-        print len(self.explication_data[0])
         self.show_first_combo()
         self.stop_loading()
 
@@ -1194,10 +1203,15 @@ class MainWindow(QtGui.QMainWindow):
 
         if self.group_by_cc_activated.isChecked():
             self.settings.conditions.groupping_by = u'cc'
-        elif self.group_by_np_activated.isChecked():
-            self.settings.conditions.groupping_by = u'np'
+        # elif self.group_by_np_activated.isChecked():
+        #     self.settings.conditions.groupping_by = u'np'
         else:
-            self.settings.conditions.groupping_by = u''
+            self.settings.conditions.groupping_by = u'np'
+
+        if self.exp_a_thr:
+            self.exp_a_thr.group_sv_by = self.settings.conditions.groupping_by
+
+
         self.add_event_log(u'Установлены новые настройки выборки и группировки данных')
         self.conditions_window.close()
         self.update_settings()

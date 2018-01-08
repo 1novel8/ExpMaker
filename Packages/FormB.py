@@ -134,7 +134,9 @@ class ExpFormaB(object):
 
     @staticmethod
     def __round_fb(fb_dict, round_setts):
-
+        print round_setts
+        round_setts = round_setts.copy() if isinstance(round_setts, dict) else round_setts.__dict__
+        round_setts['show_small'] = False
         for key1, data_d in fb_dict.items():
             fb_dict[key1] = round_and_modify(data_d, round_setts)
 
