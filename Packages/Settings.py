@@ -114,7 +114,10 @@ class Settings(object):
                 'include_b_balance': True,
             },
             'conditions': {
-                'melio': '',
+                'melio1': '',
+                'melio2': '',
+                'servtype': '',
+                'active_cond': '',
                 'groupping_by': '',
                 'custom': ''
             },
