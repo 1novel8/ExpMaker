@@ -112,21 +112,18 @@ class DBConn(object):
         except TypeError:
             raise Exception(u'Ошибка соединения с базой данных')
 
-    # def exec_query(self, query, reconnect = False):
-    #     if self.__dbc:
-    #         try:
-    #             self.__dbc.execute(query)
-    #             return True
-    #         except pyodbc.ProgrammingError:
-    #             return False
-    #         except pyodbc.Error:
-    #             if reconnect:
-    #                 self.close_conn()
-    #                 self.make_connection()
-    #                 return self.exec_query(query)
-    #             else:
-    #                 return False
-    #//// this method now support by try_make_conn decorator
+    def get_common_selection(self, table, fields, where_case = u''):
+        query = u'select '
+        query += u', '.join(fields)
+        query += u' from %s %s' % (table, where_case)
+        rc_rows = self.exec_sel_query(query)
+        result = []
+        for row in rc_rows:
+            row_dict = {}
+            for ind in range(len(fields)):
+                row_dict[fields[ind]] = row[ind]
+            result.append(row_dict)
+        return result
 
     @try_make_conn
     @catch_db_exception

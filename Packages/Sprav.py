@@ -56,6 +56,7 @@ class SpravHolder(object):
         self.slnad_codes =None
         self.state_codes =None
         self.melio_codes =None
+        self.select_conditions =None
         self.land_codes =None
         self.max_n = None
         self.crtab_columns = None
@@ -84,6 +85,7 @@ class SpravHolder(object):
             self.state_codes = sprav_dict['state_codes']
             self.melio_codes = sprav_dict['melio_codes']
             self.land_codes = sprav_dict['land_codes']
+            self.select_conditions = sprav_dict['select_conditions']
             return True
         except KeyError:
             return False
@@ -117,6 +119,7 @@ class SpravHolder(object):
         data_dict['state_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['state_code']['name'], table))
         table = DbStructures.s_mc
         data_dict['melio_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['mc']['name'], table))
+        data_dict['select_conditions'] = self.get_select_conditions()
         self._s_conn.close_conn()
         return data_dict
 
@@ -545,6 +548,16 @@ class SpravHolder(object):
         }
         query = u'select %(zn_1)s, %(zn_2)s, %(zn_57min)s, %(zn_57max)s, %(zn_810min)s, %(zn_810max)s, %(type_np)s from %(t)s' % format_d
         return self._s_conn.exec_sel_query(query)
+
+
+    def get_select_conditions(self):
+        tab_name = DbStructures.s_select_conditions
+        tab_str = DbStructures.spr_db_cfg[tab_name]
+        id = tab_str['id']['name']
+        title = tab_str['title']['name']
+        wc = tab_str['where_case']['name']
+        return self._s_conn.get_common_selection(tab_name, [id, title, wc])
+
 
     def remake_bgd1(self):
         """

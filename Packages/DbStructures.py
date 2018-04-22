@@ -14,6 +14,7 @@ s_f22 = u'S_Forma22'
 s_mc = u'S_MelioCode'
 s_slnad =u'S_SlNad'
 s_ustype = u'S_Usertype'
+s_select_conditions = u'Select_Conditions'
 
 str_db_cfg = {
     s_lc: {
@@ -180,6 +181,14 @@ spr_db_cfg = {
         #          'type': u'COUNTER'},
         'user_type':    {'name': u'UsertypeCode',
                          'type': u'BYTE'}
+    },
+    s_select_conditions: {
+        'id':       {'name': u'Id',
+                     'type': [u'INTEGER', u'SMALLINT']},
+        'title':    {'name': u'Title',
+                     'type': [u'VARCHAR']},
+        'where_case':   {'name': u'WhereCase',
+                        'type': [u'VARCHAR']}
     }
 }
 """

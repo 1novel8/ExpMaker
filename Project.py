@@ -231,17 +231,18 @@ class ConvertThread(QtCore.QThread):
 
     def __init__(self, sprav, settings, parent = None):
         super(ConvertThread, self).__init__(parent)
-        self.conditions_settings = settings.conditions.make_copy()
-        # TODO: remove kostyl, move groupping conditions to separated settings
-        if self.conditions_settings.has_key('groupping_by'):
-            del self.conditions_settings['groupping_by']
-
+        self.select_condition = {}
         self.sprav_holder = sprav
+        if not isinstance(self.sprav_holder.select_conditions, list):
+            return
+        for select_op in sprav.select_conditions:
+            if select_op[u'Id'] == settings.conditions.active_cond:
+                self.select_condition = select_op
 
 
     def run(self):
         try:
-            converted_data = Convert.convert(self.sprav_holder, tempDB_path, self.conditions_settings)
+            converted_data = Convert.convert(self.sprav_holder, tempDB_path, self.select_condition)
         except Exception as err:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
         else:
@@ -1093,37 +1094,17 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_conditions_settings_window(self):
         conditions_settings = self.settings.conditions
-
+        select_options = self.sprav_holder.select_conditions
         self.conditions_window = SettingsWindow(self, u'Настройки условий выборки из crostab', 300, 300)
-        # self.include_melio = QtGui.QCheckBox(u'Расчет мелиоративных земель')
-        # self.include_melio.setChecked(bool(conditions_settings.melio))
-
-        self.full_cond = QtGui.QRadioButton(u'Полная выборка данных', self.conditions_window)
-        self.melio1_cond = QtGui.QRadioButton(u'Расчет осушенных земель', self.conditions_window)
-        self.melio2_cond = QtGui.QRadioButton(u'Расчет орошаемых земель', self.conditions_window)
-        self.servtype_cond = QtGui.QRadioButton(u'Расчет земель загрязненных радионуклидами,\n выбывших из сельского оборота', self.conditions_window)
-
-        self.melio1_cond_text = QtGui.QTextEdit(self.conditions_window)
-        self.melio1_cond_text.setText(conditions_settings.melio1)
-        self.melio2_cond_text = QtGui.QTextEdit(self.conditions_window)
-        self.melio2_cond_text.setText(conditions_settings.melio2)
-        self.servtype_cond_text = QtGui.QTextEdit(self.conditions_window)
-        self.servtype_cond_text.setText(conditions_settings.servtype)
-        self.melio1_cond_text.setMaximumHeight(30)
-        self.melio2_cond_text.setMaximumHeight(30)
-        self.servtype_cond_text.setMaximumHeight(30)
-
-
-        if conditions_settings.active_cond == u'melio1':
-            self.melio1_cond.setChecked(True)
-        elif conditions_settings.active_cond == u'melio2':
-            self.melio2_cond.setChecked(True)
-        elif conditions_settings.active_cond == u'servtype':
-            self.servtype_cond.setChecked(True)
-        else:
-            self.full_cond.setChecked(True)
-
-
+        self.selection_options_radio = {}
+        gridY = 1
+        for option in select_options:
+            opId = option[u'Id']
+            self.selection_options_radio[opId] = QtGui.QRadioButton(option[u'Title'], self.conditions_window)
+            if opId == conditions_settings.active_cond:
+                self.selection_options_radio[opId].setChecked(True)
+            self.conditions_window.add_widget(self.selection_options_radio[opId], gridY, 1, 1, 4)
+            gridY += 1
 
         self.group_by_cc_activated = QtGui.QCheckBox(u'Группировать по сельским советам', self.conditions_window)
         # self.group_by_np_activated = QtGui.QRadioButton(u'Группировать по населенным пунктам', self.conditions_window)
@@ -1139,42 +1120,20 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.group_by_cc_activated.setChecked(False)
 
-        melio1_title_lbl = QtGui.QLabel(u'Meliocode:', self.conditions_window)
-        melio2_title_lbl = QtGui.QLabel(u'Meliocode:', self.conditions_window)
-        servtype_title_lbl = QtGui.QLabel(u'Servtype:', self.conditions_window)
-        empty_lbl = QtGui.QLabel(u'', self.conditions_window)
-        melio1_title_lbl.setAlignment(QtCore.Qt.AlignRight)
-        melio2_title_lbl.setAlignment(QtCore.Qt.AlignRight)
-        servtype_title_lbl.setAlignment(QtCore.Qt.AlignRight)
-
         selection_title_lbl = QtGui.QLabel(u'      Настройка выборки данных из crostab:', self.conditions_window)
         groupping_title_lbl = QtGui.QLabel(u'\n      Настройка группировки сводной экспликации:', self.conditions_window)
         btn = QtGui.QPushButton(u"Сохранить изменения", self.conditions_window.main_frame)
         self.connect(btn, QtCore.SIGNAL(u'clicked()'), self.update_conditions_settings)
 
         self.conditions_window.add_widget(selection_title_lbl, 0, 0, 1, 6)
-        self.conditions_window.add_widget(self.full_cond, 1, 1, 1, 4)
+        self.conditions_window.add_widget(groupping_title_lbl, gridY, 0, 1, 6)
 
-        self.conditions_window.add_widget(self.melio1_cond, 2, 1, 1, 3)
-        self.conditions_window.add_widget(melio1_title_lbl, 2, 4, 1, 2)
-        self.conditions_window.add_widget(self.melio1_cond_text, 2, 6, 1, 2)
-
-        self.conditions_window.add_widget(self.melio2_cond, 3, 1, 1, 3)
-        self.conditions_window.add_widget(melio2_title_lbl, 3, 4, 1, 2)
-        self.conditions_window.add_widget(self.melio2_cond_text, 3, 6, 1, 2)
-
-        self.conditions_window.add_widget(self.servtype_cond, 4, 1, 1, 3)
-        self.conditions_window.add_widget(servtype_title_lbl, 4, 4, 1, 2)
-        self.conditions_window.add_widget(self.servtype_cond_text, 4, 6, 1, 2)
-
-        self.conditions_window.add_widget(groupping_title_lbl, 5, 0, 1, 6)
-
-        self.conditions_window.add_widget(self.group_by_cc_activated, 6,1,1,5)
+        self.conditions_window.add_widget(self.group_by_cc_activated, gridY + 1, 1, 1, 5)
         # self.conditions_window.add_widget(self.group_by_np_activated, 4,1,1,5)
         # self.conditions_window.add_widget(self.group_not_activated, 5,1,1,5)
 
-        self.conditions_window.add_widget(empty_lbl, 7, 6, 1, 2)
-        self.conditions_window.add_widget(btn, 8, 6, 1, 2)
+        # self.conditions_window.add_widget(empty_lbl, 7, 6, 1, 2)
+        self.conditions_window.add_widget(btn, gridY+3, 6, 1, 2)
         self.conditions_window.show()
 
     def update_balance_settings(self):
@@ -1253,46 +1212,13 @@ class MainWindow(QtGui.QMainWindow):
             return ''
         return u','.join(codes_li)
 
-    def check_conditions_settings(self):
-        melio1_cond = MainWindow.check_condition_str(self.melio1_cond_text.toPlainText())
-        melio2_cond = MainWindow.check_condition_str(self.melio2_cond_text.toPlainText())
-        servtype_cond = MainWindow.check_condition_str(self.servtype_cond_text.toPlainText())
-        if melio1_cond:
-            self.settings.conditions.melio1 = melio1_cond
-            self.melio1_cond_text.setText(melio1_cond)
-        else:
-            return False
-        if melio2_cond:
-            self.settings.conditions.melio2 = melio2_cond
-            self.melio1_cond_text.setText(melio2_cond)
-        else:
-            return False
-        if servtype_cond:
-            self.settings.conditions.servtype = servtype_cond
-            self.melio1_cond_text.setText(servtype_cond)
-        else:
-            return False
-        return True
-
-    def set_updated_conditions_queries(self):
-        self.settings.conditions.queries = []
-        if self.full_cond.isChecked():
-            self.settings.conditions.active_cond = 'full'
-        elif self.melio1_cond.isChecked():
-            self.settings.conditions.queries.append(u'MELIOCODE in (%s)' % self.settings.conditions.melio1)
-            self.settings.conditions.active_cond = 'melio1'
-        elif self.melio2_cond.isChecked():
-            self.settings.conditions.queries.append(u'MELIOCODE in (%s)' % self.settings.conditions.melio2)
-            self.settings.conditions.active_cond = 'melio2'
-        elif self.servtype_cond.isChecked():
-            self.settings.conditions.queries.append(u'SERVTYPE in (%s)' % self.settings.conditions.servtype)
-            self.settings.conditions.active_cond = 'servtype'
-
     def update_conditions_settings(self):
-        if not self.check_conditions_settings():
+        active_options = filter(lambda x: self.selection_options_radio[x].isChecked(), self.selection_options_radio.keys())
+        if len(active_options):
+            self.settings.conditions.active_cond = active_options[0]
+        else:
             self.show_error(ErrMessage.wrong_conditions_codes)
             return
-        self.set_updated_conditions_queries()
 
         if self.group_by_cc_activated.isChecked():
             self.settings.conditions.groupping_by = u'cc'
