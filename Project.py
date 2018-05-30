@@ -1137,8 +1137,8 @@ class MainWindow(QtGui.QMainWindow):
         self.conditions_window.show()
 
     def update_balance_settings(self):
-        self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
-        self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
+        # self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
+        # self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
         self.settings.balance.include_b_balance  = bool(self.edit_b_balance.isChecked())
 
         self.add_event_log(u'Установлены новые настройки запуска баланса')
@@ -1212,9 +1212,16 @@ class MainWindow(QtGui.QMainWindow):
             return ''
         return u','.join(codes_li)
 
+    def set_default_active_cond(self):
+        for cond in self.sprav_holder.select_conditions:
+            if not cond[u'WhereCase']:
+                self.settings.conditions.active_cond = cond[u'Id']
+
     def update_conditions_settings(self):
         active_options = filter(lambda x: self.selection_options_radio[x].isChecked(), self.selection_options_radio.keys())
+        active_condition_changed = False
         if len(active_options):
+            active_condition_changed = self.settings.conditions.active_cond != active_options[0]
             self.settings.conditions.active_cond = active_options[0]
         else:
             self.show_error(ErrMessage.wrong_conditions_codes)
@@ -1234,6 +1241,10 @@ class MainWindow(QtGui.QMainWindow):
         self.add_event_log(u'Установлены новые настройки выборки и группировки данных')
         self.conditions_window.close()
         self.update_settings()
+        if self.exp_a_btn.isEnabled() and self.exp_a_thr and active_condition_changed and not self.__is_session:
+            self.reset_parameters()
+            self.control_btn.setEnabled(True)
+            self.convert_btn.setEnabled(True)
 
     def update_xl_data(self):
         self.settings.xls.a_sh_name = unicode(self.sh_edit_ea.text())
@@ -1604,6 +1615,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def settings_loaded(self, settings_dict):
         self.settings.update_settings(settings_dict)
+        self.set_default_active_cond()
 
     def say_saved(self, msg):
         self.stop_loading(False)

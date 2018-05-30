@@ -305,38 +305,40 @@ def convert(sprav_holder, temp_db_path, select_condition):
     users_d, soato_d = data_users_soato(ctr_conn)
     query_structure = sprav_holder.attr_config['ctr_structure']
     select_ctr_all = _make_crtab_query(query_structure, n_max, select_condition[u'WhereCase'])
-    sel_result = ctr_conn.exec_sel_query(select_ctr_all)
+    try:
+        sel_result = ctr_conn.exec_sel_query(select_ctr_all)
+    except Exception as err:
+        raise Exception(u'Ошибка при загрузке данных из crostab: %s' % err)
     shape_area_sum = get_shape_area_sum(ctr_conn)
     del ctr_conn
 
     rows_ok = []
     whats_err = {1:{}, 2:{}, 3:{}, 4:{}}
     got_errors = False
-    if sel_result:
-        for row in sel_result:
-            modified_r = collapse_row(row, query_structure, n_max)
-            new_row = CtrRow(sprav_holder, *modified_r)
-            if new_row.has_err:
-                err_part = u'Part_%d'%new_row.err_in_part
-                try:
-                    whats_err[new_row.has_err][err_part].append(new_row.object_id)
-                except KeyError:
-                    whats_err[new_row.has_err][err_part] = [new_row.object_id, ]
-                    got_errors = True
-            else:
-                rows_ok.append(new_row)
-
-        if got_errors:
-            return whats_err
+    if not sel_result:
+        raise Exception(u'Данные по установленным параметрам выборки не найдены.')
+    for row in sel_result:
+        modified_r = collapse_row(row, query_structure, n_max)
+        new_row = CtrRow(sprav_holder, *modified_r)
+        if new_row.has_err:
+            err_part = u'Part_%d' % new_row.err_in_part
+            try:
+                whats_err[new_row.has_err][err_part].append(new_row.object_id)
+            except KeyError:
+                whats_err[new_row.has_err][err_part] = [new_row.object_id, ]
+                got_errors = True
         else:
-            additional_params = {
-                'shape_sum': shape_area_sum,
-                'shape_sum_enabled': True
-            }
-            save_info = [rows_ok, users_d, soato_d, additional_params]
-            return save_info
+            rows_ok.append(new_row)
+
+    if got_errors:
+        return whats_err
     else:
-        raise Exception('Ошибка при загрузке данных из crostab. Connection failed')
+        additional_params = {
+            'shape_sum': shape_area_sum,
+            'shape_sum_enabled': True
+        }
+        save_info = [rows_ok, users_d, soato_d, additional_params]
+        return save_info
 
 def get_shape_area_sum(ct_conn):
     format_d = {

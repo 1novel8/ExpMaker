@@ -55,17 +55,15 @@ def round_row_data(data, accuracy = 4, show_small = False, small_accur = 3, **kw
     except TypeError as err:
         raise Exception(u'Возникла ошибка при попытке округления %s.\n%s' % (unicode(data),err.message))
 
-def complex_round(digit, accuracy, small_accur):
+def complex_round(amount, accuracy, small_accur):
     min_step = 10**-accuracy
     try:
-        rounded = round(digit, accuracy)
-    except TypeError as err:
-        raise Exception(u'Возникла ошибка при попытке округления %s.\n%s' % (unicode(digit),err.message))
-    else:
-        if rounded < min_step:
-            return round(digit, accuracy+small_accur)
+        if amount < min_step:
+            return round(amount, accuracy + small_accur)
         else:
-            return rounded
+            return round(amount, accuracy)
+    except TypeError as err:
+        raise Exception(u'Возникла ошибка при попытке округления %s.\n%s' % (unicode(amount), err.message))
 
 def round_and_modify(data_dict, settings):
     """

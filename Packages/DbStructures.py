@@ -184,7 +184,7 @@ spr_db_cfg = {
     },
     s_select_conditions: {
         'id':       {'name': u'Id',
-                     'type': [u'INTEGER', u'SMALLINT']},
+                     'type': [u'INTEGER', u'SMALLINT', u'COUNTER']},
         'title':    {'name': u'Title',
                      'type': [u'VARCHAR']},
         'where_case':   {'name': u'WhereCase',
