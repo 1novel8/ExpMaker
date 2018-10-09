@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QSizePolicy, QPushButton
+from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QSizePolicy
 from locales import titleLocales, tooltipsLocales
+from uiWidgets import PrimaryButton
 
 
 class ControlsFrame(QFrame):
@@ -13,11 +14,11 @@ class ControlsFrame(QFrame):
         self.convert_lbl = QLabel(titleLocales.convert_lbl, self)
         self.exp_a_lbl = QLabel(titleLocales.exp_a_lbl, self)
         self.exp_b_lbl = QLabel(titleLocales.exp_b_lbl, self)
-        self.control_btn = QPushButton(titleLocales.run_btn, self)
-        self.convert_btn = QPushButton(titleLocales.run_btn, self)
-        self.exp_single_btn = QPushButton(titleLocales.exp_single_btn, self)
-        self.exp_sv_btn = QPushButton(titleLocales.exp_sv_btn, self)
-        self.exp_b_btn = QPushButton(titleLocales.calc_btn, self)
+        self.control_btn = PrimaryButton(self, titleLocales.run_btn)
+        self.convert_btn = PrimaryButton(self, titleLocales.run_btn)
+        self.exp_single_btn = PrimaryButton(self, titleLocales.exp_single_btn)
+        self.exp_sv_btn = PrimaryButton(self, titleLocales.exp_sv_btn)
+        self.exp_b_btn = PrimaryButton(self, titleLocales.calc_btn)
         # self.exp_sv_btn.setHidden(True)
         # self.exp_single_btn.setHidden(True)
         self._set_size_policy()

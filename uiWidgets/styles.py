@@ -1,23 +1,20 @@
-colors = {
-    "primary_green": "#00BA4A",
-    "secondary_green": "#115f50",
-    "primary_blue": "#07c",
-    "secondary_blue": "#035793",
-    "light_gray": "#9fa6ad",
-    "dark_gray": "#5f6062",
-}
+from .theme import apply_theme
 
-primary_button = """
+primary_button = apply_theme("""
     color: white;
     margin: 14px 20px;
     margin-right: 0;
     padding: 8px; 
-    background-color: {primary_green};
+    background-color: {color.primary_green};
     border-radius: 5%;
     font-size: 13px;
     font-weight: bold;
-""".format(**colors)
-
+    QToolTip { 
+       background-color: black; 
+       color: white; 
+       border: black solid 1px
+   }
+""")
 
 progress_bar = """    
     QProgressBar {
@@ -42,16 +39,16 @@ progress_bar = """
     }
 """
 
-title_label = """
-    color: {secondary_green};
+title_label = apply_theme("""
+    color: {color.secondary_green};
     padding: 4px;
     font-size: 16px;
     font-weight: bold;
-""".format(**colors)
+""")
 
-loading_label = """
-    color: {primary_green};
+loading_label = apply_theme("""
+    color: {color.primary_green};
     padding: 4px;
     font-size: 16px;
     font-weight: bold;
-""".format(**colors)
+""")
