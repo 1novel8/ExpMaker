@@ -15,7 +15,6 @@ from Packages.Titles import LoadMessg, WidgNames, Events, ToolTip, ErrMessage
 from Packages.Settings import Settings
 import shutil
 
-Expl = 2
 project_dir = os.getcwd()
 spr_dir = os.path.join(project_dir, 'Spr')
 spr_default_path = os.path.join(spr_dir, 'DefaultSpr.pkl')
@@ -238,7 +237,6 @@ class ConvertThread(QtCore.QThread):
         for select_op in sprav.select_conditions:
             if select_op[u'Id'] == settings.conditions.active_cond:
                 self.select_condition = select_op
-
 
     def run(self):
         try:
@@ -582,7 +580,6 @@ class MainWindow(QtGui.QMainWindow):
         self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
         self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
         self.gridLayout = QtGui.QGridLayout(self.central_widget)
-
         self.logo_img = QtGui.QLabel(self.central_widget)
         self.logo_img.setGeometry(10, 10, 100, 100)
         self.logo_img.setPixmap(QtGui.QPixmap(u'%s\\Images\\logo.png' % project_dir))
@@ -597,6 +594,7 @@ class MainWindow(QtGui.QMainWindow):
         self.logo_box.addWidget(self.logo_img, 0,0,2,2)
         self.logo_box.addWidget(self.logo_title_lbl,0,2,1,100)
         self.logo_box.addWidget(QtGui.QLabel(''), 1,2,1,100)
+        self.gridLayout.addWidget(self.logo_widg, 0, 0, 1, 11)
 
         self.l1 = QtGui.QLabel(WidgNames.l1_title,self.central_widget)
         self.l2 = QtGui.QLabel(WidgNames.l2_title,self.central_widget)
@@ -623,6 +621,21 @@ class MainWindow(QtGui.QMainWindow):
         self.exp_b_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
         self.exp_b_btn.setToolTip(ToolTip.btn_exp_b)
         self.exp_b_btn.setSizePolicy(self.sizePolicy)
+        self.gridLayout.addWidget(self.l1, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.l2, 4, 0, 1, 1)
+        self.gridLayout.addWidget(self.l3, 5, 0, 1, 1)
+        self.gridLayout.addWidget(self.l4, 8, 0, 1, 1)
+        self.gridLayout.addWidget(self.control_btn, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.convert_btn, 4, 1, 1, 1)
+        self.gridLayout.addWidget(self.exp_a_btn, 5, 1, 1, 1)
+        self.gridLayout.addWidget(self.btn_a_tree,  5, 1, 1, 1)
+        self.gridLayout.addWidget(self.btn_a_all,  6, 1, 1, 1)
+        self.gridLayout.addWidget(self.exp_b_btn, 8, 1, 1, 1)
+
+
+
+
+
         self.event_table = TableWidget(WidgNames.event_table_head, self.central_widget)
         self.event_table.show()
         self.event_table.table.set_event_ss()
@@ -639,7 +652,6 @@ class MainWindow(QtGui.QMainWindow):
         self.expa_widget = QtGui.QWidget(self)
         self.expa_box = QtGui.QGridLayout(self.expa_widget)
 
-        # self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
         self.filter_frame = QtGui.QFrame(self)
         self.filter_frame.setHidden(True)
         self.filter_box = QtGui.QHBoxLayout(self.filter_frame)
@@ -671,19 +683,6 @@ class MainWindow(QtGui.QMainWindow):
         self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
         self.tree_text_box.addWidget(self.splitter)
 
-        # self.gridLayout.addWidget(self.logo_img, 0, 0, 1, 1)
-        self.gridLayout.addWidget(self.logo_widg, 0, 0, 1, 11)
-
-        self.gridLayout.addWidget(self.l1, 2, 0, 1, 1)
-        self.gridLayout.addWidget(self.l2, 4, 0, 1, 1)
-        self.gridLayout.addWidget(self.l3, 5, 0, 1, 1)
-        self.gridLayout.addWidget(self.l4, 8, 0, 1, 1)
-        self.gridLayout.addWidget(self.control_btn, 2, 1, 1, 1)
-        self.gridLayout.addWidget(self.convert_btn, 4, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_a_btn, 5, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_tree,  5, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_all,  6, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_b_btn, 8, 1, 1, 1)
         self.gridLayout.addWidget(self.tree_text_widg, 1, 2, 15, 11)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
@@ -2063,6 +2062,7 @@ class TableWidget(QtGui.QWidget):
             self.box.addWidget(self.clear_btn,19,10,2,2)
             self.connect(self.clear_btn, QtCore.SIGNAL(u"clicked()"), self.table.clear_all)
             self.hide()
+
     def clear_all(self):
         self.table.clear_all()
 
