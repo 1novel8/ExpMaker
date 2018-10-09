@@ -678,8 +678,8 @@ class MainWindow(QtGui.QMainWindow):
         self.splitter.addWidget(self.control_table)
         self.splitter.addWidget(self.convert_table)
         self.splitter.addWidget(self.event_table)
-        self.tree_text_widg = QtGui.QWidget()
 
+        self.tree_text_widg = QtGui.QWidget()
         self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
         self.tree_text_box.addWidget(self.splitter)
 
@@ -2003,11 +2003,13 @@ class Table(QtGui.QTableWidget):
         self.add_span_row(time_, False)
         for i, cell in enumerate(row_li):
             self.setCellWidget(self.__row_count-1,i+1, TableLabel(cell))
+
     def add_widgets_row(self, widgets_row):
         self.__row_count+=1
         self.setRowCount(self.__row_count)
         for i, cell in enumerate(widgets_row):
             self.setCellWidget(self.__row_count-1,i, cell)
+
     def add_row(self, row_li):
         self.__row_count+=1
         self.setRowCount(self.__row_count)

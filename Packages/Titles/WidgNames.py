@@ -38,7 +38,7 @@ src_widg = u'Источник данных '
 save_widg = u'Сохранить сессию '
 save_dialog = u'Сохранить сессию как...'
 tree_header = u"Набор экспликаций А"
-event_table_head = [u'Время',u'Событие']
+event_table_head = [u'Время', u'Событие']
 control_table_head = [u'Таблица', u'Поле', u'Условие выборки', u'Пояснение']
 convert_table_head = [u'Номер доли', u'Условие выборки', u'Сообщение']
 

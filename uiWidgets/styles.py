@@ -1,18 +1,20 @@
 from .theme import apply_theme
 
 primary_button = apply_theme("""
-    color: white;
-    margin: 14px 20px;
-    margin-right: 0;
-    padding: 8px; 
-    background-color: {color.primary_green};
-    border-radius: 5%;
-    font-size: 13px;
-    font-weight: bold;
+    QPushButton {
+        color: white;
+        margin: 14px 20px;
+        margin-right: 0;
+        padding: 8px; 
+        background-color: {color.primary_green};
+        border-radius: 5%;
+        font-size: 13px;
+        font-weight: bold;
+    }
     QToolTip { 
-       background-color: black; 
-       color: white; 
-       border: black solid 1px
+       background-color: white; 
+       color: {color.dark_gray}; 
+       border: {color.primary_green} solid 2px;
    }
 """)
 

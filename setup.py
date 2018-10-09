@@ -31,5 +31,5 @@ setup(
                     "unbuffered": True,
                     "optimize": 2,
     }},
-    zipfile=None,
+    zipfile=None, requires=['PyQt5']
 )
