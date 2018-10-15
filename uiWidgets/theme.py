@@ -1,4 +1,8 @@
 class Color:
+    primary_light = 'white'
+    secondary_light = '#f3f3f4'
+    background_light = '#cacad3'
+
     primary_green = '#00BA4A'
     secondary_green = '#115f50'
     primary_blue = '#07c'

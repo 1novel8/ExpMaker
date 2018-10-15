@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QPushButton, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QEvent
 from .styles import primary_button
 
 
@@ -12,4 +12,17 @@ class PrimaryButton(QPushButton):
         self.setText(title)
         self.setHidden(hidden)
         self.clicked.connect(on_click)
+        self.installEventFilter(self)
 
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.HoverEnter:
+            effect = QGraphicsDropShadowEffect(self)
+            effect.setOffset(0, 0)
+            effect.setBlurRadius(20)
+            self.setGraphicsEffect(effect)
+            return True
+        if event.type() == QEvent.HoverLeave:
+            effect = QGraphicsDropShadowEffect(self)
+            effect.setOffset(0, 0)
+            self.setGraphicsEffect(effect)
+        return False

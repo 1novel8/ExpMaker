@@ -639,6 +639,7 @@ class MainWindow(QtGui.QMainWindow):
         self.event_table = TableWidget(WidgNames.event_table_head, self.central_widget)
         self.event_table.show()
         self.event_table.table.set_event_ss()
+
         self.control_table = TableWidget(WidgNames.control_table_head, self.central_widget)
         self.convert_table = TableWidget(WidgNames.convert_table_head, self.central_widget)
         self.treeView = QtGui.QTreeView()
@@ -980,9 +981,6 @@ class MainWindow(QtGui.QMainWindow):
 
 
         btn = QtGui.QPushButton(u"Сохранить изменения", self.xls_window.main_frame)
-        # btn.setStyleSheet(u'background-color: %s;color: white; border-radius: 5%; padding:0px'%color1)
-        # btn.setFixedHeight(90)
-        # btn.setFixedWidth(90)
         self.xls_window.add_widget(block_1, 0,0,10,6)
         self.xls_window.add_widget(block_2, 10,0,4,6)
         self.xls_window.add_widget(block_3, 14,0,4,6)

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QTextEdit
 from PyQt5.QtCore import Qt
 from .buttons import PrimaryButton
+from .styles import default_table
 import time
 
 
@@ -41,11 +42,10 @@ class TableWidget(QWidget):
         self.table.setAutoScroll(True)
 
         # TODO: move to separate styles
-        header_css = u'border-radius: 1px; border: 1px dashed blue;'
-        self.table.horizontalHeader().setStyleSheet(header_css)
-        self.table.verticalHeader().setStyleSheet(header_css + u'padding:-2px')
-        self.table.setStyleSheet(u'alternate-background-color: #ADADAD; background-color: silver;'
-                           u'border-radius: 10%; border: 1px solid #1E54B1; color: #1E54B1; font-size: 13px')
+        # header_css = u'border-radius: 1px; border: 1px dashed blue;'
+        # self.table.horizontalHeader().setStyleSheet(header_css)
+        # self.table.verticalHeader().setStyleSheet(header_css + u'padding:-2px')
+        self.table.setStyleSheet(default_table)
 
     def add_span_row(self, text, span=True):
         self.__row_count += 1
