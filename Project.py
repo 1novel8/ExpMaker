@@ -574,74 +574,74 @@ class ColoredBlock(QtGui.QFrame):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.setWindowTitle(WidgNames.main_name)
-        self.resize(1300, 640)
-        self.central_widget = QtGui.QFrame(self)
-        self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
-        self.gridLayout = QtGui.QGridLayout(self.central_widget)
-        self.logo_img = QtGui.QLabel(self.central_widget)
-        self.logo_img.setGeometry(10, 10, 100, 100)
-        self.logo_img.setPixmap(QtGui.QPixmap(u'%s\\Images\\logo.png' % project_dir))
-        self.logo_img.setMaximumHeight(40)
-        self.logo_img.setMaximumWidth(40)
-        self.logo_img.setScaledContents(True)
-
-        self.logo_title_lbl = QtGui.QLabel(WidgNames.main_logo_title, self.central_widget)
-        self.logo_widg = QtGui.QFrame(self.central_widget)
-
-        self.logo_box = QtGui.QGridLayout(self.logo_widg)
-        self.logo_box.addWidget(self.logo_img, 0,0,2,2)
-        self.logo_box.addWidget(self.logo_title_lbl,0,2,1,100)
-        self.logo_box.addWidget(QtGui.QLabel(''), 1,2,1,100)
-        self.gridLayout.addWidget(self.logo_widg, 0, 0, 1, 11)
-
-        self.l1 = QtGui.QLabel(WidgNames.l1_title,self.central_widget)
-        self.l2 = QtGui.QLabel(WidgNames.l2_title,self.central_widget)
-        self.l3 = QtGui.QLabel(WidgNames.l3_title,self.central_widget)
-        self.l4 = QtGui.QLabel(WidgNames.l4_title,self.central_widget)
-        self.sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        self.control_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
-        self.control_btn.setToolTip(ToolTip.btn_control)
-        self.control_btn.setSizePolicy(self.sizePolicy)
-        self.convert_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
-        self.convert_btn.setToolTip(ToolTip.btn_convert)
-        self.convert_btn.setSizePolicy(self.sizePolicy)
-        self.exp_a_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
-        self.exp_a_btn.setToolTip(ToolTip.btn_exp_a)
-        self.exp_a_btn.setSizePolicy(self.sizePolicy)
-        self.btn_a_all = QtGui.QPushButton(WidgNames.btn_a_sv,self.central_widget)
-        self.btn_a_all.setToolTip(ToolTip.btn_a_sv)
-        self.btn_a_tree = QtGui.QPushButton(WidgNames.btn_a_ch,self.central_widget)
-        self.btn_a_tree.setToolTip(ToolTip.btn_a_ch)
-        self.btn_a_tree.setSizePolicy(self.sizePolicy)
-        self.btn_a_all.setSizePolicy(self.sizePolicy)
-        self.btn_a_all.setHidden(True)
-        self.btn_a_tree.setHidden(True)
-        self.exp_b_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
-        self.exp_b_btn.setToolTip(ToolTip.btn_exp_b)
-        self.exp_b_btn.setSizePolicy(self.sizePolicy)
-        self.gridLayout.addWidget(self.l1, 2, 0, 1, 1)
-        self.gridLayout.addWidget(self.l2, 4, 0, 1, 1)
-        self.gridLayout.addWidget(self.l3, 5, 0, 1, 1)
-        self.gridLayout.addWidget(self.l4, 8, 0, 1, 1)
-        self.gridLayout.addWidget(self.control_btn, 2, 1, 1, 1)
-        self.gridLayout.addWidget(self.convert_btn, 4, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_a_btn, 5, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_tree,  5, 1, 1, 1)
-        self.gridLayout.addWidget(self.btn_a_all,  6, 1, 1, 1)
-        self.gridLayout.addWidget(self.exp_b_btn, 8, 1, 1, 1)
-
-
-
-
-
-        self.event_table = TableWidget(WidgNames.event_table_head, self.central_widget)
-        self.event_table.show()
-        self.event_table.table.set_event_ss()
-
-        self.control_table = TableWidget(WidgNames.control_table_head, self.central_widget)
-        self.convert_table = TableWidget(WidgNames.convert_table_head, self.central_widget)
+        # self.setWindowTitle(WidgNames.main_name)
+        # self.resize(1300, 640)
+        # self.central_widget = QtGui.QFrame(self)
+        # self.central_widget.setFrameShape(QtGui.QFrame.StyledPanel)
+        # self.central_widget.setFrameShadow(QtGui.QFrame.Raised)
+        # self.gridLayout = QtGui.QGridLayout(self.central_widget)
+        # self.logo_img = QtGui.QLabel(self.central_widget)
+        # self.logo_img.setGeometry(10, 10, 100, 100)
+        # self.logo_img.setPixmap(QtGui.QPixmap(u'%s\\Images\\logo.png' % project_dir))
+        # self.logo_img.setMaximumHeight(40)
+        # self.logo_img.setMaximumWidth(40)
+        # self.logo_img.setScaledContents(True)
+        #
+        # self.logo_title_lbl = QtGui.QLabel(WidgNames.main_logo_title, self.central_widget)
+        # self.logo_widg = QtGui.QFrame(self.central_widget)
+        #
+        # self.logo_box = QtGui.QGridLayout(self.logo_widg)
+        # self.logo_box.addWidget(self.logo_img, 0,0,2,2)
+        # self.logo_box.addWidget(self.logo_title_lbl,0,2,1,100)
+        # self.logo_box.addWidget(QtGui.QLabel(''), 1,2,1,100)
+        # self.gridLayout.addWidget(self.logo_widg, 0, 0, 1, 11)
+        #
+        # self.l1 = QtGui.QLabel(WidgNames.l1_title,self.central_widget)
+        # self.l2 = QtGui.QLabel(WidgNames.l2_title,self.central_widget)
+        # self.l3 = QtGui.QLabel(WidgNames.l3_title,self.central_widget)
+        # self.l4 = QtGui.QLabel(WidgNames.l4_title,self.central_widget)
+        # self.sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        # self.control_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
+        # self.control_btn.setToolTip(ToolTip.btn_control)
+        # self.control_btn.setSizePolicy(self.sizePolicy)
+        # self.convert_btn = QtGui.QPushButton(WidgNames.btn_control,self.central_widget)
+        # self.convert_btn.setToolTip(ToolTip.btn_convert)
+        # self.convert_btn.setSizePolicy(self.sizePolicy)
+        # self.exp_a_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
+        # self.exp_a_btn.setToolTip(ToolTip.btn_exp_a)
+        # self.exp_a_btn.setSizePolicy(self.sizePolicy)
+        # self.btn_a_all = QtGui.QPushButton(WidgNames.btn_a_sv,self.central_widget)
+        # self.btn_a_all.setToolTip(ToolTip.btn_a_sv)
+        # self.btn_a_tree = QtGui.QPushButton(WidgNames.btn_a_ch,self.central_widget)
+        # self.btn_a_tree.setToolTip(ToolTip.btn_a_ch)
+        # self.btn_a_tree.setSizePolicy(self.sizePolicy)
+        # self.btn_a_all.setSizePolicy(self.sizePolicy)
+        # self.btn_a_all.setHidden(True)
+        # self.btn_a_tree.setHidden(True)
+        # self.exp_b_btn = QtGui.QPushButton(WidgNames.btn_exp,self.central_widget)
+        # self.exp_b_btn.setToolTip(ToolTip.btn_exp_b)
+        # self.exp_b_btn.setSizePolicy(self.sizePolicy)
+        # self.gridLayout.addWidget(self.l1, 2, 0, 1, 1)
+        # self.gridLayout.addWidget(self.l2, 4, 0, 1, 1)
+        # self.gridLayout.addWidget(self.l3, 5, 0, 1, 1)
+        # self.gridLayout.addWidget(self.l4, 8, 0, 1, 1)
+        # self.gridLayout.addWidget(self.control_btn, 2, 1, 1, 1)
+        # self.gridLayout.addWidget(self.convert_btn, 4, 1, 1, 1)
+        # self.gridLayout.addWidget(self.exp_a_btn, 5, 1, 1, 1)
+        # self.gridLayout.addWidget(self.btn_a_tree,  5, 1, 1, 1)
+        # self.gridLayout.addWidget(self.btn_a_all,  6, 1, 1, 1)
+        # self.gridLayout.addWidget(self.exp_b_btn, 8, 1, 1, 1)
+        #
+        #
+        #
+        #
+        #
+        # self.event_table = TableWidget(WidgNames.event_table_head, self.central_widget)
+        # self.event_table.show()
+        # self.event_table.table.set_event_ss()
+        #
+        # self.control_table = TableWidget(WidgNames.control_table_head, self.central_widget)
+        # self.convert_table = TableWidget(WidgNames.convert_table_head, self.central_widget)
         self.treeView = QtGui.QTreeView()
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -674,11 +674,11 @@ class MainWindow(QtGui.QMainWindow):
         self.expa_box.addWidget(self.treeView,1,0,21,21)
         self.expa_box.addWidget(self.group_box,0,5,1,16)
 
-        self.splitter = QtGui.QSplitter(self)
-        self.splitter.addWidget(self.expa_widget)
-        self.splitter.addWidget(self.control_table)
-        self.splitter.addWidget(self.convert_table)
-        self.splitter.addWidget(self.event_table)
+        # self.splitter = QtGui.QSplitter(self)
+        # self.splitter.addWidget(self.expa_widget)
+        # self.splitter.addWidget(self.control_table)
+        # self.splitter.addWidget(self.convert_table)
+        # self.splitter.addWidget(self.event_table)
 
         self.tree_text_widg = QtGui.QWidget()
         self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
@@ -686,9 +686,9 @@ class MainWindow(QtGui.QMainWindow):
 
         self.gridLayout.addWidget(self.tree_text_widg, 1, 2, 15, 11)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
-        self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
-        self.setCentralWidget(self.central_widget)
-        self.setFocus()
+        # self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
+        # self.setCentralWidget(self.central_widget)
+        # self.setFocus()
         self.set_menu_properties()
         self.hide_props()
         self.sprav_holder = None
@@ -1797,94 +1797,82 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.critical(self, WidgNames.error, u"%s" % err_text,u'Закрыть')
 
 
-class ExportFrame(QtGui.QFrame):
-    def __init__(self, parent = None):
-        QtGui.QFrame.__init__(self, parent)
-        self.color = u'#D3D120'
-        self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
-        self.rbtn_xls = QtGui.QRadioButton(u'*.xls',self)
-        self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\xls.ico' % project_dir))
-        self.rbtn_xls.setChecked(True)
-        self.rbtn_xls.setFont(QtGui.QFont('Verdana',10))
-        self.rbtn_mdb = QtGui.QRadioButton(u'*.mdb',self)
-        self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\mdb.ico' % project_dir))
-        self.rbtn_mdb.setFont(QtGui.QFont('Verdana',10))
-        self.rbtn_style = u'background-color: white; color: green;' \
-                          u' border-top-right-radius: 3%;' \
-                          u'border-bottom-left-radius: 3%; padding: 3px;' \
-                          u'border: 2px solid' + self.color
-        self.lbl_style = u'background-color: #49586B; color: white;' \
-                          u'border-top-left-radius: 23%;' \
-                          u'border-top-right-radius: 23%;' \
-                          u'border-bottom-left-radius: 23%;' \
-                          u'border-bottom-right-radius: 3%;' \
-                          u'padding-left: 10px;' \
-                          u'border: 2px solid '+self.color
-        self.lbl = QtGui.QLabel(u'Экспорт \n данных', self)
-        # self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
-        self.lbl.setFont(QtGui.QFont('Segoe Print',10))
-        self.e_src_widget = SrcFrame(self.color)
-        self.box = QtGui.QGridLayout(self)
-        self.box.addWidget(self.rbtn_xls, 0, 1, 1, 1)
-        self.box.addWidget(self.rbtn_mdb, 1, 1, 1, 1)
-        self.box.addWidget(self.lbl, 0, 0, 2, 1)
-        self.box.addWidget(self.e_src_widget, 2, 0, 1, 2)
-        self.rbtn_xls.setStyleSheet(self.rbtn_style)
-        self.rbtn_mdb.setStyleSheet(self.rbtn_style)
-        self.lbl.setStyleSheet(self.lbl_style)
+# class ExportFrame(QtGui.QFrame):
+#     def __init__(self, parent = None):
+#         QtGui.QFrame.__init__(self, parent)
+#         self.color = u'#D3D120'
+#         self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
+#         self.rbtn_xls = QtGui.QRadioButton(u'*.xls',self)
+#         self.rbtn_xls.setIcon(QtGui.QIcon(u'%s\\Images\\xls.ico' % project_dir))
+#         self.rbtn_xls.setChecked(True)
+#         self.rbtn_xls.setFont(QtGui.QFont('Verdana',10))
+#         self.rbtn_mdb = QtGui.QRadioButton(u'*.mdb',self)
+#         self.rbtn_mdb.setIcon(QtGui.QIcon(u'%s\\Images\\mdb.ico' % project_dir))
+#         self.rbtn_mdb.setFont(QtGui.QFont('Verdana',10))
+#         self.rbtn_style = u'background-color: white; color: green;' \
+#                           u' border-top-right-radius: 3%;' \
+#                           u'border-bottom-left-radius: 3%; padding: 3px;' \
+#                           u'border: 2px solid' + self.color
+#         self.lbl_style = u'background-color: #49586B; color: white;' \
+#                           u'border-top-left-radius: 23%;' \
+#                           u'border-top-right-radius: 23%;' \
+#                           u'border-bottom-left-radius: 23%;' \
+#                           u'border-bottom-right-radius: 3%;' \
+#                           u'padding-left: 10px;' \
+#                           u'border: 2px solid '+self.color
+#         self.lbl = QtGui.QLabel(u'Экспорт \n данных', self)
+#         # self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
+#         self.lbl.setFont(QtGui.QFont('Segoe Print',10))
+#         self.e_src_widget = SrcFrame(self.color)
+#         self.box = QtGui.QGridLayout(self)
+#         self.box.addWidget(self.rbtn_xls, 0, 1, 1, 1)
+#         self.box.addWidget(self.rbtn_mdb, 1, 1, 1, 1)
+#         self.box.addWidget(self.lbl, 0, 0, 2, 1)
+#         self.box.addWidget(self.e_src_widget, 2, 0, 1, 2)
+#         self.rbtn_xls.setStyleSheet(self.rbtn_style)
+#         self.rbtn_mdb.setStyleSheet(self.rbtn_style)
+#         self.lbl.setStyleSheet(self.lbl_style)
 
 
-class SrcFrame(QtGui.QFrame):
-    def __init__(self, border_color = u'#00BA4A',parent = None):
-        QtGui.QFrame.__init__(self, parent)
-        self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
-        self.h_box = QtGui.QHBoxLayout(self)
-        self.btn = QtGui.QToolButton(self)
-        self.btn.setText(u'...')
-        self.btn.setStyleSheet(u'background-color: white ; border-radius: 8% ; border: 1px solid '+ border_color)
-        self.btn.setAutoRaise(True)
-        self.lbl = QtGui.QLabel(u' ', self)
-        self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
-        self.lbl.setFont(QtGui.QFont('Segoe Print',9))
-        self.lbl.setAlignment(QtCore.Qt.AlignRight)
-        self.h_box.addWidget(self.lbl)
-        self.h_box.addWidget(self.btn)
-
-
-    def change_border_color(self, color):
-        self.btn.setStyleSheet(u'border: 1px solid %s;' % color)
-        self.lbl.setStyleSheet(u'border: 2px solid %s;' % color)
-
-    def set_lbl_text(self, text, collapse_len = 40):
-        """
-        В строке text делается перенос относительно \ если длина превышает 40 символов
-        """
-        path_parts = text.split(u'\\')
-        text = path_parts.pop(0)
-        if path_parts:
-            temp_text = u''
-            for part in path_parts:
-                part = u'\\%s' % part
-                if len(part) + len(temp_text) >collapse_len:
-                    text+=u'%s\n'% temp_text
-                    temp_text = part
-                else:
-                    temp_text+=part
-            text+=temp_text
-        # path_parts = text.split(u'\\')
-        # path_parts = map(lambda x: x+'\\', path_parts)
-        # if path_parts:
-        #     text = path_parts[0]
-        #     temp_text = ''
-        #     for part in path_parts[1:]:
-        #         if len(part)+len(temp_text)<collapse_len:
-        #             temp_text+=part
-        #         else:
-        #             text+=temp_text+'\n'
-        #             temp_text = part
-        #     text+=temp_text[:2]
-        self.lbl.setText(text)
-        self.lbl.repaint()
+# class SrcFrame(QtGui.QFrame):
+#     def __init__(self, border_color = u'#00BA4A',parent = None):
+#         QtGui.QFrame.__init__(self, parent)
+#         self.setStyleSheet(u'background-color: #959BA8; border-radius: 15%;')
+#         self.h_box = QtGui.QHBoxLayout(self)
+#         self.btn = QtGui.QToolButton(self)
+#         self.btn.setText(u'...')
+#         self.btn.setStyleSheet(u'background-color: white ; border-radius: 8% ; border: 1px solid '+ border_color)
+#         self.btn.setAutoRaise(True)
+#         self.lbl = QtGui.QLabel(u' ', self)
+#         self.lbl.setStyleSheet(u'color: white; background-color: #49586B; border-radius: 8%; border: 2px solid' + border_color)
+#         self.lbl.setFont(QtGui.QFont('Segoe Print',9))
+#         self.lbl.setAlignment(QtCore.Qt.AlignRight)
+#         self.h_box.addWidget(self.lbl)
+#         self.h_box.addWidget(self.btn)
+#
+#
+#     def change_border_color(self, color):
+#         self.btn.setStyleSheet(u'border: 1px solid %s;' % color)
+#         self.lbl.setStyleSheet(u'border: 2px solid %s;' % color)
+#
+#     def set_lbl_text(self, text, collapse_len = 40):
+#         """
+#         В строке text делается перенос относительно \ если длина превышает 40 символов
+#         """
+#         path_parts = text.split(u'\\')
+#         text = path_parts.pop(0)
+#         if path_parts:
+#             temp_text = u''
+#             for part in path_parts:
+#                 part = u'\\%s' % part
+#                 if len(part) + len(temp_text) >collapse_len:
+#                     text+=u'%s\n'% temp_text
+#                     temp_text = part
+#                 else:
+#                     temp_text+=part
+#             text+=temp_text
+#         self.lbl.setText(text)
+#         self.lbl.repaint()
 
 class CombBox(QtGui.QComboBox):
     def __init__(self, parent = None, data = [], width = 60):
@@ -1958,113 +1946,113 @@ class GroupBox(QtGui.QFrame):
     def get_second_index(self):
         return self.second_cmb.currentIndex()
 
-class Table(QtGui.QTableWidget):
-    def __init__(self, header_text_li, parent = None):
-        QtGui.QTableWidget.__init__(self, parent)
-        self.__row_count = 0
-        # qsize =QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        # self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        # self.horizontalHeader().setOffsetToSectionPosition(0)
-        # self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+20)
-        self.horizontalHeader().setCascadingSectionResizes(True)
-        self.verticalHeader().setCascadingSectionResizes(True)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setMinimumSectionSize(50)
-        header_css = u'border-radius: 1px; border: 1px dashed blue;'
-        self.horizontalHeader().setStyleSheet(header_css)
-        self.verticalHeader().setStyleSheet(header_css+u'padding:-2px')
-        self.setColumnCount(len(header_text_li))
-        self.setHorizontalHeaderLabels(header_text_li)
-        self.setAlternatingRowColors(True)
-        self.setAutoScroll(True)
-        self.setStyleSheet(u'alternate-background-color: #ADADAD; background-color: silver;'
-                           u'border-radius: 10%; border: 1px solid #1E54B1; color: #1E54B1; font-size: 13px')
-    def set_event_ss(self):
-        self.setAlternatingRowColors(False)
-        self.setStyleSheet(u'alternate-background-color: #0688FF; background-color: #1A1A1B;'
-                           u'border-radius: 10%; border: 1px solid #1E54B1; color: #1E54B1')
-    def add_span_row(self, text, span = True):
-        self.__row_count+=1
-        self.setRowCount(self.__row_count)
-        time_label = TableLabel(text)
-        time_label.setStyleSheet(u'color: #D3D3D3; background-color: #323C3D;font-size: 14px;'
-                           u'border-top-left-radius: 30%; padding-right: 15px;padding-left: 15px')
-        self.setCellWidget(self.__row_count-1,0, time_label)
-        if span:
-            time_label.setAlignment(QtCore.Qt.AlignCenter)
-            time_label.setMinimumHeight(20)
-            self.setSpan(self.__row_count-1,0,1,self.columnCount())
+# class Table(QtGui.QTableWidget):
+#     def __init__(self, header_text_li, parent = None):
+#         QtGui.QTableWidget.__init__(self, parent)
+#         self.__row_count = 0
+#         # qsize =QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+#         # self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+#         # self.horizontalHeader().setOffsetToSectionPosition(0)
+#         # self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+20)
+#         self.horizontalHeader().setCascadingSectionResizes(True)
+#         self.verticalHeader().setCascadingSectionResizes(True)
+#         self.horizontalHeader().setStretchLastSection(True)
+#         self.horizontalHeader().setMinimumSectionSize(50)
+#         header_css = u'border-radius: 1px; border: 1px dashed blue;'
+#         self.horizontalHeader().setStyleSheet(header_css)
+#         self.verticalHeader().setStyleSheet(header_css+u'padding:-2px')
+#         self.setColumnCount(len(header_text_li))
+#         self.setHorizontalHeaderLabels(header_text_li)
+#         self.setAlternatingRowColors(True)
+#         self.setAutoScroll(True)
+#         self.setStyleSheet(u'alternate-background-color: #ADADAD; background-color: silver;'
+#                            u'border-radius: 10%; border: 1px solid #1E54B1; color: #1E54B1; font-size: 13px')
+#     def set_event_ss(self):
+#         self.setAlternatingRowColors(False)
+#         self.setStyleSheet(u'alternate-background-color: #0688FF; background-color: #1A1A1B;'
+#                            u'border-radius: 10%; border: 1px solid #1E54B1; color: #1E54B1')
+#     def add_span_row(self, text, span = True):
+#         self.__row_count+=1
+#         self.setRowCount(self.__row_count)
+#         time_label = TableLabel(text)
+#         time_label.setStyleSheet(u'color: #D3D3D3; background-color: #323C3D;font-size: 14px;'
+#                            u'border-top-left-radius: 30%; padding-right: 15px;padding-left: 15px')
+#         self.setCellWidget(self.__row_count-1,0, time_label)
+#         if span:
+#             time_label.setAlignment(QtCore.Qt.AlignCenter)
+#             time_label.setMinimumHeight(20)
+#             self.setSpan(self.__row_count-1,0,1,self.columnCount())
+#
+#     def add_action_row(self, row_li, time_ = True):
+#         if time_:
+#             time_ = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
+#         self.add_span_row(time_, False)
+#         for i, cell in enumerate(row_li):
+#             self.setCellWidget(self.__row_count-1,i+1, TableLabel(cell))
+#
+#     def add_widgets_row(self, widgets_row):
+#         self.__row_count+=1
+#         self.setRowCount(self.__row_count)
+#         for i, cell in enumerate(widgets_row):
+#             self.setCellWidget(self.__row_count-1,i, cell)
+#
+#     def add_row(self, row_li):
+#         self.__row_count+=1
+#         self.setRowCount(self.__row_count)
+#         for i, cell in enumerate(row_li):
+#             self.setItem(self.__row_count-1,i, QtGui.QTableWidgetItem(cell))
+#
+#     def clear_all(self):
+#         self.__row_count = 0
+#         # self.clearContents()
+#         self.reset()
+#         self.clearSpans()
+#         self.setRowCount(1)
+#
 
-    def add_action_row(self, row_li, time_ = True):
-        if time_:
-            time_ = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
-        self.add_span_row(time_, False)
-        for i, cell in enumerate(row_li):
-            self.setCellWidget(self.__row_count-1,i+1, TableLabel(cell))
+# class SettingsTable(Table):
+#     def __init__(self, header_li, parent = None):
+#         Table.__init__(self, header_li, parent)
+#         self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+80)
+#         self.horizontalHeader().setResizeMode(1, True)
+#         self.verticalHeader().setHidden(True)
+#         self.setMinimumWidth(40)
 
-    def add_widgets_row(self, widgets_row):
-        self.__row_count+=1
-        self.setRowCount(self.__row_count)
-        for i, cell in enumerate(widgets_row):
-            self.setCellWidget(self.__row_count-1,i, cell)
-
-    def add_row(self, row_li):
-        self.__row_count+=1
-        self.setRowCount(self.__row_count)
-        for i, cell in enumerate(row_li):
-            self.setItem(self.__row_count-1,i, QtGui.QTableWidgetItem(cell))
-
-    def clear_all(self):
-        self.__row_count = 0
-        # self.clearContents()
-        self.reset()
-        self.clearSpans()
-        self.setRowCount(1)
-
-
-class SettingsTable(Table):
-    def __init__(self, header_li, parent = None):
-        Table.__init__(self, header_li, parent)
-        self.horizontalHeader().resizeSection(0, self.horizontalHeader().sectionSize(0)+80)
-        self.horizontalHeader().setResizeMode(1, True)
-        self.verticalHeader().setHidden(True)
-        self.setMinimumWidth(40)
-
-class TableLabel(QtGui.QTextEdit):
-    def __init__(self, data):
-        QtGui.QTextEdit.__init__(self)
-        self.setText(data)
-        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-        self.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
-        self.setMinimumHeight(40)
-        self.setMinimumWidth(200)
-        self.setStyleSheet(u'color: #AAAAAA; background-color: #22232F; border: 1.5px solid #C10000;'
-                           u'border-bottom-right-radius: 30%; font-size: 14px;'
-                           u' padding-right: 10px;padding-left: 15px')
-
-class StyledButton(QtGui.QPushButton):
-    def __init__(self, title, parent = None):
-        QtGui.QPushButton.__init__(self,title, parent)
-        self.setMaximumHeight(30)
-        self.setStyleSheet(u'background-color: #A0A0A0; border: 1.5px dotted #C10000; margin:2px;'
-                           u'border-top-left-radius: 20%;border-top-right-radius: 20%; padding:0px;'
-                           u'border-bottom-left-radius: 1%;border-bottom-right-radius: 1%;'
-                           u'padding-right: 20px; padding-left: 20px;font-size: 12px;')
-
-class TableWidget(QtGui.QWidget):
-    def __init__(self, title, parent = None, with_clear = True):
-        QtGui.QWidget.__init__(self, parent)
-        self.table = Table(title, parent)
-        self.box = QtGui.QGridLayout(self)
-        self.box.addWidget(self.table,0,0,21,21)
-        if with_clear:
-            self.clear_btn = StyledButton(WidgNames.btn_clear, parent)
-            self.box.addWidget(self.clear_btn,19,10,2,2)
-            self.connect(self.clear_btn, QtCore.SIGNAL(u"clicked()"), self.table.clear_all)
-            self.hide()
-
-    def clear_all(self):
-        self.table.clear_all()
+# class TableLabel(QtGui.QTextEdit):
+#     def __init__(self, data):
+#         QtGui.QTextEdit.__init__(self)
+#         self.setText(data)
+#         self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+#         self.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+#         self.setMinimumHeight(40)
+#         self.setMinimumWidth(200)
+#         self.setStyleSheet(u'color: #AAAAAA; background-color: #22232F; border: 1.5px solid #C10000;'
+#                            u'border-bottom-right-radius: 30%; font-size: 14px;'
+#                            u' padding-right: 10px;padding-left: 15px')
+#
+# class StyledButton(QtGui.QPushButton):
+#     def __init__(self, title, parent = None):
+#         QtGui.QPushButton.__init__(self,title, parent)
+#         self.setMaximumHeight(30)
+#         self.setStyleSheet(u'background-color: #A0A0A0; border: 1.5px dotted #C10000; margin:2px;'
+#                            u'border-top-left-radius: 20%;border-top-right-radius: 20%; padding:0px;'
+#                            u'border-bottom-left-radius: 1%;border-bottom-right-radius: 1%;'
+#                            u'padding-right: 20px; padding-left: 20px;font-size: 12px;')
+#
+# class TableWidget(QtGui.QWidget):
+#     def __init__(self, title, parent = None, with_clear = True):
+#         QtGui.QWidget.__init__(self, parent)
+#         self.table = Table(title, parent)
+#         self.box = QtGui.QGridLayout(self)
+#         self.box.addWidget(self.table,0,0,21,21)
+#         if with_clear:
+#             self.clear_btn = StyledButton(WidgNames.btn_clear, parent)
+#             self.box.addWidget(self.clear_btn,19,10,2,2)
+#             self.connect(self.clear_btn, QtCore.SIGNAL(u"clicked()"), self.table.clear_all)
+#             self.hide()
+#
+#     def clear_all(self):
+#         self.table.clear_all()
 
 
 

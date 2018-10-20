@@ -10,6 +10,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 from uiWidgets import TableWidget, SrcFrame, PrimaryButton, LoadingLabel, ProgressBar
 from uiCustomWidgets import LogoFrame, ControlsFrame
+from menu import MenuBar, MenuConf
 from locales import titleLocales
 from uiWidgets.styles import splitter as splitter_styles
 project_dir = getcwd()
@@ -29,11 +30,23 @@ class ExpWindow(QMainWindow):
         self.convert_table = TableWidget(central_widget, headers=titleLocales.convert_table_head)
         self.src_frame = SrcFrame(self, title=titleLocales.src_frame_default, on_select=self.on_file_opened)
         self.init_widgets_positions(central_widget)
+        self.init_menu_bar()
+
         self.setWindowIcon(QIcon(path.join(project_dir, 'Images\exp.png')))
         self.__from_session = False
 
         # self.media_src_widget = SrcFrame(self, title="Please, select source file", on_select=self.on_file_selected)
         # main_grid.addWidget(self.media_src_widget, 1, 1, QtCore.Qt.AlignLeft)
+
+    def init_menu_bar(self):
+        menu = MenuBar(self)
+        file_section_key = menu.create_section(titleLocales.menu_1, 1)
+        sprav_section_key = menu.create_section(titleLocales.menu_2, 2)
+        settings_section_key = menu.create_section(titleLocales.menu_3, 3)
+        menu.init_sections()
+        menu.add_section_action(file_section_key,
+                                self.src_frame.click_file_selection,
+                                MenuConf.open_file)
 
     def init_widgets_positions(self, central_widget):
         main_grid = QGridLayout(central_widget)
@@ -54,7 +67,6 @@ class ExpWindow(QMainWindow):
         # splitter.addWidget(self.convert_table)
         splitter.addWidget(self.log_table)
         return splitter
-
 
     def on_file_opened(self, file_path):
         print(file_path)

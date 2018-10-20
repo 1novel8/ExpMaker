@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QSizePolicy
 from locales import titleLocales, tooltipsLocales
 from uiWidgets import PrimaryButton
+from uiWidgets.styles import title_label
 
 
 class ControlsFrame(QFrame):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.exp_tree_initialized = False
-
         self.mainSizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.controls_box = QGridLayout(parent)
         self.control_lbl = QLabel(titleLocales.control_lbl, self)
@@ -23,6 +23,7 @@ class ControlsFrame(QFrame):
         # self.exp_single_btn.setHidden(True)
         self._set_size_policy()
         self._set_tooltips()
+        self._set_styles()
         self.controls_box = QGridLayout(self)
         self._locate_components()
 
@@ -51,3 +52,9 @@ class ControlsFrame(QFrame):
         # self.exp_single_btn.setSizePolicy(self.mainSizePolicy)
         # self.exp_sv_btn.setSizePolicy(self.mainSizePolicy)
         # self.exp_b_btn.setSizePolicy(self.mainSizePolicy)
+
+    def _set_styles(self):
+        self.control_lbl.setStyleSheet(title_label)
+        self.convert_lbl.setStyleSheet(title_label)
+        self.exp_a_lbl.setStyleSheet(title_label)
+        self.exp_b_lbl.setStyleSheet(title_label)

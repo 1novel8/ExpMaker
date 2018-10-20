@@ -43,8 +43,8 @@ default_table = apply_theme("""
 
 splitter = """
     QSplitter::handle:horizontal {
-        background: {color.primary_green};
-        border: 1px solid #777;
+        # background: {color.primary_green};
+        # border: 1px solid #777;
         width: 3px;
         margin-top: 2px;
         margin-bottom: 2px;
@@ -109,6 +109,7 @@ class SourceWidgetStyles:
     src_btn = """
         background-color: #00BA4A; 
         color: white;
+        padding: 5px;
         font-size: 15px;
         border-top-right-radius: 8%;
         border-bottom-right-radius: 8%;
