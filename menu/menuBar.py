@@ -51,13 +51,13 @@ class MenuBar:
         for key in self._sections.keys():
             self._sections[key].activate()
 
-    def add_section_action(self, section_key, click_handler, action_conf):
+    def add_section_action(self, section_key, action_conf, click_handler):
         """
         Adds action to section
         Section related to specified key should be activated
         :param section_key:
-        :param click_handler:
         :param action_conf: args for section initialization
+        :param click_handler:
         :return: None
         """
         if section_key not in self._sections:

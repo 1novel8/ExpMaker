@@ -4,15 +4,15 @@ __author__ = 'Alex Konkov'
 
 import sys
 from os import path, getcwd
-from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter)
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QCoreApplication
 from PyQt5.QtGui import QIcon
 from uiWidgets import TableWidget, SrcFrame, PrimaryButton, LoadingLabel, ProgressBar
 from uiCustomWidgets import LogoFrame, ControlsFrame
 from menu import MenuBar, MenuConf
 from locales import titleLocales
 from uiWidgets.styles import splitter as splitter_styles
+from constants import sprActions, settingsActions
 project_dir = getcwd()
 
 
@@ -44,9 +44,45 @@ class ExpWindow(QMainWindow):
         sprav_section_key = menu.create_section(titleLocales.menu_2, 2)
         settings_section_key = menu.create_section(titleLocales.menu_3, 3)
         menu.init_sections()
-        menu.add_section_action(file_section_key,
-                                self.src_frame.click_file_selection,
-                                MenuConf.open_file)
+        menu.add_section_action(
+            file_section_key, MenuConf.open_file,
+            self.src_frame.click_file_selection)
+        menu.add_section_action(
+            file_section_key, MenuConf.quit_app,
+            QCoreApplication.instance().quit)
+        menu.add_section_action(
+            sprav_section_key, MenuConf.spr_default,
+            lambda x: self.run_sprav_action(sprActions.SET_DEFAULT))
+        menu.add_section_action(
+            sprav_section_key, MenuConf.spr_pkl,
+            lambda x: self.run_sprav_action(sprActions.CHOOSE_PKL))
+        menu.add_section_action(
+            sprav_section_key, MenuConf.spr_mdb,
+            lambda x: self.run_sprav_action(sprActions.CHOOSE_MDB))
+        menu.add_section_action(
+            sprav_section_key, MenuConf.spr_save,
+            lambda x: self.run_sprav_action(sprActions.SAVE))
+        menu.add_section_action(
+            sprav_section_key, MenuConf.spr_info,
+            lambda x: self.run_sprav_action(sprActions.INFO))
+        menu.add_section_action(
+            settings_section_key, MenuConf.settings_xls,
+            lambda x: self.run_sprav_action(settingsActions.SHOW_XLS))
+        menu.add_section_action(
+            settings_section_key, MenuConf.settings_balance,
+            lambda x: self.run_sprav_action(settingsActions.SHOW_BALANCE))
+        menu.add_section_action(
+            settings_section_key, MenuConf.settings_accuracy,
+            lambda x: self.run_sprav_action(settingsActions.SHOW_ACCURACY))
+        menu.add_section_action(
+            settings_section_key, MenuConf.settings_conditions,
+            lambda x: self.run_sprav_action(settingsActions.SHOW_CONDITIONS))
+
+    def run_sprav_action(self, action_type):
+        print(action_type)
+
+    def run_settings_action(self, action_type):
+        print(action_type)
 
     def init_widgets_positions(self, central_widget):
         main_grid = QGridLayout(central_widget)
@@ -70,6 +106,7 @@ class ExpWindow(QMainWindow):
 
     def on_file_opened(self, file_path):
         print(file_path)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
