@@ -7,12 +7,13 @@ from os import path, getcwd
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter)
 from PyQt5.QtCore import QSize, QCoreApplication
 from PyQt5.QtGui import QIcon
-from uiWidgets import TableWidget, SrcFrame, PrimaryButton, LoadingLabel, ProgressBar
+from uiWidgets import TableWidget, SrcFrame, LoadingLabel, ProgressBar
 from uiCustomWidgets import LogoFrame, ControlsFrame
 from menu import MenuBar, MenuConf
 from locales import titleLocales
 from uiWidgets.styles import splitter as splitter_styles
 from constants import sprActions, settingsActions
+from threads import BaseActivityThread
 project_dir = getcwd()
 
 
@@ -25,6 +26,7 @@ class ExpWindow(QMainWindow):
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         self.controls_frame = ControlsFrame(self)
+        self.controls_frame.hide()
         self.log_table = TableWidget(central_widget, headers=titleLocales.log_table_head)
         self.control_table = TableWidget(central_widget, headers=titleLocales.control_table_head)
         self.convert_table = TableWidget(central_widget, headers=titleLocales.convert_table_head)
@@ -35,8 +37,18 @@ class ExpWindow(QMainWindow):
         self.setWindowIcon(QIcon(path.join(project_dir, 'Images\exp.png')))
         self.__from_session = False
 
+        self.baseThread = BaseActivityThread(
+            self, error_handler=self.base_activity_error_handler,
+            success_handler=self.base_activity_success_handler)
+
         # self.media_src_widget = SrcFrame(self, title="Please, select source file", on_select=self.on_file_selected)
         # main_grid.addWidget(self.media_src_widget, 1, 1, QtCore.Qt.AlignLeft)
+
+    def base_activity_success_handler(self, result):
+        print(result)
+
+    def base_activity_error_handler(self, result):
+        print(result)
 
     def init_menu_bar(self):
         menu = MenuBar(self)

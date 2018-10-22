@@ -21,7 +21,6 @@ class ControlsFrame(QFrame):
         self.exp_b_btn = PrimaryButton(self, titleLocales.calc_btn)
         # self.exp_sv_btn.setHidden(True)
         # self.exp_single_btn.setHidden(True)
-        self._set_size_policy()
         self._set_tooltips()
         self._set_styles()
         self.controls_box = QGridLayout(self)
@@ -44,14 +43,6 @@ class ControlsFrame(QFrame):
         self.exp_single_btn.setToolTip(tooltipsLocales.exp_single_btn)
         self.exp_sv_btn.setToolTip(tooltipsLocales.exp_sv_btn)
         self.exp_b_btn.setToolTip(tooltipsLocales.exp_b_btn)
-
-    def _set_size_policy(self):
-        pass
-        # self.convert_btn.setSizePolicy(self.mainSizePolicy)
-        # self.control_btn.setSizePolicy(self.mainSizePolicy)
-        # self.exp_single_btn.setSizePolicy(self.mainSizePolicy)
-        # self.exp_sv_btn.setSizePolicy(self.mainSizePolicy)
-        # self.exp_b_btn.setSizePolicy(self.mainSizePolicy)
 
     def _set_styles(self):
         self.control_lbl.setStyleSheet(title_label)
