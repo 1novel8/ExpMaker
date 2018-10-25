@@ -2,21 +2,32 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eda30c90-998a-4bae-a9b9-20aaae7fe5f6" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/constants/pathDefaults.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/threads/baseActivitiesThread.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/threads/explicationThread.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/threads/extractionThread.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/workers/__init__.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/workers/baseActivitiesWorker.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/workers/explicationWorker.py" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/workers/extractionWorker.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/constants/errors.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/connector.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/control.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/db_decorators.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/structures/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/structures/ctr.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/db/structures/sprav.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/errors/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/errors/dberror.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/expBuilders/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/export/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/extractors/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/extractors/convertTools.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/extractors/converter.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/extractors/initializer.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/core/extractors/validator.py" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/Explication.py" afterPath="$PROJECT_DIR$/Explication.py" />
+      <change beforePath="$PROJECT_DIR$/Packages/Control.py" afterPath="$PROJECT_DIR$/Packages/Control.py" />
+      <change beforePath="$PROJECT_DIR$/Packages/DbStructures.py" afterPath="$PROJECT_DIR$/Packages/DbStructures.py" />
+      <change beforePath="$PROJECT_DIR$/Packages/DbTools.py" afterPath="$PROJECT_DIR$/Packages/DbTools.py" />
       <change beforePath="$PROJECT_DIR$/Project.py" afterPath="$PROJECT_DIR$/Project.py" />
       <change beforePath="$PROJECT_DIR$/constants/__init__.py" afterPath="$PROJECT_DIR$/constants/__init__.py" />
-      <change beforePath="$PROJECT_DIR$/constants/actions.py" afterPath="$PROJECT_DIR$/constants/actions.py" />
-      <change beforePath="$PROJECT_DIR$/threads/__init__.py" afterPath="$PROJECT_DIR$/threads/__init__.py" />
-      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py" afterPath="$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py" />
+      <change beforePath="$PROJECT_DIR$/workers/baseActivitiesWorker.py" afterPath="$PROJECT_DIR$/workers/baseActivitiesWorker.py" />
     </list>
     <ignored path="GitProject.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,7 +41,7 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/explication$Project.coverage" NAME="Project Coverage Results" MODIFIED="1538603567563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/GitProject$Project.coverage" NAME="Project Coverage Results" MODIFIED="1495576976963" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1540247598214" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1540499433977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -40,104 +51,130 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="loadingThread.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/threads/loadingThread.py">
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/db/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="19" column="0" lean-forward="false" selection-start-line="18" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+            <state relative-caret-position="84">
+              <caret line="4" column="33" lean-forward="false" selection-start-line="4" selection-start-column="24" selection-end-line="4" selection-end-column="33" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="baseActivitiesWorker.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/workers/baseActivitiesWorker.py">
+      <file leaf-file-name="Control.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Packages/Control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="630">
-              <caret line="30" column="20" lean-forward="false" selection-start-line="30" selection-start-column="8" selection-end-line="30" selection-end-column="20" />
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="25" selection-end-column="24" />
               <folding>
-                <element signature="e#0#13#0" expanded="true" />
+                <element signature="e#47#76#0" expanded="true" />
+                <marker date="1540502126145" expanded="true" signature="640:674" ph="select missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="1516:1547" ph="delete from missing_value... " />
+                <marker date="1540502126145" expanded="true" signature="2022:2059" ph="update missing_value... " />
+                <marker date="1540502126145" expanded="true" signature="5095:5197" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="5334:5436" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="5573:5672" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="6308:6374" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="6818:6914" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="7048:7104" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="8651:8845" ph="SELECT c.mis... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="10391:10406" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="10546:10576" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="11275:11348" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="11552:11596" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="11932:12006" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="12134:12189" ph="select missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="12601:12713" ph="SELECT c.mis... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="12852:12907" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="13384:13563" ph="SELECT c.mis... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="13703:13759" ph="SELECT missi... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="14185:14365" ph="SELECT c.mis... missing_value" />
+                <marker date="1540502126145" expanded="true" signature="14754:14824" ph="SELECT missi... missing_value" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/locales/__init__.py">
+      <file leaf-file-name="convertTools.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/convertTools.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="42">
-              <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-              <folding>
-                <element signature="e#28#76#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="baseActivitiesThread.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/threads/baseActivitiesThread.py">
+      <file leaf-file-name="converter.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/converter.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="validator.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/validator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="initializer.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/extractors/initializer.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="105">
-              <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="24" />
+              <caret line="5" column="0" lean-forward="true" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
               <folding>
-                <element signature="e#0#44#0" expanded="true" />
+                <marker date="1540507011980" expanded="true" signature="438:472" ph="select missi... missing_value" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Explication.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Explication.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="49" column="50" lean-forward="true" selection-start-line="49" selection-start-column="50" selection-end-line="49" selection-end-column="50" />
-              <folding>
-                <element signature="e#74#84#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/workers/__init__.py">
+      <file leaf-file-name="DbStructures.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Packages/DbStructures.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="42">
-              <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="10" />
+              <caret line="200" column="12" lean-forward="false" selection-start-line="200" selection-start-column="0" selection-end-line="200" selection-end-column="12" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sprav.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/db/structures/sprav.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="231">
+              <caret line="11" column="21" lean-forward="true" selection-start-line="11" selection-start-column="21" selection-end-line="11" selection-end-column="21" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/threads/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="21">
-              <caret line="1" column="52" lean-forward="false" selection-start-line="1" selection-start-column="52" selection-end-line="1" selection-end-column="52" />
-              <folding>
-                <element signature="e#0#40#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="actions.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/constants/actions.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="282">
-              <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/constants/__init__.py">
+        <entry file="file://$PROJECT_DIR$/core/db/structures/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="147">
-              <caret line="7" column="35" lean-forward="true" selection-start-line="7" selection-start-column="35" selection-end-line="8" selection-end-column="35" />
+              <caret line="7" column="0" lean-forward="true" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
               <folding>
-                <element signature="e#28#136#0" expanded="true" />
+                <element signature="e#28#57#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ctr.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/db/structures/ctr.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="210">
+              <caret line="10" column="29" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -153,23 +190,9 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Table</find>
-      <find>&quot;,</find>
-      <find>&quot;:</find>
-      <find>table.</find>
-      <find>TableLabel</find>
-      <find>time</find>
-      <find>set_event_ss</find>
-      <find>tree_text_box</find>
-      <find>control_table_head</find>
-      <find>GroupBox</find>
-      <find>set_sources_widgets</find>
-      <find>bol</find>
-      <find>QtWidgets.</find>
       <find>QtCore.</find>
       <find>pointer</find>
       <find>menuBar</find>
-      <find>u'</find>
       <find>&quot;</find>
       <find>save_sprav</find>
       <find>set_menu_properties</find>
@@ -183,6 +206,20 @@
       <find>session_loaded</find>
       <find>Pickle</find>
       <find>LoadingThread</find>
+      <find>Control</find>
+      <find>DbError</find>
+      <find>f(</find>
+      <find>),</find>
+      <find>u'</find>
+      <find>shutil</find>
+      <find>,]</find>
+      <find>: {</find>
+      <find>:{</find>
+      <find>s_b2e_1</find>
+      <find>s_</find>
+      <find>crs_tab</find>
+      <find>crs_tab_str</find>
+      <find>users_tab_str</find>
     </findStrings>
     <dirStrings>
       <dir>C:\Users\LENOVO\WorkSpace\explication</dir>
@@ -194,12 +231,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/uiWidgets/logo.py" />
-        <option value="$PROJECT_DIR$/uiCustomWidgets/logo.py" />
-        <option value="$PROJECT_DIR$/locales/baseAppLocales.py" />
-        <option value="$PROJECT_DIR$/locales/errorsLocales.py" />
-        <option value="$PROJECT_DIR$/locales/__init__.py" />
         <option value="$PROJECT_DIR$/uiCustomWidgets/logoFrame.py" />
         <option value="$PROJECT_DIR$/locales/toolTipsLocales.py" />
         <option value="$PROJECT_DIR$/uiWidgets/__init__.py" />
@@ -222,16 +253,35 @@
         <option value="$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py" />
         <option value="$PROJECT_DIR$/workers/preparationWorker.py" />
         <option value="$PROJECT_DIR$/threads/extractionThread.py" />
-        <option value="$PROJECT_DIR$/Project.py" />
         <option value="$PROJECT_DIR$/constants/actions.py" />
         <option value="$PROJECT_DIR$/constants/pathReferences.py" />
         <option value="$PROJECT_DIR$/constants/pathDefaults.py" />
-        <option value="$PROJECT_DIR$/constants/__init__.py" />
-        <option value="$PROJECT_DIR$/workers/baseActivitiesWorker.py" />
         <option value="$PROJECT_DIR$/workers/__init__.py" />
         <option value="$PROJECT_DIR$/threads/baseActivitiesThread.py" />
-        <option value="$PROJECT_DIR$/Explication.py" />
         <option value="$PROJECT_DIR$/threads/__init__.py" />
+        <option value="$PROJECT_DIR$/Explication.py" />
+        <option value="$PROJECT_DIR$/workers/baseActivitiesWorker.py" />
+        <option value="$PROJECT_DIR$/Project.py" />
+        <option value="$PROJECT_DIR$/Packages/Control.py" />
+        <option value="$PROJECT_DIR$/constants/errors.py" />
+        <option value="$PROJECT_DIR$/constants/__init__.py" />
+        <option value="$PROJECT_DIR$/core/errors/dberror.py" />
+        <option value="$PROJECT_DIR$/core/errors/__init__.py" />
+        <option value="$PROJECT_DIR$/core/extractors/__init__.py" />
+        <option value="$PROJECT_DIR$/core/__init__.py" />
+        <option value="$PROJECT_DIR$/Packages/DbTools.py" />
+        <option value="$PROJECT_DIR$/core/db/db_decorators.py" />
+        <option value="$PROJECT_DIR$/core/db/control.py" />
+        <option value="$PROJECT_DIR$/core/db/connector.py" />
+        <option value="$PROJECT_DIR$/core/extractors/convertTools.py" />
+        <option value="$PROJECT_DIR$/core/extractors/converter.py" />
+        <option value="$PROJECT_DIR$/core/extractors/controller.py" />
+        <option value="$PROJECT_DIR$/Packages/DbStructures.py" />
+        <option value="$PROJECT_DIR$/core/db/structures/ctr.py" />
+        <option value="$PROJECT_DIR$/core/db/structures/sprav.py" />
+        <option value="$PROJECT_DIR$/core/db/structures/__init__.py" />
+        <option value="$PROJECT_DIR$/core/db/__init__.py" />
+        <option value="$PROJECT_DIR$/core/extractors/initializer.py" />
       </list>
     </option>
   </component>
@@ -262,6 +312,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -272,12 +324,24 @@
             <path>
               <item name="explication" type="b2602c69:ProjectViewProjectNode" />
               <item name="explication" type="462c0819:PsiDirectoryNode" />
-              <item name="constants" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="explication" type="b2602c69:ProjectViewProjectNode" />
               <item name="explication" type="462c0819:PsiDirectoryNode" />
-              <item name="threads" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="db" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
+              <item name="explication" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="extractors" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
+              <item name="explication" type="462c0819:PsiDirectoryNode" />
+              <item name="Packages" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="explication" type="b2602c69:ProjectViewProjectNode" />
@@ -288,8 +352,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -603,17 +665,17 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="3458" height="1408" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32983023" sideWeight="0.49881727" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32925835" sideWeight="0.5123839" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32902184" sideWeight="0.5136014" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32902184" sideWeight="0.4964518" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32925835" sideWeight="0.4876161" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2069523" sideWeight="0.48876405" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11620343" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32902184" sideWeight="0.48639858" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2069523" sideWeight="0.4875813" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11709048" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -623,6 +685,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -688,182 +751,22 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Packages/DbStructures.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/threads/loading.py" />
-    <entry file="file://$PROJECT_DIR$/Images/access.ico">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/keyViewWidget.py" />
-    <entry file="file://$PROJECT_DIR$/uiWidgets/logo.py" />
-    <entry file="file://$PROJECT_DIR$/uiWidgets/progressBar.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="22" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/locales/errorsLocales.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="5" column="6" lean-forward="false" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Packages/Titles/ErrMessage.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="168">
-          <caret line="8" column="0" lean-forward="false" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Packages/Titles/ToolTip.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="63">
-          <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="9" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/locales/toolTipsLocales.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="168">
-          <caret line="8" column="13" lean-forward="false" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiCustomWidgets/logoFrame.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="9" column="35" lean-forward="false" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#31#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="626">
-          <caret line="33" column="36" lean-forward="false" selection-start-line="33" selection-start-column="36" selection-end-line="33" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/table.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="34" column="70" lean-forward="false" selection-start-line="34" selection-start-column="70" selection-end-line="34" selection-end-column="70" />
-          <folding>
-            <element signature="e#0#91#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/theme.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="2" column="19" lean-forward="false" selection-start-line="2" selection-start-column="4" selection-end-line="2" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/loadingLabel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Packages/Titles/WidgNames.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="20" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/sourceWidget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="24" column="43" lean-forward="false" selection-start-line="24" selection-start-column="43" selection-end-line="24" selection-end-column="43" />
-          <folding>
-            <element signature="e#0#21#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/menu/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="63">
-          <caret line="3" column="26" lean-forward="false" selection-start-line="3" selection-start-column="26" selection-end-line="3" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/menu/menuBar.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="58" column="24" lean-forward="false" selection-start-line="58" selection-start-column="24" selection-end-line="58" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/constants/actions/spravActions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/uiCustomWidgets/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="63">
           <caret line="3" column="10" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/constants/actions/settingsActions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="21">
-          <caret line="1" column="6" lean-forward="false" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/actions/settingsActions.py" />
     <entry file="file://$PROJECT_DIR$/Style/ss.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-938">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/constants/actions/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="2" column="33" lean-forward="true" selection-start-line="2" selection-start-column="33" selection-end-line="2" selection-end-column="33" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/actions/__init__.py" />
     <entry file="file://$PROJECT_DIR$/uiWidgets/buttons.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="63">
@@ -878,9 +781,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#38#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -896,7 +796,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="385">
           <caret line="34" column="54" lean-forward="true" selection-start-line="34" selection-start-column="54" selection-end-line="34" selection-end-column="54" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -920,19 +819,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Packages/Settings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="20" column="8" lean-forward="false" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/workers/explicationWorker.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -940,7 +830,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -948,7 +837,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -956,7 +844,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -964,34 +851,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="264">
           <caret line="2186" column="18" lean-forward="false" selection-start-line="2186" selection-start-column="18" selection-end-line="2186" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/constants/pathReferences.oy">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/constants/pathDefaults.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Project.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="7" column="14" lean-forward="false" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/pathReferences.oy" />
     <entry file="file://$USER_HOME$/.PyCharm2017.3/system/python_stubs/-2142617051/builtins.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-114">
@@ -1008,58 +871,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/constants/actions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/constants/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="7" column="35" lean-forward="true" selection-start-line="7" selection-start-column="35" selection-end-line="8" selection-end-column="35" />
-          <folding>
-            <element signature="e#28#136#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/workers/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/workers/baseActivitiesWorker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="30" column="20" lean-forward="false" selection-start-line="30" selection-start-column="8" selection-end-line="30" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/locales/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="42">
-          <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
           <folding>
-            <element signature="e#28#76#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/threads/baseActivitiesThread.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#44#0" expanded="true" />
+            <element signature="e#28#76#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1069,7 +886,7 @@
         <state relative-caret-position="21">
           <caret line="1" column="52" lean-forward="false" selection-start-line="1" selection-start-column="52" selection-end-line="1" selection-end-column="52" />
           <folding>
-            <element signature="e#0#40#0" expanded="true" />
+            <element signature="e#0#40#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1078,16 +895,318 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Explication.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="49" column="50" lean-forward="true" selection-start-line="49" selection-start-column="50" selection-end-line="49" selection-end-column="50" />
+        <state relative-caret-position="205">
+          <caret line="33" column="51" lean-forward="true" selection-start-line="33" selection-start-column="51" selection-end-line="33" selection-end-column="51" />
           <folding>
             <element signature="e#74#84#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/workers/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="21" lean-forward="false" selection-start-line="2" selection-start-column="21" selection-end-line="2" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/threads/baseActivitiesThread.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="457">
+          <caret line="36" column="21" lean-forward="true" selection-start-line="36" selection-start-column="21" selection-end-line="36" selection-end-column="54" />
+          <folding>
+            <element signature="e#0#44#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/pathDefaults.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/Settings.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="20" column="8" lean-forward="false" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/workers/baseActivitiesWorker.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="40" column="27" lean-forward="false" selection-start-line="40" selection-start-column="20" selection-end-line="40" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#13#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/Sprav.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="36" column="26" lean-forward="true" selection-start-line="36" selection-start-column="26" selection-end-line="36" selection-end-column="26" />
+          <folding>
+            <element signature="e#47#84#0" expanded="true" />
+            <marker date="1537562907236" expanded="true" signature="4992:5007" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="5152:5167" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="5314:5329" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="5472:5487" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="7507:7554" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="9898:9981" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="12667:12765" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="14367:14468" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="16836:16866" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="17737:17858" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="24098:24200" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="25343:25445" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="26862:27013" ph="select missi... missing_value" />
+            <marker date="1537562907236" expanded="true" signature="28228:28267" ph="Select missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/actions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="8" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/errors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="21">
+          <caret line="1" column="14" lean-forward="false" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding>
+            <element signature="e#28#136#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/errors/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/errors/dberror.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="21">
+          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="true" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/DbTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="63">
+          <caret line="3" column="12" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding>
+            <marker date="1540503196827" expanded="true" signature="7221:7235" ph="select * fro... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/db_decorators.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding>
+            <element signature="e#29#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/connector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="11" column="26" lean-forward="true" selection-start-line="11" selection-start-column="26" selection-end-line="11" selection-end-column="26" />
+          <folding>
+            <element signature="e#74#88#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="6" column="24" lean-forward="true" selection-start-line="6" selection-start-column="24" selection-end-line="6" selection-end-column="24" />
+          <folding>
+            <element signature="e#1#14#0" expanded="true" />
+            <marker date="1540506913884" expanded="true" signature="1100:1114" ph="select * fro... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Project.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="104" column="38" lean-forward="false" selection-start-line="104" selection-start-column="28" selection-end-line="104" selection-end-column="38" />
+          <folding>
+            <element signature="e#77#88#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/Convert.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="63">
+          <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding>
+            <element signature="e#47#73#0" expanded="true" />
+            <marker date="1537562907179" expanded="true" signature="202:226" ph="ALTER TABLE missing_value... " />
+            <marker date="1537562907179" expanded="true" signature="304:326" ph="ALTER TABLE missing_value... " />
+            <marker date="1537562907179" expanded="true" signature="754:838" ph="update missing_value... " />
+            <marker date="1537562907179" expanded="true" signature="872:949" ph="update missing_value... " />
+            <marker date="1537562907179" expanded="true" signature="1739:1834" ph="UPDATE missing_value... " />
+            <marker date="1537562907179" expanded="true" signature="13637:13666" ph="select sum(m... missing_value" />
+            <marker date="1537562907179" expanded="true" signature="14317:14353" ph="select missi... missing_value" />
+            <marker date="1537562907179" expanded="true" signature="14452:14489" ph="select missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/convertTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/converter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/validator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/Control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="25" selection-end-column="24" />
+          <folding>
+            <element signature="e#47#76#0" expanded="true" />
+            <marker date="1540502126145" expanded="true" signature="640:674" ph="select missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="1516:1547" ph="delete from missing_value... " />
+            <marker date="1540502126145" expanded="true" signature="2022:2059" ph="update missing_value... " />
+            <marker date="1540502126145" expanded="true" signature="5095:5197" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="5334:5436" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="5573:5672" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="6308:6374" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="6818:6914" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="7048:7104" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="8651:8845" ph="SELECT c.mis... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="10391:10406" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="10546:10576" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="11275:11348" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="11552:11596" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="11932:12006" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="12134:12189" ph="select missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="12601:12713" ph="SELECT c.mis... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="12852:12907" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="13384:13563" ph="SELECT c.mis... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="13703:13759" ph="SELECT missi... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="14185:14365" ph="SELECT c.mis... missing_value" />
+            <marker date="1540502126145" expanded="true" signature="14754:14824" ph="SELECT missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/structures/ctr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="10" column="29" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/structures/sprav.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="11" column="21" lean-forward="true" selection-start-line="11" selection-start-column="21" selection-end-line="11" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/structures/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="147">
+          <caret line="7" column="0" lean-forward="true" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding>
+            <element signature="e#28#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Packages/DbStructures.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="200" column="12" lean-forward="false" selection-start-line="200" selection-start-column="0" selection-end-line="200" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/db/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="84">
+          <caret line="4" column="33" lean-forward="false" selection-start-line="4" selection-start-column="24" selection-end-line="4" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/initializer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="5" column="0" lean-forward="true" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding>
+            <marker date="1540507011980" expanded="true" signature="438:472" ph="select missi... missing_value" />
           </folding>
         </state>
       </provider>

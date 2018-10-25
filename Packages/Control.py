@@ -29,7 +29,7 @@ class DataControl(CtrControl):
     def __init__(self, sprav_holder, file_path, temp_db_path):
         self.errors_protocol = []
         self.sprav_holder = sprav_holder
-        super(DataControl,self).__init__(file_path, temp_db_path)
+        super(DataControl, self).__init__(file_path, temp_db_path)
         self.all_tabs_columns = self.get_all_fields()
         self.f22_string = self.get_f22_string()
         self.max_n = self.get_n_max()
@@ -61,9 +61,9 @@ class DataControl(CtrControl):
         f22_str = ','.join(f22_str)
         return f22_str
 
-    def add_to_protocol(self, table, field, err_ids, err_desc, dynamic_param = None):
+    def add_to_protocol(self, table, field, err_ids, err_desc, dynamic_param=None):
         """
-        systematize data for errors protocol, adds to protocol when err_ids returns True
+        Makes data systematization for errors protocol, adds to protocol when err_ids returns True
         :param table: table with errors                 type: unicode
         :param field: field where errors found          type: unicode
         :param err_ids: OBJECTIDs where errors found,   type: unicode or some array type
@@ -76,7 +76,7 @@ class DataControl(CtrControl):
                 'field': field,
                 'err_ids': err_ids,
                 'err_msg': err_desc,
-                'dyn_param':dynamic_param
+                'dyn_param': dynamic_param
             }
             self.errors_protocol.append(err_doc)
 

@@ -1,5 +1,5 @@
 import pickle
-from constants import appKey
+from constants import appKey, coreFiles
 
 
 class BaseWorker:
@@ -36,9 +36,9 @@ class BaseWorker:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
         return result
 
-    def pre_control(self):
+    def pre_control(self, file_path):
         try:
-            contr = Control.CtrControl(self.__file_path, tempDB_path)
+            contr = Control.CtrControl(file_path, coreFiles.tempDB_path)
             # if not contr.can_connect():
             #     return ErrMessage.no_db_conn % self.__file_path
             failed_table = contr.contr_tables()
@@ -61,7 +61,8 @@ class BaseWorker:
                           ErrMessage.warning_no_pref % unicode(empty_pref_ids))
             return False
         except Exception as err:
-            return err.message
+            return {'error': err.message, 'type': 'general'}
+
 
     def set_spr_changes(self, change_di):
         if self.s_h.set_parameters(change_di):

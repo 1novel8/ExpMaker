@@ -36,7 +36,6 @@ class ExpWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(path.join(project_dir, 'Images\exp.png')))
         self.__from_session = False
-
         self.baseThread = BaseActivityThread(
             self, error_handler=self.base_activity_error_handler,
             success_handler=self.base_activity_success_handler)

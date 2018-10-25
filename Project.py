@@ -99,7 +99,7 @@ class MainActiveThread(QtCore.QThread):
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
         else:
             self.emit(QtCore.SIGNAL(u'db_file_opened()'))
-
+~
     def pre_control(self):
         try:
             contr = Control.CtrControl(self.__file_path, tempDB_path)
