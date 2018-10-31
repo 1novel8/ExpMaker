@@ -22,9 +22,10 @@ class LoadingLabel(QLabel):
         self.setText(process_message)
         self.load_thr.start()
 
-    def stop_loading(self):
-        self.setHidden(True)
+    def stop_loading(self, message):
         self.load_thr.terminate()
-        # if unlock_btns:
-        #     self.block_btns(False)
-        self.setText("")
+        if message:
+            self.setHidden(False)
+            self.setText(message)
+        else:
+            self.setHidden(True)

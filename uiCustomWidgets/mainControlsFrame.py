@@ -49,3 +49,9 @@ class ControlsFrame(QFrame):
         self.convert_lbl.setStyleSheet(title_label)
         self.exp_a_lbl.setStyleSheet(title_label)
         self.exp_b_lbl.setStyleSheet(title_label)
+
+    def disable_buttons(self):
+        print(12)
+
+    def enable_buttons(self):
+        print(123)

@@ -49,34 +49,34 @@ class TableWidget(QWidget):
 
     def add_span_row(self, text, span=True):
         self.__row_count += 1
-        self.setRowCount(self.__row_count)
+        self.table.setRowCount(self.__row_count)
         time_label = TableLabel(text)
         time_label.setStyleSheet(u'color: #D3D3D3; background-color: #323C3D;font-size: 14px;'
                            u'border-top-left-radius: 30%; padding-right: 15px;padding-left: 15px')
-        self.setCellWidget(self.__row_count-1, 0, time_label)
+        self.table.setCellWidget(self.__row_count-1, 0, time_label)
         if span:
             time_label.setAlignment(Qt.AlignCenter)
             time_label.setMinimumHeight(20)
-            self.setSpan(self.__row_count-1, 0, 1, self.columnCount())
+            self.table.setSpan(self.__row_count-1, 0, 1, self.columnCount())
 
     def add_logging_row(self, row_li, time_label=None):
         if not time_label:
             time_label = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
         self.add_span_row(time_label, False)
         for i, cell in enumerate(row_li):
-            self.setCellWidget(self.__row_count-1, i+1, TableLabel(cell))
+            self.table.setCellWidget(self.__row_count-1, i+1, TableLabel(cell))
 
     def add_row(self, row_li):
         self.__row_count += 1
-        self.setRowCount(self.__row_count)
+        self.table.setRowCount(self.__row_count)
         for i, cell in enumerate(row_li):
             self.setItem(self.__row_count-1, i, QTableWidgetItem(cell))
 
     def add_widgets_row(self, widgets_row):
         self.__row_count += 1
-        self.setRowCount(self.__row_count)
+        self.table.setRowCount(self.__row_count)
         for i, cell in enumerate(widgets_row):
-            self.setCellWidget(self.__row_count-1, i, cell)
+            self.table.setCellWidget(self.__row_count-1, i, cell)
 
     def clear_table(self):
         self.__row_count = 0

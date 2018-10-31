@@ -77,7 +77,6 @@ progress_bar = """
 
 title_label = apply_theme("""
     color: {color.secondary_green};
-    padding: 4px;
     font-size: 16px;
     font-weight: bold;
 """)

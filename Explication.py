@@ -10,9 +10,9 @@ from PyQt5.QtGui import QIcon
 from uiWidgets import TableWidget, SrcFrame, LoadingLabel, ProgressBar
 from uiCustomWidgets import LogoFrame, ControlsFrame
 from menu import MenuBar, MenuConf
-from locales import titleLocales
+from locales import titleLocales, actionLocales
 from uiWidgets.styles import splitter as splitter_styles
-from constants import sprActions, settingsActions
+from constants import sprActions, settingsActions, baseActions
 from threads import BaseActivityThread
 project_dir = getcwd()
 
@@ -39,7 +39,8 @@ class ExpWindow(QMainWindow):
         self.baseThread = BaseActivityThread(
             self, error_handler=self.base_activity_error_handler,
             success_handler=self.base_activity_success_handler)
-
+        self.loading_process_label = LoadingLabel(self)
+        self.statusBar().addPermanentWidget(self.loading_process_label)
         # self.media_src_widget = SrcFrame(self, title="Please, select source file", on_select=self.on_file_selected)
         # main_grid.addWidget(self.media_src_widget, 1, 1, QtCore.Qt.AlignLeft)
 
@@ -48,6 +49,30 @@ class ExpWindow(QMainWindow):
 
     def base_activity_error_handler(self, result):
         print(result)
+
+    def run_base_action(self, action_id, **kvargs):
+        loading_messge = actionLocales.get_loading_msg(action_id)
+        log_message = actionLocales.get_start_log(action_id)
+        self.show_loading(loading_messge, log_message)
+        self.baseThread.start(action_id, kvargs)
+
+    def show_loading(self, message='', log_message=''):
+        self.loading_process_label.start_loading(message)
+        self.controls_frame.disable_buttons()
+        if log_message:
+            self.add_event_log(log_message)
+
+    def finish_loading(self, log_message=''):
+        self.controls_frame.enable_buttons()
+        self.loading_process_label.stop_loading('Ready')
+        if log_message:
+            self.add_event_log(log_message)
+
+    def add_event_log(self, text, with_time=True):
+        if with_time:
+            self.log_table.add_logging_row([text])
+        else:
+            self.log_table.add_logging_row([text], '- // -')
 
     def init_menu_bar(self):
         menu = MenuBar(self)
@@ -116,7 +141,16 @@ class ExpWindow(QMainWindow):
         return splitter
 
     def on_file_opened(self, file_path):
-        print(file_path)
+        splitted = path.splitext(file_path)
+        extension = splitted[-1]
+        supported = {
+            '.mdb': baseActions.LOAD_DB,
+            '.pkl': baseActions.LOAD_PKL_SESSION,
+        }
+        if extension in supported:
+            self.run_base_action(supported[extension], file_path=file_path)
+        else:
+            self.show_error('wrong file')
 
 
 if __name__ == "__main__":
