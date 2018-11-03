@@ -3,12 +3,15 @@
 __author__ = 'Alex Konkov'
 
 import sys
+import platform
+print(platform.python_version())
+import pyodbc
 from os import path, getcwd
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter)
 from PyQt5.QtCore import QSize, QCoreApplication
 from PyQt5.QtGui import QIcon
 from uiWidgets import TableWidget, SrcFrame, LoadingLabel, ProgressBar
-from uiCustomWidgets import LogoFrame, ControlsFrame
+from uiCustomWidgets import LogoFrame, ControlsFrame, LogTable
 from menu import MenuBar, MenuConf
 from locales import titleLocales, actionLocales
 from uiWidgets.styles import splitter as splitter_styles
@@ -27,9 +30,9 @@ class ExpWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         self.controls_frame = ControlsFrame(self)
         self.controls_frame.hide()
-        self.log_table = TableWidget(central_widget, headers=titleLocales.log_table_head)
+        self.log_table = LogTable(central_widget)
         self.control_table = TableWidget(central_widget, headers=titleLocales.control_table_head)
-        self.convert_table = TableWidget(central_widget, headers=titleLocales.convert_table_head)
+        # self.convert_table = TableWidget(central_widget, headers=titleLocales.convert_table_head)
         self.src_frame = SrcFrame(self, title=titleLocales.src_frame_default, on_select=self.on_file_opened)
         self.init_widgets_positions(central_widget)
         self.init_menu_bar()
@@ -41,8 +44,6 @@ class ExpWindow(QMainWindow):
             success_handler=self.base_activity_success_handler)
         self.loading_process_label = LoadingLabel(self)
         self.statusBar().addPermanentWidget(self.loading_process_label)
-        # self.media_src_widget = SrcFrame(self, title="Please, select source file", on_select=self.on_file_selected)
-        # main_grid.addWidget(self.media_src_widget, 1, 1, QtCore.Qt.AlignLeft)
 
     def base_activity_success_handler(self, result):
         print(result)
@@ -68,11 +69,11 @@ class ExpWindow(QMainWindow):
         if log_message:
             self.add_event_log(log_message)
 
-    def add_event_log(self, text, with_time=True):
+    def add_event_log(self, log_msg, with_time=True):
         if with_time:
-            self.log_table.add_logging_row([text])
+            self.log_table.add_row(log_msg)
         else:
-            self.log_table.add_logging_row([text], '- // -')
+            self.log_table.add_row(log_msg, '- // -')
 
     def init_menu_bar(self):
         menu = MenuBar(self)

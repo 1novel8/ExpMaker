@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QTextEdit
 from PyQt5.QtCore import Qt
 from .buttons import PrimaryButton
-from .styles import default_table
-import time
+from .styles import default_table, representation_table_label
 
 
 class TableLabel(QTextEdit):
@@ -13,17 +12,16 @@ class TableLabel(QTextEdit):
         self.setTextInteractionFlags(Qt.TextSelectableByKeyboard | Qt.TextSelectableByMouse)
         self.setMinimumHeight(40)
         self.setMinimumWidth(200)
-        self.setStyleSheet(u'color: #AAAAAA; background-color: #22232F; border: 1.5px solid #C10000;'
-                           u'border-bottom-right-radius: 30%; font-size: 14px;'
-                           u' padding-right: 10px;padding-left: 15px')
+        self.setStyleSheet('color: #AAAAAA; background-color: #22232F; font-size: 14px;'
+                           'padding-right: 10px;padding-left: 15px')
 
 
 class TableWidget(QWidget):
-    def __init__(self, parent=None, headers=None, with_clear=True):
+    def __init__(self, parent=None, headers=None, with_clear=False):
         QWidget.__init__(self, parent)
         self.__row_count = 0
         self.box = QGridLayout(self)
-        self.table = QTableWidget(parent)
+        self.table = QTableWidget(self)
         self.init_table_defaults(headers)
         self.box.addWidget(self.table, 0, 0, 21, 21)
         if with_clear:
@@ -40,31 +38,21 @@ class TableWidget(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setAlternatingRowColors(True)
         self.table.setAutoScroll(True)
-
-        # TODO: move to separate styles
-        # header_css = u'border-radius: 1px; border: 1px dashed blue;'
-        # self.table.horizontalHeader().setStyleSheet(header_css)
-        # self.table.verticalHeader().setStyleSheet(header_css + u'padding:-2px')
         self.table.setStyleSheet(default_table)
 
-    def add_span_row(self, text, span=True):
-        self.__row_count += 1
-        self.table.setRowCount(self.__row_count)
-        time_label = TableLabel(text)
-        time_label.setStyleSheet(u'color: #D3D3D3; background-color: #323C3D;font-size: 14px;'
-                           u'border-top-left-radius: 30%; padding-right: 15px;padding-left: 15px')
-        self.table.setCellWidget(self.__row_count-1, 0, time_label)
-        if span:
-            time_label.setAlignment(Qt.AlignCenter)
-            time_label.setMinimumHeight(20)
-            self.table.setSpan(self.__row_count-1, 0, 1, self.columnCount())
+    def get_row_count(self):
+        return self.__row_count
 
-    def add_logging_row(self, row_li, time_label=None):
-        if not time_label:
-            time_label = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
-        self.add_span_row(time_label, False)
-        for i, cell in enumerate(row_li):
-            self.table.setCellWidget(self.__row_count-1, i+1, TableLabel(cell))
+    def add_representation_row(self, title, with_span=True):
+        self.table.setRowCount(self.__row_count + 1)
+        title_label = TableLabel(title)
+        title_label.setStyleSheet(representation_table_label)
+        self.table.setCellWidget(self.__row_count, 0, title_label)
+        if with_span:
+            title_label.setAlignment(Qt.AlignCenter)
+            title_label.setMinimumHeight(20)
+            self.table.setSpan(self.__row_count, 0, 1, self.columnCount())
+        self.__row_count += 1
 
     def add_row(self, row_li):
         self.__row_count += 1

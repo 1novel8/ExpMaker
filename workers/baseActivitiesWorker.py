@@ -1,8 +1,13 @@
 import pickle
-from constants import appKey, coreFiles
+from constants import appKey, coreFiles, errTypes
+from core.errors import CustomError
+from core.extractors import CtrControl
+from locales import controlErrors
 
 
 class BaseWorker:
+    def __init__(self, process_event_handler=lambda x: x):
+        self.emit_process_event = process_event_handler
 
 
     def load_work_pkl(self, db_file_path, ):
@@ -28,40 +33,40 @@ class BaseWorker:
         except:
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.bad_session)
 
-    def load_work_db(self, db_file_path):
-        err_message = self.run_initial_db_contol(db_file_path)
-        result = {}
-        if err_message:
+    # def load_work_db(self, db_file_path):
+    #     err_message = self.run_initial_db_contol(db_file_path)
+    #     result = {}
+    #     if err_message:
+    #         self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
+    #     return result
 
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
-        return result
-
-    def pre_control(self, file_path):
+    def run_initial_db_contol(self, file_path):
         try:
-            contr = Control.CtrControl(file_path, coreFiles.tempDB_path)
-            # if not contr.can_connect():
-            #     return ErrMessage.no_db_conn % self.__file_path
-            failed_table = contr.contr_tables()
-            if failed_table:
-                failed_table = ', '.join(failed_table)
-                return ErrMessage.empty_tables % failed_table
-            failed_table = contr.is_tables_empty()
-            if failed_table:
-                failed_table = ', '.join(failed_table)
-                return ErrMessage.empty_table_data % failed_table
+            contr = CtrControl(file_path, coreFiles.tempDB_path)
+            failed_tables = contr.contr_tables()
+            if failed_tables:
+                err_message = controlErrors.empty_tables % ', '.join(failed_tables)
+                return CustomError(errTypes.control_failed, err_message)
+            failed_tables = contr.is_tables_empty()
+            if failed_tables:
+                err_message = controlErrors.empty_table_data % ', '.join(failed_tables)
+                return CustomError(errTypes.control_failed, err_message)
             failed_fields = contr.contr_field_types()
             if failed_fields:
                 for tab, fields in failed_fields.items():
-                    msg = ErrMessage.lost_fields(tab, fields)
-                    self.emit(QtCore.SIGNAL(u'control_warning(const QString&)'), msg)
-                return ErrMessage.field_control_failed
+                    err_message = controlErrors.get_lost_fields(tab, fields)
+                    self.emit_process_event(
+                        CustomError(errTypes.control_warning, err_message))
+                return CustomError(errTypes.control_failed, controlErrors.field_control_failed)
             empty_pref_ids = contr.is_empty_f_pref()
             if empty_pref_ids:
-                self.emit(QtCore.SIGNAL(u'control_warning(const QString&)'),
-                          ErrMessage.warning_no_pref % unicode(empty_pref_ids))
-            return False
+                err_message = controlErrors.warning_no_pref % empty_pref_ids
+                self.emit_process_event(
+                    CustomError(errTypes.control_warning, err_message))
+                return CustomError(errTypes.control_failed, controlErrors.field_control_failed)
+            return {'result': 'ok'}
         except Exception as err:
-            return {'error': err.message, 'type': 'general'}
+            return CustomError(errTypes.unexpected, err)
 
 
     def set_spr_changes(self, change_di):

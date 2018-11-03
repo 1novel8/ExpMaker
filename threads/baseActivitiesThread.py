@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 from constants import baseActions
-from workers import baseWorker
+from workers import BaseWorker
 
 
 class BaseActivityThread(QThread):
@@ -13,6 +13,7 @@ class BaseActivityThread(QThread):
         super(BaseActivityThread, self).__init__(parent)
         self.success_signal.connect(success_handler)
         self.error_signal.connect(error_handler)
+        self.worker = BaseWorker()
 
     def start(self, action, *params):
         self.current_action = action
@@ -21,7 +22,7 @@ class BaseActivityThread(QThread):
 
     def run_activity(self):
         activities = {
-            baseActions.LOAD_DB: baseWorker.load_work_db,
+            baseActions.LOAD_DB: baseWorker.run_initial_db_contol,
             baseActions.LOAD_PKL_SPRAV: lambda x: x,
             baseActions.LOAD_MDB_SPRAV: lambda x: x,
             baseActions.SAVE_SPRAV: lambda x: x,

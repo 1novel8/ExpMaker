@@ -18,5 +18,6 @@ class DbError(Exception):
 
     @staticmethod
     def get_message_by_type(err_type, args):
+        # TODO: fill error types in constants
         fill_params = args if args else ''
         return err_messages[err_type] % fill_params

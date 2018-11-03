@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Alex Konkov'
 
+import pyodbc
 import os.path
 import shutil
-import pyodbc
 from ..errors import DbError
 from .db_decorators import try_make_conn, catch_db_exception
 

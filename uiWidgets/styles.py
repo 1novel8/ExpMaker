@@ -41,6 +41,13 @@ default_table = apply_theme("""
     font-size: 12px
 """)
 
+representation_table_label = """
+    color: #D3D3D3; 
+    background-color: #323C3D;
+    font-size: 14px; 
+    padding: 0 15px;
+"""
+
 splitter = """
     QSplitter::handle:horizontal {
         # background: {color.primary_green};
