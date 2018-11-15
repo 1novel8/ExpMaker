@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# import platform
+# print(platform.python_version())
 __author__ = 'Alex Konkov'
 
 import sys
-import platform
-print(platform.python_version())
-import pyodbc
 from os import path, getcwd
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter)
 from PyQt5.QtCore import QSize, QCoreApplication
