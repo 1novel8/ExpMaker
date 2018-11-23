@@ -26,7 +26,7 @@ class DbControl(object):
     def contr_tables(self):
         lost_tables = []
         tab_names = self.conn.get_tab_names()
-        for tab in self.db_schema:
+        for tab in self.db_schema.tabs_enum:
             if tab not in tab_names:
                 lost_tables.append(tab)
         return lost_tables
@@ -36,7 +36,7 @@ class DbControl(object):
         :return: Tables from __need_tabs that has no any data
         """
         no_data = []
-        for tab in self.db_schema:
+        for tab in self.db_schema.tabs_enum:
             if not self.conn.exec_sel_query('select * from %s' % tab):
                 no_data.append(tab)
         if no_data:
@@ -50,12 +50,13 @@ class DbControl(object):
         :return: nested dictionary like "tab_name" : "field_name" : [field, (field, type), field, ....]
         """
         fails = {}
-        for tab in self.db_schema:
+        for tab in self.db_schema.tabs_enum:
             loaded_tab_schema = self.conn.get_f_names_types(tab)
             bad_fields = []
-            for field in self.db_schema[tab]:
-                f_name = self.db_schema[tab][field]['name']
-                f_types = self.db_schema[tab][field]['type']
+            tab_str = self.db_schema.get_tab_str(tab)
+            for field in tab_str:
+                f_name = tab_str[field]['name']
+                f_types = tab_str[field]['type']
                 if f_name not in loaded_tab_schema:
                     bad_fields.append(f_name)
                 elif loaded_tab_schema[f_name] not in f_types:

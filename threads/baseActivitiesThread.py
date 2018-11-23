@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 from constants import baseActions
 from workers import BaseWorker
+from core.errors import CustomError
+from constants import errTypes
 
 
 class BaseActivityThread(QThread):
@@ -13,34 +15,33 @@ class BaseActivityThread(QThread):
         super(BaseActivityThread, self).__init__(parent)
         self.success_signal.connect(success_handler)
         self.error_signal.connect(error_handler)
-        self.worker = BaseWorker()
+        self.worker = BaseWorker(self.emit_error)
 
-    def start(self, action, *params):
+    def start(self, action, kvargs):
         self.current_action = action
-        self.current_params = params
+        self.current_params = kvargs
         super(BaseActivityThread, self).start()
+
+    def emit_error(self, error):
+        if not isinstance(error, CustomError):
+            error = CustomError(errTypes.unexpected, str(error))
+        self.error_signal.emit(error)
 
     def run_activity(self):
         activities = {
-            baseActions.LOAD_DB: baseWorker.run_initial_db_contol,
-            baseActions.LOAD_PKL_SPRAV: lambda x: x,
+            baseActions.LOAD_DB: self.worker.run_initial_db_contol,
+            baseActions.LOAD_PKL_SPRAV: self.worker.load_pkl_sprav,
             baseActions.LOAD_MDB_SPRAV: lambda x: x,
             baseActions.SAVE_SPRAV: lambda x: x,
-            baseActions.LOAD_PKL_SESSION: lambda x: x,
+            baseActions.LOAD_PKL_SESSION: self.worker.load_pkl_session,
             baseActions.SAVE_PKL_SESSION: lambda x: x,
         }
-        return activities[self.current_action](*self.current_params)
+        return activities[self.current_action](**self.current_params)
 
     def run(self):
         try:
             result = self.run_activity()
         except Exception as err:
-            result = {'error': err, 'type': 'general'}
-        if isinstance(result, dict) and 'error' in result:
-            result['action'] = self.current_action
-            self.error_signal.emit(result)
+            self.emit_error(err)
         else:
-            self.success_signal.emit({
-                'action': self.current_action,
-                'result': result
-            })
+            self.success_signal.emit(result)

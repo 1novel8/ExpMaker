@@ -6,7 +6,10 @@ __author__ = 'Alex Konkov'
 
 import sys
 from os import path, getcwd
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter)
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QMessageBox, QGridLayout, QSplitter, QPushButton,
+    QFileDialog
+)
 from PyQt5.QtCore import QSize, QCoreApplication
 from PyQt5.QtGui import QIcon
 from uiWidgets import TableWidget, SrcFrame, LoadingLabel, ProgressBar
@@ -14,8 +17,10 @@ from uiCustomWidgets import LogoFrame, ControlsFrame, LogTable
 from menu import MenuBar, MenuConf
 from locales import titleLocales, actionLocales
 from uiWidgets.styles import splitter as splitter_styles
-from constants import sprActions, settingsActions, baseActions
+from constants import sprActions, settingsActions, baseActions, errTypes
+from core.settingsHolders import SpravHolder
 from threads import BaseActivityThread
+
 project_dir = getcwd()
 
 
@@ -43,12 +48,23 @@ class ExpWindow(QMainWindow):
             success_handler=self.base_activity_success_handler)
         self.loading_process_label = LoadingLabel(self)
         self.statusBar().addPermanentWidget(self.loading_process_label)
+        self.sprav_holder = SpravHolder()
+        self.run_sprav_action(sprActions.SET_DEFAULT)
 
     def base_activity_success_handler(self, result):
-        print(result)
+        action_id = self.baseThread.current_action
+        if action_id == baseActions.LOAD_DB:
+            self.src_frame.set_src_text()
+            self.finish_loading(actionLocales.get_success_log(action_id))
 
-    def base_activity_error_handler(self, result):
-        print(result)
+    def base_activity_error_handler(self, error):
+        if error.type == errTypes.control_warning:
+            self.show_error_modal(error.message)
+            return
+        self.finish_loading(error.message)
+
+    def show_error_modal(self, err_text):
+        QMessageBox.critical(self, titleLocales.error_modal_title, err_text, QMessageBox.Ok)
 
     def run_base_action(self, action_id, **kvargs):
         loading_messge = actionLocales.get_loading_msg(action_id)
@@ -64,7 +80,8 @@ class ExpWindow(QMainWindow):
 
     def finish_loading(self, log_message=''):
         self.controls_frame.enable_buttons()
-        self.loading_process_label.stop_loading('Ready')
+        self.loading_process_label.stop_loading()
+        self.statusBar().showMessage('Ready')
         if log_message:
             self.add_event_log(log_message)
 
@@ -103,19 +120,30 @@ class ExpWindow(QMainWindow):
             lambda x: self.run_sprav_action(sprActions.INFO))
         menu.add_section_action(
             settings_section_key, MenuConf.settings_xls,
-            lambda x: self.run_sprav_action(settingsActions.SHOW_XLS))
+            lambda x: self.run_settings_action(settingsActions.SHOW_XLS))
         menu.add_section_action(
             settings_section_key, MenuConf.settings_balance,
-            lambda x: self.run_sprav_action(settingsActions.SHOW_BALANCE))
+            lambda x: self.run_settings_action(settingsActions.SHOW_BALANCE))
         menu.add_section_action(
             settings_section_key, MenuConf.settings_accuracy,
-            lambda x: self.run_sprav_action(settingsActions.SHOW_ACCURACY))
+            lambda x: self.run_settings_action(settingsActions.SHOW_ACCURACY))
         menu.add_section_action(
             settings_section_key, MenuConf.settings_conditions,
-            lambda x: self.run_sprav_action(settingsActions.SHOW_CONDITIONS))
+            lambda x: self.run_settings_action(settingsActions.SHOW_CONDITIONS))
 
     def run_sprav_action(self, action_type):
-        print(action_type)
+        if action_type == sprActions.SET_DEFAULT:
+            return self.run_base_action(baseActions.LOAD_PKL_SPRAV)
+        if action_type == sprActions.CHOOSE_PKL:
+            sprav_source = QFileDialog(self).getOpenFileName(
+                self, titleLocales.load_sprav_source_finder_title + '*.pkl', project_dir,
+                options=QFileDialog.DontUseNativeDialog)
+            return self.run_base_action(baseActions.LOAD_PKL_SPRAV, sprav_path=sprav_source)
+        if action_type == sprActions.CHOOSE_MDB:
+            sprav_source = QFileDialog(self).getOpenFileName(
+                self, titleLocales.load_sprav_source_finder_title + '*.mdb', project_dir,
+                options=QFileDialog.DontUseNativeDialog)
+            return self.run_base_action(baseActions.LOAD_MDB_SPRAV, sprav_path=sprav_source)
 
     def run_settings_action(self, action_type):
         print(action_type)
@@ -143,12 +171,12 @@ class ExpWindow(QMainWindow):
     def on_file_opened(self, file_path):
         splitted = path.splitext(file_path)
         extension = splitted[-1]
-        supported = {
+        supported_actions = {
             '.mdb': baseActions.LOAD_DB,
             '.pkl': baseActions.LOAD_PKL_SESSION,
         }
-        if extension in supported:
-            self.run_base_action(supported[extension], file_path=file_path)
+        if extension in supported_actions:
+            self.run_base_action(supported_actions[extension], file_path=file_path)
         else:
             self.show_error('wrong file')
 

@@ -9,65 +9,53 @@ class BaseWorker:
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
 
-
-    def load_work_pkl(self, db_file_path, ):
+    def load_pkl_session(self, db_file_path):
         try:
             with open(db_file_path, 'rb') as inp:
                 exp_data = pickle.load(inp)
                 inp.close()
             loading_password = exp_data.pop()
         except Exception as err:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session + err.message)
+            raise CustomError(errTypes.general, controlErrors.wrong_session + err)
         else:
             if loading_password == appKey:
-                self.emit(QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), exp_data)
+                return exp_data
             else:
-                self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session)
+                raise CustomError(errTypes.general, controlErrors.wrong_session)
 
-    def save_work_pkl(self):
+    def save_work_pkl(self, save_as, dump_data):
         try:
-            with open(self.__file_path, u'wb') as output:
-                pickle.dump(self.__args[0], output, 2)
-            self.__args = []
-            self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'), Events.session_saved % self.__file_path)
-        except:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.bad_session)
-
-    # def load_work_db(self, db_file_path):
-    #     err_message = self.run_initial_db_contol(db_file_path)
-    #     result = {}
-    #     if err_message:
-    #         self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), message)
-    #     return result
+            with open(save_as, u'wb') as output:
+                pickle.dump(dump_data, output, 2)
+            return save_as
+        except Exception as err:
+            print(err)
+            raise CustomError(errTypes.general, controlErrors.failed_to_save_session)
 
     def run_initial_db_contol(self, file_path):
-        try:
-            contr = CtrControl(file_path, coreFiles.tempDB_path)
-            failed_tables = contr.contr_tables()
-            if failed_tables:
-                err_message = controlErrors.empty_tables % ', '.join(failed_tables)
-                return CustomError(errTypes.control_failed, err_message)
-            failed_tables = contr.is_tables_empty()
-            if failed_tables:
-                err_message = controlErrors.empty_table_data % ', '.join(failed_tables)
-                return CustomError(errTypes.control_failed, err_message)
-            failed_fields = contr.contr_field_types()
-            if failed_fields:
-                for tab, fields in failed_fields.items():
-                    err_message = controlErrors.get_lost_fields(tab, fields)
-                    self.emit_process_event(
-                        CustomError(errTypes.control_warning, err_message))
-                return CustomError(errTypes.control_failed, controlErrors.field_control_failed)
-            empty_pref_ids = contr.is_empty_f_pref()
-            if empty_pref_ids:
-                err_message = controlErrors.warning_no_pref % empty_pref_ids
+        contr = CtrControl(file_path, coreFiles.tempDB_path)
+        failed_tables = contr.contr_tables()
+        if failed_tables:
+            err_message = controlErrors.empty_tables % ', '.join(failed_tables)
+            raise CustomError(errTypes.control_failed, err_message)
+        failed_tables = contr.is_tables_empty()
+        if failed_tables:
+            err_message = controlErrors.empty_table_data % ', '.join(failed_tables)
+            raise CustomError(errTypes.control_failed, err_message)
+        failed_fields = contr.contr_field_types()
+        if failed_fields:
+            for tab, fields in failed_fields.items():
+                err_message = controlErrors.get_lost_fields(tab, fields)
                 self.emit_process_event(
                     CustomError(errTypes.control_warning, err_message))
-                return CustomError(errTypes.control_failed, controlErrors.field_control_failed)
-            return {'result': 'ok'}
-        except Exception as err:
-            return CustomError(errTypes.unexpected, err)
-
+            raise CustomError(errTypes.control_failed, controlErrors.field_control_failed)
+        empty_pref_ids = contr.is_empty_f_pref()
+        if empty_pref_ids:
+            err_message = controlErrors.warning_no_pref % empty_pref_ids
+            self.emit_process_event(
+                CustomError(errTypes.control_warning, err_message))
+            raise CustomError(errTypes.control_failed, controlErrors.field_control_failed)
+        return 'Ok'
 
     def set_spr_changes(self, change_di):
         if self.s_h.set_parameters(change_di):
@@ -87,31 +75,29 @@ class BaseWorker:
     def set_settings_changes(self, loaded_settings):
         self.emit(QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), loaded_settings)
 
-    def load_pkl_op1_2(self):
+    def load_pkl_sprav(self, sprav_path=coreFiles.spr_default_path):
+        is_default = sprav_path == coreFiles.spr_default_path
         try:
-            with open(self.__file_path, 'rb') as inp:
+            with open(sprav_path, 'rb') as inp:
                 loaded_data = pickle.load(inp)
                 inp.close()
-            loading_password = loaded_data[-1]
-            if loading_password == u'Sprav':
-                self.set_spr_changes(loaded_data[0])
-                self.set_settings_changes(loaded_data[1])
+            if loaded_data['spravKey'] == appKey + '_sprav':
+                return loaded_data
             else:
-                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_valid)
+                raise CustomError(errTypes.control_failed, controlErrors.loaded_sprav_not_valid)
         except IOError:
-            if self.__op == 1:
-                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_default_io_error)
+            if is_default:
+                raise CustomError(errTypes.control_failed, controlErrors.spr_default_io_error)
             else:
-                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_io_error)
-        except:
-            # TODO: rename error message and add exceptions
-            self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_err_in_data)
+                raise CustomError(errTypes.control_failed, controlErrors.spr_io_error)
+        except Exception as err:
+            raise CustomError(errTypes.control_failed, controlErrors.spr_err_in_data)
 
-    def load_mdb_op3(self):
+    def load_mdb_sprav(self, sprav_path, sprav_holder):
         if self.control_spr_db():
             try:
-                sprav_data = self.s_h.get_data_from_db(self.__file_path)
-                sprav_data[u"create_time"] = time.strftime(u"%H:%M__%d.%m.%Y")
+                sprav_data = sprav_holder.get_data_from_db(sprav_path)
+                sprav_data['create_time'] = time.strftime(u"%H:%M__%d.%m.%Y")
                 self.set_spr_changes(sprav_data)
             except Sprav.SpravError as err:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), unicode(err.message))

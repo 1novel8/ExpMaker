@@ -45,21 +45,21 @@ class SrcFrame(QFrame):
                              options=QFileDialog.DontUseNativeDialog)
         if db_f[0]:
             self.selected_file = str(db_f[0])
-            self.src_lbl.setText('Selected file: %s' % self.selected_file)
+            # self.src_lbl.setText('Selected file: %s' % self.selected_file)
             self.on_select(self.selected_file)
         # else:
         #     self.selected_file = ''
         #     self.src_lbl.setText('No file chosen')
         #
 
-    def set_src_text(self, text, collapse_len=40):
+    def set_src_text(self, collapse_len=40):
         """
         В строке text делается перенос относительно \ если длина превышает 40 символов
-        :param text: new source label text
+        # :param text: new source label text
         :param collapse_len: len to split text
         :return:
         """
-        path_parts = text.split('\\')
+        path_parts = self.selected_file.split('\\')
         text = path_parts.pop(0)
         if path_parts:
             temp_text = ''

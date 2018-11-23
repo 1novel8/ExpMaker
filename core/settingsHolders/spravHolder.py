@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from DbTools import DBConn, DbControl
-import DbStructures
+from ..db import DbControl, sprStructure
+
 import json
+
 
 class SprControl(DbControl):
     def __init__(self, db_path, is_full):
@@ -13,15 +14,16 @@ class SprControl(DbControl):
         super(SprControl, self).__init__(db_path, self.schema)
     #TODO: You can add exp structure control here
 
+
 class SpravError(Exception):
     def __init__(self, e_type, *args):
         err_head = u'Ошибка в справочниках! \n'
         args_err = u'Переданы неверные аргументы. \nПожалуйста зафиксируйте условия возникновения данной ошибки и обратитесь к разработчику:)'
-        args = map(lambda x: unicode(x), args)
+        args = map(lambda x: str(x), args)
         errors = {
             -1: lambda: args[0],
-            0: lambda: err_head + unicode(args[0]) if len(args) >= 1 else args_err,
-            1: lambda: err_head + u'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных' % unicode(args[0]) if len(args)>=1 else args_err,
+            0: lambda: err_head + str(args[0]) if len(args) >= 1 else args_err,
+            1: lambda: err_head + u'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных' % str(args[0]) if len(args)>=1 else args_err,
             #errors[2] used when error occured in row, so [args] must contain table_name and row_name as first 2 parameters
             2: lambda: err_head + u'Проверьте строку %s в таблице %s. ' % (args[1], args[0]) if len(args)>=2 else args_err,
             3: lambda: errors[2]() + args[2]  if len(args)>=3 else args_err,
@@ -29,6 +31,7 @@ class SpravError(Exception):
             5: lambda: errors[2]() + u'Не указана ссылка на суммарную строку.' if len(args)>=2 else args_err,
         }
         super(SpravError, self).__init__(errors[e_type]())
+
 
 def catch_ex_as_sprav_err(decor_method):
     def wrapper(*args, **kwargs):
@@ -39,6 +42,7 @@ def catch_ex_as_sprav_err(decor_method):
         except Exception as err:
             raise SpravError(-1, err.message)
     return wrapper
+
 
 class SpravHolder(object):
     def __init__(self):
@@ -92,7 +96,7 @@ class SpravHolder(object):
 
     @catch_ex_as_sprav_err
     def get_data_from_db(self, spr_path):
-        self._s_conn = DBConn(spr_path, False)
+        self._s_conn = DbControl(spr_path, False)
         data_dict = {}
         self._s_conn.make_connection()
         if not self._s_conn.has_dbc:
@@ -140,7 +144,7 @@ class SpravHolder(object):
     @catch_ex_as_sprav_err
     def select_to_str(self, query):
         codes_list = self._s_conn.exec_sel_query(query)
-        codes_list = map(lambda x : u'\'%s\'' % x[0] if isinstance(x[0], unicode) else str(x[0]), codes_list)
+        codes_list = map(lambda x : u'\'%s\'' % x[0] if isinstance(x[0], str) else str(x[0]), codes_list)
         codes_list = ', '.join(codes_list)
         return codes_list
 
@@ -178,8 +182,8 @@ class SpravHolder(object):
             raise SpravError(1, query)
         ctr_attr_structure = []
         for r_attr, field in attr_config.items():
-            f_ctr = unicode(field[0])
-            f_type = unicode(field[1])
+            f_ctr = str(field[0])
+            f_type = str(field[1])
             if r_attr == 'usertype':
                 f_ctr = u'UserType_*'
                 f_type = 'int'
@@ -200,7 +204,7 @@ class SpravHolder(object):
             for alias in check_aliases:
                 if alias not in attr_config:
                     failed_aliases.append(alias)
-            raise SpravError(0, u'В таблице %s не заданы используемые в программе соответствия %s' % (tab_name, unicode(failed_aliases)))
+            raise SpravError(0, u'В таблице %s не заданы используемые в программе соответствия %s' % (tab_name, str(failed_aliases)))
 
     def make_orders(self):
         order = self.__sorted_keys
@@ -405,7 +409,6 @@ class SpravHolder(object):
             self.__sorted_keys['b_r'].append(r_key)
             r_props[r_key] = {}
         for row in r_selected.values():
-            print len(row)
             r_key = row[0]
             r_props[r_key] = {'r_name': row[1]}       #work with val_f22
             try:
@@ -506,7 +509,7 @@ class SpravHolder(object):
         :param symbol: splitter
         :return: without spaces, without elements which returns False
         """
-        if type(line) in (str, unicode):
+        if isinstance(line, str):
             split_l = line.replace(u' ',u'').split(symbol)
             for l in split_l:
                 if not l:
@@ -549,7 +552,6 @@ class SpravHolder(object):
         query = u'select %(zn_1)s, %(zn_2)s, %(zn_57min)s, %(zn_57max)s, %(zn_810min)s, %(zn_810max)s, %(type_np)s from %(t)s' % format_d
         return self._s_conn.exec_sel_query(query)
 
-
     def get_select_conditions(self):
         tab_name = DbStructures.s_select_conditions
         tab_str = DbStructures.spr_db_cfg[tab_name]
@@ -557,7 +559,6 @@ class SpravHolder(object):
         title = tab_str['title']['name']
         wc = tab_str['where_case']['name']
         return self._s_conn.get_common_selection(tab_name, [id, title, wc])
-
 
     def remake_bgd1(self):
         """

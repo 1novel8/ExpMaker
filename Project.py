@@ -77,7 +77,7 @@ class MainActiveThread(QtCore.QThread):
                 inp.close()
             loading_password = exp_data.pop()
         except Exception as err:
-            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session+err.message)
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.wrong_session + err.message)
         else:
             if loading_password == u'Salt':
                 self.emit(QtCore.SIGNAL(u'session_loaded(PyQt_PyObject)'), exp_data)
@@ -145,7 +145,7 @@ class MainActiveThread(QtCore.QThread):
     def set_settings_changes(self, loaded_settings):
         self.emit(QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), loaded_settings)
 
-    def load_pkl_op1_2(self):
+    def load_pkl_sprav(self, isDefault):
         try:
             with open(self.__file_path, 'rb') as inp:
                 loaded_data = Pickle.load(inp)
@@ -162,7 +162,6 @@ class MainActiveThread(QtCore.QThread):
             else:
                 self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_io_error)
         except:
-            #TODO: rename error message and add exceptions
             self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_err_in_data)
 
 
