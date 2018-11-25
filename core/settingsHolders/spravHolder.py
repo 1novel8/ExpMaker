@@ -1,36 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..db import DbControl, sprStructure
-
+from core.errors import SpravError
+from constants import coreFiles
+from core.extractors import SprControl
+from core.db import sprStructure
+from constants import spravErrTypes as errTypes
 import json
-
-
-class SprControl(DbControl):
-    def __init__(self, db_path, is_full):
-        self.schema = DbStructures.str_db_cfg.copy()
-        if is_full:
-            self.schema.update(DbStructures.spr_db_cfg)
-        super(SprControl, self).__init__(db_path, self.schema)
-    #TODO: You can add exp structure control here
-
-
-class SpravError(Exception):
-    def __init__(self, e_type, *args):
-        err_head = u'Ошибка в справочниках! \n'
-        args_err = u'Переданы неверные аргументы. \nПожалуйста зафиксируйте условия возникновения данной ошибки и обратитесь к разработчику:)'
-        args = map(lambda x: str(x), args)
-        errors = {
-            -1: lambda: args[0],
-            0: lambda: err_head + str(args[0]) if len(args) >= 1 else args_err,
-            1: lambda: err_head + u'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных' % str(args[0]) if len(args)>=1 else args_err,
-            #errors[2] used when error occured in row, so [args] must contain table_name and row_name as first 2 parameters
-            2: lambda: err_head + u'Проверьте строку %s в таблице %s. ' % (args[1], args[0]) if len(args)>=2 else args_err,
-            3: lambda: errors[2]() + args[2]  if len(args)>=3 else args_err,
-            4: lambda: errors[2]() + u'Отсутствует соответствующее значение %s, на которое произведена ссылка.' % args[2] if len(args)>=3 else args_err,
-            5: lambda: errors[2]() + u'Не указана ссылка на суммарную строку.' if len(args)>=2 else args_err,
-        }
-        super(SpravError, self).__init__(errors[e_type]())
+import time
 
 
 def catch_ex_as_sprav_err(decor_method):
@@ -40,7 +17,7 @@ def catch_ex_as_sprav_err(decor_method):
         except SpravError:
             raise
         except Exception as err:
-            raise SpravError(-1, err.message)
+            raise SpravError(errTypes.unexpected, err)
     return wrapper
 
 
@@ -52,24 +29,50 @@ class SpravHolder(object):
         self.expb_f_str = None
         self.expb_r_str = None
         self.soato_npt = None
-        self.bgd2ekp =   None
+        self.bgd2ekp = None
         self.f22_notes = None
         self.bgd2ekp_1 = None
         self.bgd2ekp_2 = None
         self.user_types = None
-        self.slnad_codes =None
-        self.state_codes =None
-        self.melio_codes =None
-        self.select_conditions =None
-        self.land_codes =None
+        self.slnad_codes = None
+        self.state_codes = None
+        self.melio_codes = None
+        self.select_conditions = None
+        self.land_codes = None
         self.max_n = None
         self.crtab_columns = None
         self.str_orders = None
         self.__sorted_keys = None
+        self.current_sprav_data = None
         self.reset_sorted_keys()
 
     def reset_sorted_keys(self):
-        self.__sorted_keys = {'a_f':[], 'a_r':[], 'sv_f':[], 'b_f':[], 'b_r':[]}
+        self.__sorted_keys = {
+            'a_f': [],
+            'a_r': [],
+            'sv_f': [],
+            'b_f': [],
+            'b_r': []
+        }
+
+    def check_spr_db(self, db_path):
+        s_controller = SprControl(db_path)
+        if not s_controller.is_connected:
+            raise SpravError(errTypes.no_db_conn, db_path)
+        bad_tbls = s_controller.contr_tables()
+        if bad_tbls:
+            raise SpravError(errTypes.empty_spr_tabs, bad_tbls)
+        bad_fields = s_controller.contr_field_types()
+        if bad_fields:
+            raise SpravError(errTypes.empty_spr_fields, bad_fields.items())
+        else:
+            # TODO: call exp structure control here. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
+            self._s_conn = s_controller.conn
+            return True
+
+    def close_db_connection(self):
+        if self._s_conn and self._s_conn.has_dbc:
+            self._s_conn.close_conn()
 
     def set_parameters(self, sprav_dict):
         self.__sorted_keys = None
@@ -94,13 +97,23 @@ class SpravHolder(object):
         except KeyError:
             return False
 
+    def set_changes(self, change_data, sprav_path):
+        if self.set_parameters(change_data):
+            self.current_sprav_data = change_data
+            self.current_sprav_data['path_info'] = 'Default' if sprav_path == coreFiles.spr_default_path else sprav_path
+        else:
+            if self.current_sprav_data:
+                self.set_parameters(change_data)
+                raise SpravError(errTypes.changes_rejected, True)
+            else:
+                raise SpravError(errTypes.changes_rejected, True)
+
     @catch_ex_as_sprav_err
-    def get_data_from_db(self, spr_path):
-        self._s_conn = DbControl(spr_path, False)
+    def get_data_from_db(self, close_conn=True):
         data_dict = {}
         self._s_conn.make_connection()
         if not self._s_conn.has_dbc:
-            raise SpravError(0)
+            raise SpravError(errTypes.connection_failed)
         self.reset_sorted_keys()
         data_dict['land_codes'] = self.get_l_codes()
         attr_config = self.make_attr_dependencies()
@@ -108,23 +121,28 @@ class SpravHolder(object):
         data_dict['expa_r_str'] = self._get_expa_r_str(attr_config)
         data_dict['expb_f_str'] = self.get_expb_f_str(data_dict['land_codes'], attr_config)
         data_dict['expb_r_str'] = self.get_expb_r_str(attr_config)
-
         data_dict['attr_depnd'] = self.remake_attr_conf(attr_config)
         data_dict['str_orders'] = self.make_orders()
         data_dict['soato_npt'] = self.get_np_type()
         data_dict['bgd2ekp'] = self.remake_bgd2()
         data_dict['f22_notes'] = self.get_f22_names()
-        spr_cfg = DbStructures.spr_db_cfg
-        table = DbStructures.s_ustype
-        data_dict['user_types'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['user_type']['name'], table))
-        table = DbStructures.s_slnad
-        data_dict['slnad_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['sl_nad_code']['name'], table))
-        table = DbStructures.s_state
-        data_dict['state_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['state_code']['name'], table))
-        table = DbStructures.s_mc
-        data_dict['melio_codes'] = self.select_to_str(u'select %s from %s' % (spr_cfg[table]['mc']['name'], table))
+        get_str = sprStructure.get_tab_str
+        tab_name = sprStructure.ustype
+        data_dict['user_types'] = self.select_to_str('select %s from %s' %
+                                                     (get_str(tab_name)['user_type']['name'], tab_name))
+        tab_name = sprStructure.slnad
+        data_dict['slnad_codes'] = self.select_to_str('select %s from %s' %
+                                                      (get_str(tab_name)['sl_nad_code']['name'], tab_name))
+        tab_name = sprStructure.state
+        data_dict['state_codes'] = self.select_to_str('select %s from %s' %
+                                                      (get_str(tab_name)['state_code']['name'], tab_name))
+        tab_name = sprStructure.mc
+        data_dict['melio_codes'] = self.select_to_str('select %s from %s' %
+                                                      (get_str(tab_name)['mc']['name'], tab_name))
         data_dict['select_conditions'] = self.get_select_conditions()
-        self._s_conn.close_conn()
+        data_dict['create_time'] = time.strftime(u"%H:%M__%d.%m.%Y")
+        if close_conn:
+            self._s_conn.close_conn()
         return data_dict
 
     @staticmethod
@@ -144,7 +162,7 @@ class SpravHolder(object):
     @catch_ex_as_sprav_err
     def select_to_str(self, query):
         codes_list = self._s_conn.exec_sel_query(query)
-        codes_list = map(lambda x : u'\'%s\'' % x[0] if isinstance(x[0], str) else str(x[0]), codes_list)
+        codes_list = map(lambda x: '\'%s\'' % x[0] if isinstance(x[0], str) else str(x[0]), codes_list)
         codes_list = ', '.join(codes_list)
         return codes_list
 
@@ -163,17 +181,18 @@ class SpravHolder(object):
         Important:
         ctr_structure hold fields in order like the crostab_razv row structure will be(it's going to be nested)
         """
-        check_aliases = [u'lc', u'mc', u'area', u'usertype', u'usern_sad', u'id', u'f22', u'state', u'part', u'slnad', u'usern', u'nptype']
+        check_aliases = ['lc', 'mc', 'area', 'usertype', 'usern_sad', 'id', 'f22', 'state', 'part', 'slnad', 'usern', 'nptype']
         #check_aliases are resolved key-names, they got info about Field_Names (their indexes)
-        tab_name = DbStructures.s_r_alias
-        tab_str = DbStructures.str_db_cfg[tab_name]
+        tab_name = sprStructure.r_alias
+        tab_str = sprStructure.get_tab_str(tab_name)
+
         format_d = {
             't': tab_name,
             'alias':    tab_str['alias']['name'],
             'match_f':  tab_str['match_f']['name'],
             'f_type' :  tab_str['f_type']['name']
         }
-        query = u'select %(alias)s, %(match_f)s, %(f_type)s from %(t)s' % format_d
+        query = 'select %(alias)s, %(match_f)s, %(f_type)s from %(t)s' % format_d
         try:
             attr_config = self._s_conn.get_tab_dict(query)
             if not attr_config:
@@ -185,17 +204,17 @@ class SpravHolder(object):
             f_ctr = str(field[0])
             f_type = str(field[1])
             if r_attr == 'usertype':
-                f_ctr = u'UserType_*'
+                f_ctr = 'UserType_*'
                 f_type = 'int'
             if ' ' in f_ctr: # Небольшая подстраховка  :)
-                raise SpravError(3, tab_name, f_ctr, u'Названия полей не должны содержать пробелов!')
+                raise SpravError(3, tab_name, f_ctr, 'Названия полей не должны содержать пробелов!')
             ctr_attr_structure.append(f_ctr)
             attr_config[r_attr] = {
                 'f_type' :  f_type,
                 'f_index':    ctr_attr_structure.index(f_ctr)
             }
         attr_config['ctr_structure'] = tuple(ctr_attr_structure)
-        all_aliases = attr_config.keys()
+        all_aliases = list(attr_config.keys())
         all_aliases.extend(check_aliases)
         if len(attr_config) == len(set(all_aliases)):
             return attr_config
@@ -204,7 +223,7 @@ class SpravHolder(object):
             for alias in check_aliases:
                 if alias not in attr_config:
                     failed_aliases.append(alias)
-            raise SpravError(0, u'В таблице %s не заданы используемые в программе соответствия %s' % (tab_name, str(failed_aliases)))
+            raise SpravError(0, 'В таблице %s не заданы используемые в программе соответствия %s' % (tab_name, str(failed_aliases)))
 
     def make_orders(self):
         order = self.__sorted_keys
@@ -213,14 +232,14 @@ class SpravHolder(object):
         for r_key in order['a_r']:
             if r_key != 'total':
                 if r_key in sv_order:
-                    raise SpravError(0, u'Названия строк и полей (за исключением "total") не должны совпадать: %s' % r_key)
+                    raise SpravError(0, 'Названия строк и полей (за исключением "total") не должны совпадать: %s' % r_key)
                 sv_order.append(r_key)
         order['sv_f'] = sv_order
         return order
 
     def get_expa_f_str(self, l_codes):
-        tab_name = DbStructures.s_a_f_str
-        tab_str = DbStructures.str_db_cfg[tab_name]
+        tab_name = sprStructure.a_f_str
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'f_num':  tab_str['f_num']['name'],
@@ -229,13 +248,13 @@ class SpravHolder(object):
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        f_str = self._s_conn.get_tab_dict(u'select %(f_num)s, %(f_name)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
+        f_str = self._s_conn.get_tab_dict('select %(f_num)s, %(f_name)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
         f_str_d = {}
         for f_num in sorted(f_str):
             f_props = f_str[f_num]
             f_name = f_props[0]
             if not f_name:
-                raise SpravError(3, tab_name , f_num, u'В строке не задано имя')
+                raise SpravError(3, tab_name , f_num, 'В строке не задано имя')
             self.__sorted_keys['a_f'].append(f_name)
             sum_f = self.split_str_change_type(f_props[1], ',', 'int', tab_name, f_num)
             # Заполняем sum_f значениями имеющихся ключей вместо их id
@@ -245,14 +264,12 @@ class SpravHolder(object):
                 f_str_d[f_name]['codes'] = l_codes[f_num]
             except KeyError:
                 f_str_d[f_name]['codes'] = ()
-        #Add balance properties
-        self._add_balance_props(f_str.values(),0, 2, 3, f_str_d, tab_name)
+        self._add_balance_props(f_str.values(), 0, 2, 3, f_str_d, tab_name)
         return f_str_d
 
     @staticmethod
     def _add_balance_props(selected, key_ind, b_lvl_ind, b_by_ind, props_dict, tab_name):
         """
-
         :param selected: Data received from sprav database(type: list)
         :param key_ind: index of future row|field key in selected items(same as props_dict keys)
         :param b_lvl_ind: index of 'balance level' in selected items
@@ -264,11 +281,11 @@ class SpravHolder(object):
         for val in selected:
             if val[b_lvl_ind]:
                 key = val[key_ind]
-                balance_lvl =val[b_lvl_ind]
+                balance_lvl = val[b_lvl_ind]
                 balance_by = val[b_by_ind]
                 if not balance_by:
                     raise SpravError(5, tab_name, key)
-                if balance_by not in props_dict and balance_by != u'*':
+                if balance_by not in props_dict and balance_by != '*':
                     raise SpravError(4, tab_name, key, balance_by)
                 props_dict[key]['balance_lvl'] = balance_lvl
                 props_dict[key]['balance_by'] = balance_by
@@ -278,8 +295,8 @@ class SpravHolder(object):
         !!! key 'total' hold additional information with distinct group fields
         """
 
-        tab_name = DbStructures.s_a_r_str
-        tab_str = DbStructures.str_db_cfg[tab_name]
+        tab_name = sprStructure.a_r_str
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'row_id':  tab_str['row_id']['name'],
@@ -289,13 +306,13 @@ class SpravHolder(object):
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name'],
         }
-        query = u'select %(row_id)s, %(row_name)s, %(codes)s, %(group_field)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
+        query = 'select %(row_id)s, %(row_name)s, %(codes)s, %(group_field)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
         params = self._s_conn.get_tab_dict(query)
         r_props = {}
         for r_key in sorted(params):
             r_name = params[r_key][0]
             if not r_name:
-                raise SpravError(3, tab_name, r_key, u'В строке не задано имя')
+                raise SpravError(3, tab_name, r_key, 'В строке не задано имя')
             self.__sorted_keys['a_r'].append(r_name) # Создание порядка следования строк для финальной выгрузки
 
             if r_name == 'total':
@@ -309,12 +326,12 @@ class SpravHolder(object):
                     r_props[r_name] = {'codes': cods, 'sort_alias': alias}
                 else:
                     self.raise_strct_err(tab_name, r_key)
-        self._add_balance_props(params.values(), 0,3,4,r_props, tab_name)
+        self._add_balance_props(params.values(), 0, 3, 4, r_props, tab_name)
         return r_props
 
     def get_expb_f_str(self, l_codes, valid_aliases):
-        tab_name = DbStructures.s_b_f_str
-        tab_str = DbStructures.str_db_cfg[tab_name]
+        tab_name = sprStructure.b_f_str
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'f_num':  tab_str['f_num']['name'],
@@ -324,8 +341,8 @@ class SpravHolder(object):
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        f_structure = self._s_conn.get_tab_dict(u'select  %(f_num)s, %(f_name)s, %(alias_codes)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
-        # r_codes = self._s_conn.get_tab_dict(u'select RowName, Code, SortIndex from ExpA_r_Structure')
+        f_structure = self._s_conn.get_tab_dict('select  %(f_num)s, %(f_name)s, %(alias_codes)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
+        # r_codes = self._s_conn.get_tab_dict('select RowName, Code, SortIndex from ExpA_r_Structure')
         f_order = []
         f_props = {}
         for f_num in sorted(f_structure):
@@ -343,7 +360,7 @@ class SpravHolder(object):
                         self.raise_strct_err(tab_name, f_num)
                     als, cds = a_c
                     tmp_cods = []
-                    if als == u'lc':
+                    if als == 'lc':
                         cds = self.split_line(cds, ',')
                         for c in cds:
                             if '*' in c:
@@ -368,39 +385,38 @@ class SpravHolder(object):
 
 
     def get_l_codes(self):
-        tab = DbStructures.s_lc
-        tab_str = DbStructures.str_db_cfg[tab]
+        tab = sprStructure.lc
+        tab_str = sprStructure.get_tab_str(tab)
         format_d = {
             't': tab,
             'lc': tab_str['lc']['name'],
-            'f_num':tab_str['f_num']['name']
+            'f_num': tab_str['f_num']['name']
         }
         lc_d = {}
-        l_codes = self.select_sprav(u'select %(f_num)s, %(lc)s from %(t)s' % format_d)
+        l_codes = self.select_sprav('select %(f_num)s, %(lc)s from %(t)s' % format_d)
         for (key, kod) in l_codes:
             try:
                 lc_d[key].append(kod)
             except KeyError:
                 lc_d[key] = [kod,]
-        for k,v in lc_d.items():
+        for k, v in lc_d.items():
             lc_d[k] = tuple(v)
         return lc_d
 
-
     def get_expb_r_str(self, valid_aliases):
-        tab_name = DbStructures.s_b_r_str
-        tab_str = DbStructures.str_db_cfg[tab_name]
+        tab_name = sprStructure.b_r_str
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'row_id':   tab_str['row_id']['name'],
             'row_key':  tab_str['row_key']['name'],
             'f22_value': tab_str['f22_value']['name'],
             'sort_filter':  tab_str['sort_filter']['name'],
-            'sum_conditions':tab_str['sum_conditions']['name'],
+            'sum_conditions': tab_str['sum_conditions']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        query = u'select %(row_id)s, %(row_key)s, %(f22_value)s, %(sort_filter)s, %(sum_conditions)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
+        query = 'select %(row_id)s, %(row_key)s, %(f22_value)s, %(sort_filter)s, %(sum_conditions)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d
         r_selected = self._s_conn.get_tab_dict(query)
         b_f_names = self.__sorted_keys['b_f']
         r_props = {}
@@ -410,46 +426,47 @@ class SpravHolder(object):
             r_props[r_key] = {}
         for row in r_selected.values():
             r_key = row[0]
-            r_props[r_key] = {'r_name': row[1]}       #work with val_f22
+            r_props[r_key] = {'r_name': row[1]}  #work with val_f22
             try:
                 r_props[r_key]['sort_filter'] = SpravHolder.parse_filter_data(row[2], valid_aliases)
             except Exception as err:
+                print(err)
                 self.raise_strct_err(tab_name, r_key)
             sum_cnds = row[3]
 
             if sum_cnds:
-                conditions = self.split_line(sum_cnds, u';')
+                conditions = self.split_line(sum_cnds, ';')
                 r_props[r_key]['conds'] = {}
                 for cond in conditions:
                     cond_op = cond[0]
                     cond = cond[1:]
                     if not cond:
                         self.raise_strct_err(tab_name, r_key)
-                    if cond_op in u'+-':
-                        add_rows = self.split_line(cond, u',')
+                    if cond_op in '+-':
+                        add_rows = self.split_line(cond, ',')
                         if not self.is_include(r_props.keys(), add_rows):  #check is include, add included
                             self.raise_strct_err(tab_name, r_key)
-                        key_name = 'add' if cond_op == u'+' else u'sub'
+                        key_name = 'add' if cond_op == '+' else 'sub'
                         r_props[r_key]['conds'][key_name] = add_rows
-                    elif cond_op == u'&':
+                    elif cond_op == '&':
                         eq_di = {}
-                        eq = self.split_line(cond, u'=')
+                        eq = self.split_line(cond, '=')
                         if len(eq) == 2:
                             eq = list(eq)
                             # get operation type
-                            if eq[0][-1] == u'+':
+                            if eq[0][-1] == '+':
 
                                 eq[0] = eq[0][:-1]
-                                eq_di['op'] = u'+'
-                            elif eq[0][-1] == u'-':
+                                eq_di['op'] = '+'
+                            elif eq[0][-1] == '-':
                                 eq[0] = eq[0][:-1]
-                                eq_di['op'] = u'-'
+                                eq_di['op'] = '-'
                             else:
-                                eq_di['op'] = u'='
+                                eq_di['op'] = '='
                             # parse parameters and check their validation
                             if eq[0] in b_f_names:
                                 eq_di['upd_f'] = eq[0]
-                                eq_right = self.split_line(eq[1],u':')
+                                eq_right = self.split_line(eq[1],':')
                                 if len(eq_right) == 2:
                                     if eq_right[0] in r_props and eq_right[1] in b_f_names:
                                         eq_di['take_f'] = eq_right[1]
@@ -510,7 +527,7 @@ class SpravHolder(object):
         :return: without spaces, without elements which returns False
         """
         if isinstance(line, str):
-            split_l = line.replace(u' ',u'').split(symbol)
+            split_l = line.replace(' ','').split(symbol)
             for l in split_l:
                 if not l:
                     split_l.remove(l)
@@ -530,15 +547,13 @@ class SpravHolder(object):
 
     @staticmethod
     def is_include(main_li, inc_li):
-        li = main_li[:]
+        li = list(main_li)
         li.extend(inc_li)
-        if len(set(li)) == len(main_li):
-            return True
-        else: return False
+        return len(set(li)) == len(main_li)
 
     def get_np_type(self):
-        tab_name = DbStructures.s_soato
-        tab_str = DbStructures.spr_db_cfg[tab_name]
+        tab_name = sprStructure.soato
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'zn_1':     tab_str['zn_1']['name'],
@@ -549,12 +564,12 @@ class SpravHolder(object):
             'zn_810max':tab_str['zn_810max']['name'],
             'type_np':  tab_str['type_np']['name']
         }
-        query = u'select %(zn_1)s, %(zn_2)s, %(zn_57min)s, %(zn_57max)s, %(zn_810min)s, %(zn_810max)s, %(type_np)s from %(t)s' % format_d
+        query = 'select %(zn_1)s, %(zn_2)s, %(zn_57min)s, %(zn_57max)s, %(zn_810min)s, %(zn_810max)s, %(type_np)s from %(t)s' % format_d
         return self._s_conn.exec_sel_query(query)
 
     def get_select_conditions(self):
-        tab_name = DbStructures.s_select_conditions
-        tab_str = DbStructures.spr_db_cfg[tab_name]
+        tab_name = sprStructure.select_conditions
+        tab_str = sprStructure.get_tab_str(tab_name)
         id = tab_str['id']['name']
         title = tab_str['title']['name']
         wc = tab_str['where_case']['name']
@@ -565,8 +580,8 @@ class SpravHolder(object):
         BGD1 have fields: F22,UTYPE, NPTYPE_min, NPTYPE_max, State, SLNAD, NEWUSNAME, DOPUSNAME
         :return: list with BGD1 rows
         """
-        tab_name = DbStructures.s_b2e_1
-        tab_str = DbStructures.spr_db_cfg[tab_name]
+        tab_name = sprStructure.b2e_1
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't':        tab_name,
             'f22':      tab_str['f22']['name'],
@@ -577,7 +592,7 @@ class SpravHolder(object):
             'new_us_name':  tab_str['new_us_name']['name'],
             'dop_us_name':  tab_str['dop_us_name']['name']
         }
-        selectbgd1 = u'select %(f22)s, %(u_type)s, %(np_type)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
+        selectbgd1 = 'select %(f22)s, %(u_type)s, %(np_type)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
         newbgd = []
         if self._s_conn:
             for row in self.select_sprav(selectbgd1):
@@ -592,8 +607,8 @@ class SpravHolder(object):
         return newbgd
 
     def remake_bgd2(self):
-        tab_name = DbStructures.s_b2e_2
-        tab_str = DbStructures.spr_db_cfg[tab_name]
+        tab_name = sprStructure.b2e_2
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't':        tab_name,
             'f22':      tab_str['f22']['name'],
@@ -608,13 +623,13 @@ class SpravHolder(object):
             'new_us_name':  tab_str['new_us_name']['name'],
             'dop_us_name':  tab_str['dop_us_name']['name']
         }
-        selectbgd2 = u'select %(f22)s, %(new_f22)s, %(u_type)s, %(np_type)s, %(lc_min)s, %(lc_max)s, %(new_lc)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
+        selectbgd2 = 'select %(f22)s, %(new_f22)s, %(u_type)s, %(np_type)s, %(lc_min)s, %(lc_max)s, %(new_lc)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
         bgd2 = []
         if self._s_conn:
             for row in self.select_sprav(selectbgd2):
-                utypelist = self.u_to_int(row[2].split(u','))
-                nptypelist = self.u_to_int(row[3].split(u','))
-                stateli = self.u_to_int(row[7].split(u','))
+                utypelist = self.u_to_int(row[2].split(','))
+                nptypelist = self.u_to_int(row[3].split(','))
+                stateli = self.u_to_int(row[7].split(','))
                 nptypeliremaked = self.remake_list(nptypelist)
                 nlc = row[6] if row[6] else None
                 for state in stateli:
@@ -625,16 +640,15 @@ class SpravHolder(object):
             bgd2 = (self.remake_bgd1(),bgd2)
         return bgd2
 
-
     def get_f22_names(self):
-        tab_name = DbStructures.s_f22
-        tab_str = DbStructures.spr_db_cfg[tab_name]
+        tab_name = sprStructure.f22
+        tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
             'f22_code': tab_str['f22_code']['name'],
             'f22_name': tab_str['f22_name']['name']
         }
-        f22_names = self.select_sprav(u'Select %(f22_code)s, %(f22_name)s from %(t)s' % format_d)
+        f22_names = self.select_sprav('Select %(f22_code)s, %(f22_name)s from %(t)s' % format_d)
         f22_n_dict = {}
         for row in f22_names:
             f22_n_dict[row[0]] = row[1]

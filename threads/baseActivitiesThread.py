@@ -31,7 +31,7 @@ class BaseActivityThread(QThread):
         activities = {
             baseActions.LOAD_DB: self.worker.run_initial_db_contol,
             baseActions.LOAD_PKL_SPRAV: self.worker.load_pkl_sprav,
-            baseActions.LOAD_MDB_SPRAV: lambda x: x,
+            baseActions.LOAD_MDB_SPRAV: self.worker.load_mdb_sprav,
             baseActions.SAVE_SPRAV: lambda x: x,
             baseActions.LOAD_PKL_SESSION: self.worker.load_pkl_session,
             baseActions.SAVE_PKL_SESSION: lambda x: x,
