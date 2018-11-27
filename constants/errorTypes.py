@@ -15,4 +15,6 @@ class SpravErrorTypes:
     empty_spr_tabs = 'empty sprav tables'
     empty_spr_fields = 'empty sprav fields'
     control_warning = 'control warning'
-    enum = [connection_failed, unexpected, control_warning, changes_rejected, no_db_conn, empty_spr_tabs, empty_spr_fields]
+    failed_to_save = 'failed to save'
+    enum = [connection_failed, unexpected, control_warning, changes_rejected, no_db_conn,
+            empty_spr_tabs, empty_spr_fields, failed_to_save]

@@ -1068,7 +1068,6 @@ class MainWindow(QtGui.QMainWindow):
             accuracy_settings.b_accuracy = 0
 
 
-
         self.edit_a_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.a_s_accuracy)))
         self.edit_a_sv_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.a_sv_accuracy)))
         self.edit_b_accuracy.setCurrentIndex(possible_vals.index(str(accuracy_settings.b_accuracy)))
@@ -1201,7 +1200,6 @@ class MainWindow(QtGui.QMainWindow):
     def check_condition_str(codes):
         codes_li = str(codes).split(u',')
         codes_li = filter(lambda x: bool(x), codes_li)
-        print codes_li
         try:
             codes_li = map(lambda x: str(int(x)), codes_li)
         except ValueError:
@@ -1314,6 +1312,29 @@ class MainWindow(QtGui.QMainWindow):
     def session_loaded(self, exp_data):
         self.__is_session = True
         self.reset_params()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         self.reset_parameters()
         e_db_f = exp_data.pop()
         if not self.set_export_src(os.path.dirname(e_db_f), os.path.basename(e_db_f)):
@@ -1622,10 +1643,9 @@ class MainWindow(QtGui.QMainWindow):
         if csd:
             s_date = csd[u'create_time']
             s_file = self.main_load_save_thr.spr_path_info
-            message = Events.spr_info(s_date, s_file)
         else:
             message = ErrMessage.spr_not_loaded
-        QtGui.QMessageBox.information(self, WidgNames.sprav_info_box,message, u'Ok')
+        QtGui.QMessageBox.information(self, WidgNames.sprav_info_box, message, u'Ok')
 
     @QtCore.pyqtSlot()
     def click_control_btn(self):

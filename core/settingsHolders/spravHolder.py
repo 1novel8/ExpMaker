@@ -108,6 +108,17 @@ class SpravHolder(object):
             else:
                 raise SpravError(errTypes.changes_rejected, True)
 
+    def get_info(self):
+        data = self.current_sprav_data
+        if not data:
+            return ""
+        return """
+Создан:
+        %s
+Загружен из:
+        %s
+        """ % (data["create_time"], data["path_info"])
+
     @catch_ex_as_sprav_err
     def get_data_from_db(self, close_conn=True):
         data_dict = {}

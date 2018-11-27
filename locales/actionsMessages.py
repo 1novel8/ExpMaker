@@ -7,24 +7,24 @@ class ActionMessages:
         baseActions.LOAD_PKL_SPRAV: '',
         baseActions.LOAD_MDB_SPRAV: '',
         baseActions.SAVE_SPRAV: '',
-        baseActions.LOAD_PKL_SESSION: '',
-        baseActions.SAVE_PKL_SESSION: '',
+        baseActions.LOAD_PKL_SESSION: 'Инициализация сессии',
+        baseActions.SAVE_PKL_SESSION: 'Запуск сохранения сессии',
     }
     success_logs = {
         baseActions.LOAD_DB: 'База данных успешно загружена',
-        baseActions.LOAD_PKL_SPRAV: '',
-        baseActions.LOAD_MDB_SPRAV: '',
-        baseActions.SAVE_SPRAV: '',
-        baseActions.LOAD_PKL_SESSION: '',
-        baseActions.SAVE_PKL_SESSION: '',
+        baseActions.LOAD_PKL_SPRAV: 'Загрузка справочной информации завершена успешно',
+        baseActions.LOAD_MDB_SPRAV: 'Загрузка справочной информации завершена успешно',
+        baseActions.SAVE_SPRAV: 'Текущие настройки и справочники успешно сохранены',
+        baseActions.LOAD_PKL_SESSION: 'Сессия успешно загружена',
+        baseActions.SAVE_PKL_SESSION: 'Сессия сохранена успешно',
     }
     error_logs = {
         baseActions.LOAD_DB: 'Ошибка при загрузке базы данных',
-        baseActions.LOAD_PKL_SPRAV: '',
-        baseActions.LOAD_MDB_SPRAV: '',
-        baseActions.SAVE_SPRAV: '',
-        baseActions.LOAD_PKL_SESSION: '',
-        baseActions.SAVE_PKL_SESSION: '',
+        baseActions.LOAD_PKL_SPRAV: 'Ошибка при загрузке справочников',
+        baseActions.LOAD_MDB_SPRAV: 'Ошибка при загрузке справочников',
+        baseActions.SAVE_SPRAV: 'Ошибка при сохранении справочников',
+        baseActions.LOAD_PKL_SESSION: 'Ошибка при загрузке сессии',
+        baseActions.SAVE_PKL_SESSION: 'Ошибка при сохранении сессии',
     }
     loading_messages = {
         baseActions.LOAD_DB: 'База данных загружается',

@@ -19,6 +19,7 @@ class SpravError(Exception):
             errTypes.no_db_conn: lambda: err_head + customErrors.no_db_conn % args[0],
             errTypes.empty_spr_tabs: lambda: err_head + customErrors.get_empty_spr_tabs_msg(args[0]),
             errTypes.empty_spr_fields: lambda: err_head + customErrors.get_empty_spr_fields_msg(args[0]),
+            errTypes.failed_to_save: lambda: customErrors.failed_to_save_sprav,
 
             1: lambda: err_head + 'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных'
                        % str(args[0]) if len(args)>=1 else args_err,

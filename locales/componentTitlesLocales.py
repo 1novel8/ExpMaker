@@ -19,7 +19,10 @@ class TitleLocales:
     src_frame_no_file_chosen = 'Укажите путь к файлу...'
     src_frame_select_file_btn = 'Выбрать'
     error_modal_title = 'Возникла ошибка...'
+    sprav_info_modal_title = 'Данные о текущем справочнике'
+    warning_modal_title = 'Данные о текущем справочнике'
     load_sprav_source_finder_title = 'Загрузка справочника '
+    save_sprav_source_finder_title = 'Сохранение текущих настроек и справочников'
 
     menu_1 = 'Файл'
     menu_2 = 'Справочники'

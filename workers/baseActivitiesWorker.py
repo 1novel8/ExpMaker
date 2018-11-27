@@ -5,6 +5,7 @@ from core.extractors import CtrControl
 from locales import customErrors
 
 
+
 class BaseWorker:
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
@@ -58,8 +59,7 @@ class BaseWorker:
         return 'Ok'
 
     def load_mdb_sprav(self, sprav_holder=None, sprav_path=coreFiles.spr_default_path):
-        db_conn = sprav_holder.check_spr_db(sprav_path)
-        if db_conn:
+        if sprav_holder.check_spr_db(sprav_path):
             try:
                 sprav_data = sprav_holder.get_data_from_db()
                 sprav_holder.set_changes(sprav_data, sprav_path)
@@ -74,18 +74,16 @@ class BaseWorker:
     def set_settings_changes(self, loaded_settings):
         self.emit(QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), loaded_settings)
 
-    def load_pkl_sprav(self, sprav_holder=None, sprav_path=coreFiles.spr_default_path):
+    def load_pkl_sprav(self, sprav_holder=None, settings_holder=None, sprav_path=coreFiles.spr_default_path):
         is_default = sprav_path == coreFiles.spr_default_path
         try:
             with open(sprav_path, 'rb') as inp:
                 loaded_data = pickle.load(inp)
                 inp.close()
             if loaded_data['spravKey'] == appKey + '_sprav':
-
-
-
-
-                return loaded_data
+                sprav_holder.set_changes(loaded_data['sprav_data'], sprav_path)
+                settings_holder.update_settings(loaded_data['settings_data'])
+                settings_holder.set_default_active_cond(sprav_holder.select_conditions)
             else:
                 raise CustomError(errTypes.control_failed, customErrors.loaded_sprav_not_valid)
         except IOError:
@@ -97,13 +95,15 @@ class BaseWorker:
             print(err)
             raise CustomError(errTypes.control_failed, customErrors.spr_err_in_data)
 
-    def save_pkl_op4(self):
-        if self.__file_path:
-            if self.__file_path[-4:] != u'.pkl':
-                self.__file_path += u'.pkl'
-            try:
-                with open(self.__file_path, u'wb') as output:
-                    pickle.dump([self.current_sprav_dict, self.settings_dict, u"Sprav"], output, 2)
-                    self.emit(QtCore.SIGNAL(u'successfully_saved(const QString&)'), Events.spr_saved)
-            except:
-                self.emit(QtCore.SIGNAL(u'spr_error_occured(const QString&)'), ErrMessage.spr_not_saved)
+    def save_sprav(self, save_as=None, sprav_data=None, settings_data=None):
+        if not save_as or not sprav_data or not settings_data:
+            raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
+        try:
+            with open(save_as, u'wb') as output:
+                pickle.dump({
+                    "sprav_data": sprav_data,
+                    "settings_data": settings_data,
+                    "spravKey": appKey + '_sprav',
+                }, output, 2)
+        except Exception as err:
+            raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
