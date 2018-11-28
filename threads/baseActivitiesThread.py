@@ -25,6 +25,7 @@ class BaseActivityThread(QThread):
     def emit_error(self, error):
         if not isinstance(error, CustomError) or not isinstance(error, SpravError):
             error = CustomError(errTypes.unexpected, str(error))
+        error.action_id = self.current_action
         self.error_signal.emit(error)
 
     def run_activity(self):

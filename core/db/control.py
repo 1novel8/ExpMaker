@@ -67,6 +67,6 @@ class DbControl(object):
 
     def get_all_fields(self):
         all_fields = {}
-        for tab in self.db_schema:
+        for tab in self.db_schema.tabs_enum:
             all_fields[tab] = self.conn.get_f_names_types(tab)
         return all_fields

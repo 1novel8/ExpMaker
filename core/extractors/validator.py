@@ -32,9 +32,9 @@ class DataControl(CtrControl):
         return self.conn.get_f_names_types(crs_tab).keys()
 
     def update_str_to_null(self):
-        for tab in self.db_strct:
-            for field in self.db_strct[tab].values():
-                if field['type'] == 'VARCHAR':
+        for tab in self.db_schema.tabs_enum:
+            for field in self.db_schema.get_tab_str(tab).values():
+                if isinstance(field['type'], list) and 'VARCHAR' in field['type']:
                     # TODO:
                     # You can add a check query here like "select OBJECTID from %s where  %s = ''" to make it better
                     self.conn.exec_query(u"update %s set %s = Null where %s = ''" % (tab, field['name'], field['name']))
@@ -77,7 +77,7 @@ class DataControl(CtrControl):
                 check_flds.extend(multi_flds)
             else:
                 check_flds.append(field)
-        return filter(lambda x: x in tab_flds, check_flds)
+        return list(filter(lambda x: x in tab_flds, check_flds))
         # TODO:
         # raise error if returns true(show lost fields)
 
@@ -170,7 +170,7 @@ class DataControl(CtrControl):
         def raise_err(msg):
             raise Exception('Проверьте наличие полей %s' % str(msg))
         max_n = 1
-        crtab_fields = self.get_crtab_fields()
+        crtab_fields = list(self.get_crtab_fields())
         col_fields = len(crtab_fields)
         while True:
             f_set = set(crtab_fields + part_fields(str(max_n)))
@@ -255,7 +255,7 @@ class DataControl(CtrControl):
 
     def contr_is_unique(self, table, field, search_id):
         all_usern = self.select_errors('SELECT %s FROM %s' % (field, table))
-        wrong_kodes = filter(lambda x: all_usern.count(x) > 1, all_usern)
+        wrong_kodes = list(filter(lambda x: all_usern.count(x) > 1, all_usern))
         if wrong_kodes:
             query = 'SELECT %s FROM %s WHERE %s in %s' % (search_id, table, field, str(tuple(set(wrong_kodes))))
             search_err = self.select_errors(query)
@@ -344,7 +344,7 @@ class DataControl(CtrControl):
             'kod':   soato_tab_str['code']['name'],
             'name':  soato_tab_str['name']['name'],
         }
-        search_err = self.select_errors(
-            'SELECT %(id)s FROM %(s_tab)s WHERE %(kod)s Is Null or %(name)s is Null' % format_d)
+        query = 'SELECT %(id)s FROM %(s_tab)s WHERE %(kod)s Is Null or %(name)s is Null' % format_d
+        search_err = self.select_errors(query)
         self.add_to_protocol(soato_tab, 'KOD, Name', search_err, 3)
         self.contr_is_unique(soato_tab, format_d['kod'], format_d['id'])
