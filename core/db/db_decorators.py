@@ -37,5 +37,5 @@ def try_make_conn(func_with_connect):
             self.make_connection()
             return wrapper(self, *args, **kwargs)
         else:
-            raise Exception(u'Database connection failed')
+            raise Exception('Database connection failed')
     return wrapper

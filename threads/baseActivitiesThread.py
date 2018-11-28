@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 from constants import baseActions
 from workers import BaseWorker
-from core.errors import CustomError
+from core.errors import CustomError, SpravError
 from constants import errTypes
 
 
@@ -23,7 +23,7 @@ class BaseActivityThread(QThread):
         super(BaseActivityThread, self).start()
 
     def emit_error(self, error):
-        if not isinstance(error, CustomError):
+        if not isinstance(error, CustomError) or not isinstance(error, SpravError):
             error = CustomError(errTypes.unexpected, str(error))
         self.error_signal.emit(error)
 

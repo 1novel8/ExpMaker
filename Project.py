@@ -799,24 +799,24 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.export_frame.e_src_widget.btn, QtCore.SIGNAL(u'clicked()'), self.change_edb_file)
         self.connect(self.save_widget.btn, QtCore.SIGNAL(u'clicked()'), self.save_session)
 
-    def set_widgets_font(self):
-        self.l1.setFont(self.normal_font)
-        self.l2.setFont(self.normal_font)
-        self.l3.setFont(self.normal_font)
-        self.l4.setFont(self.normal_font)
-        self.btn_a_tree.setFont(self.bold_font)
-        self.btn_a_all.setFont(self.bold_font)
-        self.control_btn.setFont(self.bold_font)
-        self.convert_btn.setFont(self.bold_font)
-        self.exp_a_btn.setFont(self.bold_font)
-        self.exp_b_btn.setFont(self.bold_font)
+    # def set_widgets_font(self):
+    #     self.l1.setFont(self.normal_font)
+    #     self.l2.setFont(self.normal_font)
+    #     self.l3.setFont(self.normal_font)
+    #     self.l4.setFont(self.normal_font)
+    #     self.btn_a_tree.setFont(self.bold_font)
+    #     self.btn_a_all.setFont(self.bold_font)
+    #     self.control_btn.setFont(self.bold_font)
+    #     self.convert_btn.setFont(self.bold_font)
+    #     self.exp_a_btn.setFont(self.bold_font)
+    #     self.exp_b_btn.setFont(self.bold_font)
 
-    def set_fonts_properties(self):
-        self.normal_font.setPointSize(10)
-        self.bold_font.setPointSize(10)
-        self.bold_font.setBold(True)
-        self.normal_font.setFamily(u'Dutch801 XBd Bt')       #'Narkisim',
-        self.bold_font.setFamily(u'Times New Roman')
+    # def set_fonts_properties(self):
+    #     self.normal_font.setPointSize(10)
+    #     self.bold_font.setPointSize(10)
+    #     self.bold_font.setBold(True)
+    #     self.normal_font.setFamily(u'Dutch801 XBd Bt')       #'Narkisim',
+    #     self.bold_font.setFamily(u'Times New Roman')
 
     def hide_props(self, hide = True):
         self.l1.setHidden(hide)
@@ -843,74 +843,6 @@ class MainWindow(QtGui.QMainWindow):
         self.export_frame.setDisabled(blocked)
         self.save_widget.setDisabled(blocked)
 
-    # def set_menu_properties(self):
-    #     main_exit1 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\db.png' % project_dir), WidgNames.exit_main_1, self)
-    #     main_exit2 = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\stop1.png' % project_dir), WidgNames.exit_main_2, self)
-    #     main_exit1.setShortcut(u'Ctrl+O')
-    #     main_exit1.setStatusTip(ToolTip.exit_main_1)
-    #     main_exit2.setShortcut(u'Ctrl+Q')
-    #     main_exit2.setStatusTip(ToolTip.exit_main_2)
-    #
-    #     spr_default = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_1, self)
-    #     spr_choose_pkl = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_2, self)
-    #     spr_choose_mdb = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\refresh.png' % project_dir), WidgNames.exit_spr_3, self)
-    #     spr_save_spr = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\save.png' % project_dir), WidgNames.exit_spr_4, self)
-    #     spr_info = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\info.ico' % project_dir), WidgNames.exit_spr_5, self)
-    #     spr_default.setStatusTip(ToolTip.exit_spr_1)
-    #     spr_choose_pkl.setStatusTip(ToolTip.exit_spr_2)
-    #     spr_choose_mdb.setStatusTip(ToolTip.exit_spr_3)
-    #     spr_save_spr.setStatusTip(ToolTip.exit_spr_4)
-    #     spr_info.setStatusTip(ToolTip.exit_spr_5)
-    #
-    #     spr_default.setShortcut(u'Ctrl+D')
-    #     spr_choose_pkl.setShortcut(u'Ctrl+P')
-    #     spr_choose_mdb.setShortcut(u'Ctrl+M')
-    #     spr_save_spr.setShortcut(u'Ctrl+S')
-    #     spr_info.setShortcut(u'Ctrl+I')
-    #
-    #     settings_xls = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_1, self)
-    #     settings_xls.setStatusTip(ToolTip.settings_xls)
-    #     settings_xls.setShortcut(u'Ctrl+E')
-    #     settings_balance = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_2, self)
-    #     settings_balance.setStatusTip(ToolTip.settings_balance)
-    #     settings_balance.setShortcut(u'Ctrl+B')
-    #     settings_accuracy= QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_3, self)
-    #     settings_accuracy.setStatusTip(ToolTip.settings_accuracy)
-    #     settings_accuracy.setShortcut(u'Ctrl+N')
-    #     settings_conditions = QtGui.QAction(QtGui.QIcon(u'%s\\Images\\excel.ico' % project_dir), WidgNames.exit_settings_4, self)
-    #     settings_conditions.setStatusTip(ToolTip.settings_conditions)
-    #     settings_conditions.setShortcut(u'Ctrl+G')
-    #
-    #     self.connect(main_exit2, QtCore.SIGNAL(u'triggered()'), QtGui.qApp, QtCore.SLOT(u'quit()'))
-    #     self.connect(main_exit1, QtCore.SIGNAL(u'triggered()'), self.open_file)
-    #
-    #     self.connect(spr_default, QtCore.SIGNAL(u'triggered()'), self.run_main_thr)
-    #     self.connect(spr_choose_pkl, QtCore.SIGNAL(u'triggered()'), lambda: self.load_sprav(True))
-    #     self.connect(spr_choose_mdb, QtCore.SIGNAL(u'triggered()'), self.load_sprav)
-    #     self.connect(spr_save_spr, QtCore.SIGNAL(u'triggered()'), self.save_sprav)
-    #     self.connect(spr_info, QtCore.SIGNAL(u'triggered()'), self.show_spr_info)
-    #
-    #     self.connect(settings_xls, QtCore.SIGNAL(u'triggered()'), self.show_xl_settings_window)
-    #     self.connect(settings_balance, QtCore.SIGNAL(u'triggered()'), self.show_balance_settings_window)
-    #     self.connect(settings_accuracy, QtCore.SIGNAL(u'triggered()'), self.show_accuracy_settings_window)
-    #     self.connect(settings_conditions, QtCore.SIGNAL(u'triggered()'), self.show_conditions_settings_window)
-    #
-    #     menu = self.menuBar()
-    #     menu_file = menu.addMenu(WidgNames.menu_1)
-    #     menu_sprav = menu.addMenu(WidgNames.menu_2)
-    #     menu_settings = menu.addMenu(WidgNames.menu_3)
-    #     menu_file.addAction(main_exit1)
-    #     menu_file.addAction(main_exit2)
-    #     menu_sprav.addAction(spr_default)
-    #     menu_sprav.addAction(spr_choose_pkl)
-    #     menu_sprav.addAction(spr_choose_mdb)
-    #     menu_sprav.addAction(spr_save_spr)
-    #     menu_sprav.addAction(spr_info)
-    #     menu_settings.addAction(settings_xls)
-    #     menu_settings.addAction(settings_balance)
-    #     menu_settings.addAction(settings_accuracy)
-    #     menu_settings.addAction(settings_conditions)
-
     def show_xl_settings_window(self):
         self.set_default_xl_paths()
         xl_settings = self.settings.xls
@@ -918,8 +850,8 @@ class MainWindow(QtGui.QMainWindow):
         color2 = u'#51D04C'
         self.xls_window = SettingsWindow(self, u'Настройки выгрузки в Excel')
         self.xls_window.resize(800, 530)
-        block_1 = ColoredBlock(u'Экспорт выборочной экспликации А', parent=self.xls_window, color =color1)
-        block_2 = ColoredBlock(u'Экспорт сводной экспликации А', parent = self.xls_window, color =color2)
+        block_1 = ColoredBlock(u'Экспорт выборочной экспликации А', parent=self.xls_window, color=color1)
+        block_2 = ColoredBlock(u'Экспорт сводной экспликации А', parent = self.xls_window, color=color2)
         block_3 = ColoredBlock(u'Экспорт экспликации по форме 22.Зем', parent = self.xls_window, color=color1)
         # lbl_2.setAlignment(QtCore.Qt.AlignCenter)
         letters = lambda x: [x,]+[unicode(chr(x)) for x in range(65,91)]
@@ -1206,10 +1138,10 @@ class MainWindow(QtGui.QMainWindow):
             return ''
         return u','.join(codes_li)
 
-    def set_default_active_cond(self):
-        for cond in self.sprav_holder.select_conditions:
-            if not cond[u'WhereCase']:
-                self.settings.conditions.active_cond = cond[u'Id']
+    # def set_default_active_cond(self):
+    #     for cond in self.sprav_holder.select_conditions:
+    #         if not cond[u'WhereCase']:
+    #             self.settings.conditions.active_cond = cond[u'Id']
 
     def update_conditions_settings(self):
         active_options = filter(lambda x: self.selection_options_radio[x].isChecked(), self.selection_options_radio.keys())
@@ -1646,6 +1578,14 @@ class MainWindow(QtGui.QMainWindow):
         else:
             message = ErrMessage.spr_not_loaded
         QtGui.QMessageBox.information(self, WidgNames.sprav_info_box, message, u'Ok')
+
+
+
+
+
+
+
+
 
     @QtCore.pyqtSlot()
     def click_control_btn(self):

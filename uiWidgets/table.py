@@ -25,7 +25,7 @@ class TableWidget(QWidget):
         self.init_table_defaults(headers)
         self.box.addWidget(self.table, 0, 0, 21, 21)
         if with_clear:
-            self.clear_btn = PrimaryButton(parent, 'clear', on_click=self.clear_table)
+            self.clear_btn = PrimaryButton(parent, 'clear', on_click=self.clear_rows)
             self.box.addWidget(self.clear_btn, 21, 10, 2, 2)
             # self.hide()
 
@@ -66,7 +66,7 @@ class TableWidget(QWidget):
         for i, cell in enumerate(widgets_row):
             self.table.setCellWidget(self.__row_count-1, i, cell)
 
-    def clear_table(self):
+    def clear_rows(self):
         self.__row_count = 0
         self.table.reset()
         self.table.clearSpans()

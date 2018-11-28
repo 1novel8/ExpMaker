@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__author__ = 'Alex Konkov'
+__author__ = "Alex Konkov"
 
 import pyodbc
 import os.path
@@ -12,7 +12,7 @@ from .db_decorators import try_make_conn, catch_db_exception
 class DbConnector(object):
     def __init__(self, db_path, do_conn=True):
         self.db_f_path = db_path
-        self.db_access = 'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % db_path
+        self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path
         self.__conn = None
         self.__dbc = None
         self.reconnect = False
@@ -39,15 +39,15 @@ class DbConnector(object):
         try:
             self.__dbc.close()
             self.__conn.close()
-        except Exception:
-            pass
+        except Exception as err:
+            print("Failed to close", err)
 
     def run_db(self):
-        os.system(u'start %s' % self.db_f_path)
+        os.system("start %s" % self.db_f_path)
 
     @try_make_conn
     def get_tab_names(self):
-        return [row[2] for row in self.__dbc.tables(tableType='TABLE')]
+        return [row[2] for row in self.__dbc.tables(tableType="TABLE")]
 
     @try_make_conn
     def __get_columns(self, table_name):
@@ -68,12 +68,12 @@ class DbConnector(object):
                 f_name_type[f_info[3]] = f_info[5]
             return f_name_type
         except TypeError:
-            raise Exception(u'Ошибка соединения с базой данных')
+            raise Exception("Ошибка соединения с базой данных")
 
-    def get_common_selection(self, table, fields, where_case=u''):
-        query = u'select '
-        query += u', '.join(fields)
-        query += u' from %s %s' % (table, where_case)
+    def get_common_selection(self, table, fields, where_case=""""""):
+        query = "select "
+        query += "", "".join(fields)
+        query += " from %s %s" % (table, where_case)
         rc_rows = self.exec_sel_query(query)
         result = []
         for row in rc_rows:
@@ -105,9 +105,9 @@ class DbConnector(object):
 
     # def insert_row(self, tab_name, fields, vals):
     #     if len(fields) == len(vals):
-    #         ins_query = u'insert into %s(' % tab_name
+    #         ins_query = "insert into %s(" % tab_name
     #         f_count = len(fields)-1
-    #         ins_query+=u'?,'*f_count+u'?) values (' + u'?,'*f_count +u'?);'
+    #         ins_query+="?,"*f_count+"?) values (" + "?,"*f_count +"?);"
     #         args = tuple(fields+vals)
     #         self.exec_covered_query(ins_query, args)
     #     return False
@@ -134,18 +134,18 @@ class DbConnector(object):
 
     def guarantee_dbf_exists(self, template):
         if not os.path.isfile(self.db_f_path):
-            # templ = os.path.join(templ_path, 'template.mdb')
+            # templ = os.path.join(templ_path, "template.mdb")
             if os.path.isfile(template):
                 try:
                     shutil.copyfile(template, self.db_f_path)
                 except Exception:
-                    raise DbError('err_create_file', self.db_f_path)
+                    raise DbError("err_create_file", self.db_f_path)
             else:
-                raise DbError('tmpl_empty', template)
+                raise DbError("tmpl_empty", template)
 
     def run_db_process(self):
         self.close_conn()
-        os.system(u'start %s' % self.db_f_path)
+        os.system("start %s" % self.db_f_path)
 
     def __del__(self):
         self.close_conn()

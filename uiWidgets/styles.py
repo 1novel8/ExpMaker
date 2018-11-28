@@ -5,6 +5,9 @@ primary_button = apply_theme("""
         color: {color.primary_light};
         border: none;
     }
+    QPushButton::disabled {
+        background-color: {color.light_gray};
+    }
     QPushButton {
         color: {color.secondary_light};
         margin: 14px 20px;

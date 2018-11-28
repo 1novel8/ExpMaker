@@ -5,14 +5,13 @@ from core.extractors import CtrControl
 from locales import customErrors
 
 
-
 class BaseWorker:
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
 
     def load_pkl_session(self, db_file_path):
         try:
-            with open(db_file_path, 'rb') as inp:
+            with open(db_file_path, "rb") as inp:
                 exp_data = pickle.load(inp)
                 inp.close()
             loading_password = exp_data.pop()
@@ -26,7 +25,7 @@ class BaseWorker:
 
     def save_work_pkl(self, save_as, dump_data):
         try:
-            with open(save_as, u'wb') as output:
+            with open(save_as, "wb") as output:
                 pickle.dump(dump_data, output, 2)
             return save_as
         except Exception as err:
@@ -37,11 +36,11 @@ class BaseWorker:
         contr = CtrControl(file_path, coreFiles.tempDB_path)
         failed_tables = contr.contr_tables()
         if failed_tables:
-            err_message = customErrors.empty_tables % ', '.join(failed_tables)
+            err_message = customErrors.empty_tables % "", "".join(failed_tables)
             raise CustomError(errTypes.control_failed, err_message)
         failed_tables = contr.is_tables_empty()
         if failed_tables:
-            err_message = customErrors.empty_table_data % ', '.join(failed_tables)
+            err_message = customErrors.empty_table_data % "", "".join(failed_tables)
             raise CustomError(errTypes.control_failed, err_message)
         failed_fields = contr.contr_field_types()
         if failed_fields:
@@ -56,7 +55,7 @@ class BaseWorker:
             self.emit_process_event(
                 CustomError(errTypes.control_warning, err_message))
             raise CustomError(errTypes.control_failed, customErrors.field_control_failed)
-        return 'Ok'
+        return "Ok"
 
     def load_mdb_sprav(self, sprav_holder=None, sprav_path=coreFiles.spr_default_path):
         if sprav_holder.check_spr_db(sprav_path):
@@ -71,18 +70,15 @@ class BaseWorker:
             finally:
                 sprav_holder.close_db_connection()
 
-    def set_settings_changes(self, loaded_settings):
-        self.emit(QtCore.SIGNAL(u'new_settings_loaded(PyQt_PyObject)'), loaded_settings)
-
     def load_pkl_sprav(self, sprav_holder=None, settings_holder=None, sprav_path=coreFiles.spr_default_path):
         is_default = sprav_path == coreFiles.spr_default_path
         try:
-            with open(sprav_path, 'rb') as inp:
+            with open(sprav_path, "rb") as inp:
                 loaded_data = pickle.load(inp)
                 inp.close()
-            if loaded_data['spravKey'] == appKey + '_sprav':
-                sprav_holder.set_changes(loaded_data['sprav_data'], sprav_path)
-                settings_holder.update_settings(loaded_data['settings_data'])
+            if loaded_data["spravKey"] == appKey + "_sprav":
+                sprav_holder.set_changes(loaded_data["sprav_data"], sprav_path)
+                settings_holder.update_settings(loaded_data["settings_data"])
                 settings_holder.set_default_active_cond(sprav_holder.select_conditions)
             else:
                 raise CustomError(errTypes.control_failed, customErrors.loaded_sprav_not_valid)
@@ -99,11 +95,11 @@ class BaseWorker:
         if not save_as or not sprav_data or not settings_data:
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
         try:
-            with open(save_as, u'wb') as output:
+            with open(save_as, "wb") as output:
                 pickle.dump({
                     "sprav_data": sprav_data,
                     "settings_data": settings_data,
-                    "spravKey": appKey + '_sprav',
+                    "spravKey": appKey + "_sprav",
                 }, output, 2)
         except Exception as err:
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)

@@ -1,6 +1,13 @@
 __author__ = 'Alex Konkov'
 
 
+class ContolsActions:
+    CONTROL = 'control'
+    CONVERTATION = 'convertation'
+    EXP_A = 'exp a'
+    EXP_B = 'exp b'
+
+
 class SprActions:
     SET_DEFAULT = 'set_default'
     CHOOSE_PKL = 'choose_pkl'
@@ -28,9 +35,12 @@ class BaseActivityActions:
 class ExtractionActions:
     CONTROL = 'control'
     CONVERTATION = 'convertation'
+    enum = [CONTROL, CONVERTATION]
 
 
 class ExplicationActions:
     EXP_A_SINGLE = 'single_exp'
     EXP_A_SV = 'sv_exp'
     EXP_B = 'exp_f22'
+    enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B]
+

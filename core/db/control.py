@@ -12,7 +12,7 @@ class DbControl(object):
             try:
                 shutil.copyfile(db_path, temp_db_path)
             except shutil.Error:
-                raise DbError('shutil_err', db_path)
+                raise DbError("shutil_err", db_path)
             self.db_path = temp_db_path
         self.conn = DbConnector(self.db_path)
 
@@ -37,7 +37,7 @@ class DbControl(object):
         """
         no_data = []
         for tab in self.db_schema.tabs_enum:
-            if not self.conn.exec_sel_query('select * from %s' % tab):
+            if not self.conn.exec_sel_query("select * from %s" % tab):
                 no_data.append(tab)
         if no_data:
             return no_data
@@ -55,8 +55,8 @@ class DbControl(object):
             bad_fields = []
             tab_str = self.db_schema.get_tab_str(tab)
             for field in tab_str:
-                f_name = tab_str[field]['name']
-                f_types = tab_str[field]['type']
+                f_name = tab_str[field]["name"]
+                f_types = tab_str[field]["type"]
                 if f_name not in loaded_tab_schema:
                     bad_fields.append(f_name)
                 elif loaded_tab_schema[f_name] not in f_types:

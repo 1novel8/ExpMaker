@@ -9,6 +9,7 @@ class Color:
     secondary_blue = '#035793'
     light_gray = '#9fa6ad'
     dark_gray = '#5f6062'
+    accent_red = 'red'
 
 
 theme = {
