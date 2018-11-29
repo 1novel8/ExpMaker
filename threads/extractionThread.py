@@ -43,12 +43,20 @@ class ExtractionThread(QThread):
 
     def run(self):
         try:
-            warnings = self.run_activity()
+            result = self.run_activity()
+            if self.current_action == extractionActions.CONTROL:
+                if result:
+                    self.warnings_signal.emit(result)
+                    raise CustomError(errTypes.general, customErrors.failed_with_protocol)
+                else:
+                    self.success_signal.emit('passed')
+            elif self.current_action == extractionActions.CONVERTATION:
+                if isinstance(result, dict):
+                    self.warnings_signal.emit(result)
+                    raise CustomError(errTypes.general, customErrors.failed_with_protocol)
+                elif isinstance(result, list):
+                    self.success_signal.emit(result)
+                else:
+                    raise CustomError(errTypes.general, customErrors.no_result)
         except Exception as err:
             self.emit_error(err)
-        else:
-            if warnings:
-            #     self.warnings_signal.emit(warnings)
-            #     self.emit_error(CustomError(errTypes.general, customErrors.failed_with_protocol))
-            # else:
-                self.success_signal.emit('ok')

@@ -19,4 +19,16 @@ class ExtractionWorker:
             return errors
 
     def run_convertation(self, sprav_holder=None, settings_holder=None):
-        print(settings_holder)
+        select_condition = {}
+        if isinstance(sprav_holder.select_conditions, list):
+            for select_op in sprav_holder.select_conditions:
+                if select_op[u'Id'] == settings_holder.conditions.active_cond:
+                    select_condition = select_op
+        try:
+            converted_data = Convert.convert(self.sprav_holder, coreFiles.tempDB_path, select_condition)
+        except Exception as err:
+            if isinstance(err, CustomError):
+                raise err
+            raise CustomError(errTypes.convert_failed, str(err))
+        else:
+            return converted_data

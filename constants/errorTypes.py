@@ -3,8 +3,10 @@ class CustomErrorTypes:
     unexpected = 'unexpected'
     control_failed = 'control failed'
     control_warning = 'control warning'
+    convert_failed = 'convert failed'
+    convert_warning = 'convert warning'
     general = 'general'
-    types_enum = [general, control_warning, unexpected, control_failed]
+    types_enum = [general, control_warning, unexpected, control_failed, convert_failed, convert_warning]
 
 
 class SpravErrorTypes:

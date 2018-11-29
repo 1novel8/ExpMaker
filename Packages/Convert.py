@@ -3,6 +3,8 @@
 
 from DbTools import DBConn
 import DbStructures
+
+
 def add_column(connection, tabname, colname, coltype=u'int Null'):
     try:
         connection.exec_query(u'ALTER TABLE %s DROP "%s";' % (tabname, colname))
@@ -62,14 +64,7 @@ def add_utype_to_crtab(connection, max_n = None):
 #     if zn810min is not None or zn810max is not None:
 #         sqlupdnp += u' and (mid(%s, 8, 3) between %s and %s)' % (f_kod, zn810min, zn810max)
 #     return sqlupdnp
-def make_nptype(kod, npt_sprav):
-    for row in npt_sprav:
-        if int(kod[0]) == 5:
-            return row[6]
-        elif int(kod[1]) == row[1]:
-                if row[2] <= int(kod[4:7]) <= row[3] or row[3] is None:
-                    if row[4] <= int(kod[7:10]) <= row[5] or row[4] is None:
-                        return row[6]
+
 
 def catch_wrong_fkey(f_to_decor):
     def wrapper(self, *args, **kwargs):
@@ -97,7 +92,7 @@ class CtrRow(object):
         self.__r_args = r_args
         self.soato = self.get_el_by_fkey('nptype')
         self.object_id = self.get_el_by_fkey('id')
-        np_type = make_nptype(self.soato, spr_holder.soato_npt)
+        np_type = CtrRow.make_nptype(self.soato, spr_holder.soato_npt)
         if np_type is None:
             self.has_err = 4
             self.err_in_part = 1
@@ -112,6 +107,15 @@ class CtrRow(object):
             self.remake_usern()
             self.block_r_args()
 
+    @staticmethod
+    def make_nptype(kod, npt_sprav):
+        for row in npt_sprav:
+            if int(kod[0]) == 5:
+                return row[6]
+            elif int(kod[1]) == row[1]:
+                if row[2] <= int(kod[4:7]) <= row[3] or row[3] is None:
+                    if row[4] <= int(kod[7:10]) <= row[5] or row[4] is None:
+                        return row[6]
 
     def simplify_to_d(self, n, need_keys):
         """

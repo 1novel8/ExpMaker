@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..db import ctrStructure, sprStructure
+from core.db import ctrStructure, sprStructure
 from .initializer import CtrControl
 
 crs_tab = ctrStructure.crs_tab

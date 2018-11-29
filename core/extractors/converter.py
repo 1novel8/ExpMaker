@@ -1,0 +1,197 @@
+from core.db import ctrStructure
+from .ctrRow import CtrRow
+from core.db.connector import DbConnector
+
+
+class CtrConverter:
+    @staticmethod
+    def convert(sprav_holder, temp_db_path, select_condition):
+        n_max = sprav_holder.max_n
+        ctr_conn = DbConnector(temp_db_path)
+        CtrConverter.add_nasp_name_to_soato(ctr_conn)
+        CtrConverter.add_utype_to_crtab(ctr_conn, n_max)
+        users_d, soato_d = CtrConverter.data_users_soato(ctr_conn)
+        query_structure = sprav_holder.attr_config['ctr_structure']
+        select_ctr_all = CtrConverter._make_crtab_query(query_structure, n_max, select_condition['WhereCase'])
+        try:
+            sel_result = ctr_conn.exec_sel_query(select_ctr_all)
+        except Exception as err:
+            raise Exception('Ошибка при загрузке данных из crostab: %s' % err)
+        shape_area_sum = CtrConverter.get_shape_area_sum(ctr_conn)
+        del ctr_conn
+
+        rows_ok = []
+        whats_err = {1: {}, 2: {}, 3: {}, 4: {}}
+        got_errors = False
+        if not sel_result:
+            raise Exception('Данные по установленным параметрам выборки не найдены.')
+        for row in sel_result:
+            modified_r = CtrConverter.collapse_row(row, query_structure, n_max)
+            new_row = CtrRow(sprav_holder, *modified_r)
+            if new_row.has_err:
+                err_part = 'Part_%d' % new_row.err_in_part
+                try:
+                    whats_err[new_row.has_err][err_part].append(new_row.object_id)
+                except KeyError:
+                    whats_err[new_row.has_err][err_part] = [new_row.object_id, ]
+                    got_errors = True
+            else:
+                rows_ok.append(new_row)
+
+        if got_errors:
+            return whats_err
+        else:
+            additional_params = {
+                'shape_sum': shape_area_sum,
+                'shape_sum_enabled': True
+            }
+            save_info = [rows_ok, users_d, soato_d, additional_params]
+            return save_info
+
+    @staticmethod
+    def add_column(connection, tabname, colname, coltype='int Null'):
+        try:
+            connection.exec_query('ALTER TABLE %s DROP "%s";' % (tabname, colname))
+        except:
+            pass
+        connection.exec_query('ALTER TABLE %s ADD %s %s;' % (tabname, colname, coltype))
+
+    @staticmethod
+    def add_nasp_name_to_soato(connection):
+        tab_name = ctrStructure.soato_tab
+        format_d = {
+            'nasp': 'NameNasp',
+            'tab': tab_name,
+            'pref': ctrStructure.get_tab_str(tab_name)['pref']['name'],
+            'name': ctrStructure.get_tab_str(tab_name)['name']['name'],
+        }
+        CtrConverter.add_column(connection, tab_name, format_d['nasp'], 'varchar(80) NULL')
+        updnamenasp1 = u"update %(tab)s set %(nasp)s = %(name)s +' '+%(pref)s where %(pref)s in ('р-н','с/с');" % format_d
+        updnamenasp2 = u"update %(tab)s set %(nasp)s = %(pref)s +' '+ %(name)s where  %(nasp)s is Null" % format_d
+        connection.exec_query(updnamenasp1)
+        connection.exec_query(updnamenasp2)
+
+    @staticmethod
+    def add_utype_to_crtab(connection, max_n=None):
+        us_tab = ctrStructure.users_tab
+        cr_tab = ctrStructure.crs_tab
+        format_d = {
+            'us_t': us_tab,
+            'cr_t': cr_tab,
+            'u_utype': ctrStructure.get_tab_str(us_tab)['user_type']['name'],
+            'u_usern': ctrStructure.get_tab_str(us_tab)['user_n']['name']
+        }
+        for n in range(1, max_n + 1):
+            # ---------------------------UserType_n----------------------------------------------
+            format_d['c_utype'] = 'UserType_' + str(n)
+            format_d['c_usern'] = ctrStructure.get_tab_str(cr_tab)['user_n']['part_name'] + str(n)
+            CtrConverter.add_column(connection, cr_tab, format_d['c_utype'])
+            query = 'UPDATE %(us_t)s u INNER JOIN %(cr_t)s c ON u.%(u_usern)s = c.%(c_usern)s SET c.%(c_utype)s = u.%(u_utype)s;' % format_d
+            connection.exec_query(query)
+            # sql2 = '''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
+            #             SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
+            #                 %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
+            #             WHERE %(t)s.UserN_%(nn)d is not null
+            #                     and %(t)s.UserN_Sad is not null
+            #                     and SLNAD = 2 ;''' % {'t': ct, 'nn': n}
+            # connection.exec_query(sql2)
+            # ---------------------------PART_n----------------------------------------------
+            # CtrConverter.add_column(connection, ct, u"Area_%s" % n, 'DOUBLE NULL')
+            # sqlarea = '''UPDATE %(t)s
+            #             SET Area_%(nn)s = (Part_%(nn)s/100)*[Shape_Area]
+            #             WHERE Part_%(nn)s <> 0''' % {'t': ct, 'nn': n}
+            # connection.exec_query(sqlarea)
+
+    # def upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
+    #     sqlupdnp = 'update %s set NPType = %s where mid(%s, 1, 1) in (%s)'%(table, typenp, f_kod, zn1)
+    #     if zn2 is not  None:
+    #         sqlupdnp += ' and mid(%s, 2, 1) = %s' % (f_kod, zn2)
+    #     if zn57min is not None and zn57max is not None:
+    #         sqlupdnp += ' and (mid(%s, 5, 3) between %s and %s)' % (f_kod, zn57min, zn57max)
+    #     if zn810min is not None or zn810max is not None:
+    #         sqlupdnp += ' and (mid(%s, 8, 3) between %s and %s)' % (f_kod, zn810min, zn810max)
+    #     return sqlupdnp
+
+    @staticmethod
+    def _make_crtab_query(fields, n_max, where_case=None):
+        query = 'SELECT '
+        for f in fields:
+            if '*' in f:
+                for n in range(1, n_max + 1):
+                    query += f.replace('*', str(n)) + ', '
+            else:
+                query += f + ', '
+        query = query[:-2] + ' FROM %s' % ctrStructure.crs_tab
+
+        if where_case:
+            query += ' WHERE %s;' % str(where_case)
+        return query
+
+    @staticmethod
+    def collapse_row(row, structure, n_max):
+        return_row = []
+        row = list(row)
+        n_survived = 0
+        for f in structure:
+            if '*' in f:
+                f_elements = row[:n_max]
+                row = row[n_max:]
+                if not n_survived:
+                    for i in f_elements:
+                        if i:
+                            n_survived += 1
+                        else:
+                            break
+                return_row.append(f_elements[:n_survived])
+            else:
+                return_row.append(row.pop(0))
+        return return_row, n_survived
+
+    @staticmethod
+    def get_shape_area_sum(ct_conn):
+        format_d = {
+            'cr_tab': ctrStructure.crs_tab,
+            'sh_area': ctrStructure.get_tab_str(ctrStructure.crs_tab)['shape_area']['name']
+        }
+        sel_result = ct_conn.exec_sel_query('select sum(%(sh_area)s) from %(cr_tab)s' % format_d)
+        return sel_result[0][0]
+
+    @staticmethod
+    def data_users_soato(ct_conn):
+        """
+        returns UsersDict and SoatoDict with keys usern and soato
+        and values in unicode
+        """
+        users_tab = ctrStructure.users_tab
+        soato_tab = ctrStructure.soato_tab
+        format_d = {
+            'users': users_tab,
+            'soato': soato_tab,
+            'user_n': ctrStructure.get_tab_str(users_tab)['user_n']['name'],
+            'us_name': ctrStructure.get_tab_str(users_tab)['us_name']['name'],
+            'code': ctrStructure.get_tab_str(soato_tab)['code']['name'],
+            'name_nas_p': 'NameNasp'
+        }
+        sel_result = ct_conn.exec_sel_query('select %(user_n)s, %(us_name)s from %(users)s' % format_d)
+        users_dict = dict(sel_result)
+        sel_result = ct_conn.exec_sel_query('select %(code)s, %(name_nas_p)s from %(soato)s' % format_d)
+        soato_dict = dict(sel_result)
+        return users_dict, soato_dict
+
+    @staticmethod
+    def make_soato_group(s_kods):
+        soato_group = {}
+        ate_soato = []
+        for s in s_kods:
+            ate_key = s_kods[:-3]
+            if not s_kods[-3:] == '000':
+                try:
+                    soato_group[ate_key].append(s_kods)
+                except KeyError:
+                    soato_group[ate_key] = [s_kods]
+            else:
+                ate_soato.append(ate_key)
+            for soato in ate_soato:
+                if soato not in soato_group.keys():
+                    soato_group[soato] = []
+        return soato_group
