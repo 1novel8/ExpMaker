@@ -60,19 +60,18 @@ class DbConnector(object):
             f_names.append(f_info[3])
         return f_names
 
-    @try_make_conn
     def get_f_names_types(self, table_name):
         f_name_type = {}
         try:
-            for f_info in self.__get_columns(table_name):
+            for f_info in list(self.__get_columns(table_name)):
                 f_name_type[f_info[3]] = f_info[5]
             return f_name_type
         except TypeError:
             raise Exception("Ошибка соединения с базой данных")
 
-    def get_common_selection(self, table, fields, where_case=""""""):
+    def get_common_selection(self, table, fields, where_case=""):
         query = "select "
-        query += "", "".join(fields)
+        query += ", ".join(fields)
         query += " from %s %s" % (table, where_case)
         rc_rows = self.exec_sel_query(query)
         result = []

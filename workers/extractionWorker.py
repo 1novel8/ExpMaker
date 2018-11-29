@@ -1,6 +1,7 @@
 from core.extractors import DataControl
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
+from core.extractors import CtrConverter
 
 
 class ExtractionWorker:
@@ -25,7 +26,7 @@ class ExtractionWorker:
                 if select_op[u'Id'] == settings_holder.conditions.active_cond:
                     select_condition = select_op
         try:
-            converted_data = Convert.convert(self.sprav_holder, coreFiles.tempDB_path, select_condition)
+            converted_data = CtrConverter.convert(sprav_holder, coreFiles.tempDB_path, select_condition)
         except Exception as err:
             if isinstance(err, CustomError):
                 raise err

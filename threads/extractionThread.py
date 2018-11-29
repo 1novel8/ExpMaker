@@ -23,7 +23,7 @@ class ExtractionThread(QThread):
         self.error_signal.connect(error_handler)
         self.worker = ExtractionWorker(self.emit_error)
 
-    def start(self, action, kvargs):
+    def start(self, action, **kvargs):
         self.current_action = action
         self.current_params = kvargs
         super(ExtractionThread, self).start()

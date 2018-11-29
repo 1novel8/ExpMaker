@@ -36,7 +36,7 @@ class ControlsFrame(QFrame):
     def _locate_components(self):
         self.controls_box.addWidget(self.control_lbl, 0, 0, 1, 1)
         self.controls_box.addWidget(self.convert_lbl, 2, 0, 1, 1)
-        self.controls_box.addWidget(self.exp_a_lbl, 3, 0, 1, 1)
+        self.controls_box.addWidget(self.exp_a_lbl, 4, 0, 1, 1)
         self.controls_box.addWidget(self.exp_b_lbl, 6, 0, 1, 1)
         self.controls_box.addWidget(self.control_btn, 0, 1, 1, 1)
         self.controls_box.addWidget(self.convert_btn, 2, 1, 1, 1)
@@ -77,10 +77,12 @@ class ControlsFrame(QFrame):
             return
         self.set_all_disabled(True)
 
-        if state == controlsStates.DB_LOADED or state == controlsStates.CONTROL_FAILED:
+        if state == controlsStates.DB_LOADED \
+                or state == controlsStates.CONVERTATION_FAILED \
+                or state == controlsStates.CONTROL_FAILED:
             self.control_btn.setEnabled(True)
             return
-        if state == controlsStates.CONTROL_PASSED or state == controlsStates.CONVERTATION_FAILED:
+        if state == controlsStates.CONTROL_PASSED:
             self.control_btn.setEnabled(True)
             self.convert_btn.setEnabled(True)
             return

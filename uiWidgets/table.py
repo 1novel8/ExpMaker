@@ -97,8 +97,7 @@ class TableWidget(QWidget):
 
     def add_convert_protocol(self, warnings):
         event_time = time.strftime(u"%d.%m.%y  %H:%M:%S")
-        self.convert_table.show()
-        self.add_span_row(event_time)
+        self.add_representation_row(event_time)
         for err_type in warnings:
             for part in warnings[err_type]:
                 errors = warnings[err_type][part]
@@ -108,4 +107,6 @@ class TableWidget(QWidget):
                 else:
                     errors = (tuple(errors))
                     add_warning = ' '
-                self.add_row([part, 'OBJECTID in %s' % errors, add_warning + protocolErrors.convert_fails[err_type]])
+                self.add_row([part, 'OBJECTID in %s' % str(errors), add_warning + protocolErrors.convert_fails[err_type]])
+        self.show()
+

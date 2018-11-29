@@ -51,18 +51,21 @@ class DbControl(object):
         """
         fails = {}
         for tab in self.db_schema.tabs_enum:
-            loaded_tab_schema = self.conn.get_f_names_types(tab)
-            bad_fields = []
-            tab_str = self.db_schema.get_tab_str(tab)
-            for field in tab_str:
-                f_name = tab_str[field]["name"]
-                f_types = tab_str[field]["type"]
-                if f_name not in loaded_tab_schema:
-                    bad_fields.append(f_name)
-                elif loaded_tab_schema[f_name] not in f_types:
-                    bad_fields.append((f_name, f_types))
-            if bad_fields:
-                fails[tab] = tuple(bad_fields)
+            try:
+                loaded_tab_schema = self.conn.get_f_names_types(tab)
+                bad_fields = []
+                tab_str = self.db_schema.get_tab_str(tab)
+                for field in tab_str:
+                    f_name = tab_str[field]["name"]
+                    f_types = tab_str[field]["type"]
+                    if f_name not in loaded_tab_schema:
+                        bad_fields.append(f_name)
+                    elif loaded_tab_schema[f_name] not in f_types:
+                        bad_fields.append((f_name, f_types))
+                if bad_fields:
+                    fails[tab] = tuple(bad_fields)
+            except Exception as err:
+                print(err)
         return fails
 
     def get_all_fields(self):
