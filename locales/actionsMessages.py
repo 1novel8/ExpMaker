@@ -14,6 +14,7 @@ class ActionMessages:
         baseActions.SAVE_PKL_SESSION: "Запуск сохранения сессии",
         extractionActions.CONTROL: "Запуск контроля данных",
         extractionActions.CONVERTATION: "Запуск конвертации данных",
+        expActions.INIT_A_MAKER: "",
         expActions.EXP_A_SINGLE: "Запуск одиночной экспликации А",
         expActions.EXP_A_SV: "Запуск сводной экспликации",
         expActions.EXP_B: "Запуск экспликации F22",
@@ -28,6 +29,7 @@ class ActionMessages:
 
         extractionActions.CONTROL: "Контроль данных пройден",
         extractionActions.CONVERTATION: "Конвертация данных успешно завершена. Доступно создание экспликаций.",
+        expActions.INIT_A_MAKER: "Инициализация данных для расчета экспликаций успешно проведена",
         expActions.EXP_A_SINGLE: "Выборочная экспликация А успешно создана",
         expActions.EXP_A_SV: "Сводная экспликация успешно создана",
         expActions.EXP_B: "экспликация F22 успешно создана",
@@ -42,6 +44,7 @@ class ActionMessages:
 
         extractionActions.CONTROL: "Не пройден контроль данных",
         extractionActions.CONVERTATION: "Конвертация данных завершена с ошибками",
+        expActions.INIT_A_MAKER: "Инициализация данных для расчета экспликаций завершилась с ошибкой",
         expActions.EXP_A_SINGLE: "Ошибка при создании экспликации А",
         expActions.EXP_A_SV: "Ошибка при создании  сводной экспликации",
         expActions.EXP_B: "Ошибка при создании экспликации F22",
@@ -56,6 +59,7 @@ class ActionMessages:
 
         extractionActions.CONTROL: "Контроль данных",
         extractionActions.CONVERTATION: "Конвертация данных",
+        expActions.INIT_A_MAKER: "Инициализация данных",
         expActions.EXP_A_SINGLE: "Создание экспликации А",
         expActions.EXP_A_SV: "Создание сводной экспликации",
         expActions.EXP_B: "Создание экспликации F22",

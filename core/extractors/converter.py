@@ -39,8 +39,8 @@ class CtrConverter:
                 rows_ok.append(new_row)
 
         if got_errors:
-            return whats_err
-        else:
+        #     return whats_err
+        # else:
             additional_params = {
                 'shape_sum': shape_area_sum,
                 'shape_sum_enabled': True

@@ -53,8 +53,7 @@ class BaseWorker:
         if empty_pref_ids:
             err_message = customErrors.warning_no_pref % empty_pref_ids
             self.emit_process_event(
-                CustomError(errTypes.control_warning, err_message))
-            raise CustomError(errTypes.control_failed, customErrors.field_control_failed)
+                    CustomError(errTypes.control_warning, err_message))
         return "Ok"
 
     def load_mdb_sprav(self, sprav_holder=None, sprav_path=coreFiles.spr_default_path):

@@ -39,8 +39,9 @@ class ExtractionActions:
 
 
 class ExplicationActions:
+    INIT_A_MAKER = 'initialize exp A maker'
     EXP_A_SINGLE = 'single_exp'
     EXP_A_SV = 'sv_exp'
     EXP_B = 'exp_f22'
-    enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B]
+    enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B, INIT_A_MAKER]
 

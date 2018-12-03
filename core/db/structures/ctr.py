@@ -33,7 +33,7 @@ class CtrStructure:
                              "type": ["INTEGER", "SMALLINT"]},
                 "sl_nad": {"name": "SLNAD",
                            "type": ["INTEGER", "SMALLINT"]},
-                "state": {"name": "State_1",
+                "state": {"name": "State",
                           "type": ["INTEGER", "SMALLINT"]},
                 "lc": {"name": "LANDCODE",
                        "type": ["INTEGER", "SMALLINT"]},

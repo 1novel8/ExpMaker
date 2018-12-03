@@ -1305,6 +1305,16 @@ class MainWindow(QtGui.QMainWindow):
         if not self.__is_session:
             self.change_edb_file()
 
+
+
+
+
+
+
+
+
+
+
         self.filter_frame.setHidden(False)
         self.settings.filter.enabled = False
         self.filter_activation.setChecked(False)

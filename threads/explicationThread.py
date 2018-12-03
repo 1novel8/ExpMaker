@@ -17,7 +17,7 @@ class ExplicationThread(QThread):
         self.error_signal.connect(error_handler)
         self.worker = ExplicationWorker(self.emit_error)
 
-    def start(self, action, kvargs):
+    def start(self, action, **kvargs):
         self.current_action = action
         self.current_params = kvargs
         super(ExplicationThread, self).start()
@@ -30,6 +30,7 @@ class ExplicationThread(QThread):
 
     def run_activity(self):
         activities = {
+            expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
             expActions.EXP_A_SINGLE: self.worker.run_exp_a,
             expActions.EXP_A_SV: self.worker.run_exp_a_sv,
             expActions.EXP_B: self.worker.run_exp_b,
