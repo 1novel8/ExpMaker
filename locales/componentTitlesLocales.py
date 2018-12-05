@@ -16,6 +16,8 @@ class TitleLocales:
     control_table_head = ['Таблица', 'Поле', 'Условие выборки', 'Пояснение']
     convert_table_head = ['Номер доли', 'Условие выборки', 'Сообщение']
     src_frame_default = 'Источник данных '
+    src_exp_save_as = 'Укажите путь для сохранения экспликаций '
+    session_save_as_dialog = 'Сохранить текущую сессию как...'
     src_frame_no_file_chosen = 'Укажите путь к файлу...'
     src_frame_select_file_btn = 'Выбрать'
     error_modal_title = 'Возникла ошибка...'
@@ -27,8 +29,9 @@ class TitleLocales:
     menu_1 = 'Файл'
     menu_2 = 'Справочники'
     menu_3 = 'Настройки'
-    exit_main_1 = 'Открыть'
-    exit_main_2 = 'Закрыть'
+    exit_main_1 = 'Открыть файл источника данных'
+    exit_main_2 = 'Завершить работу'
+    exit_main_3 = 'Сохранить текущую сессию'
     spr_default_action = 'Справочник по умолчанию'
     spr_pkl_action = 'Загрузить файл *.pkl'
     spr_mdb_action = 'Загрузить файл *.mdb'

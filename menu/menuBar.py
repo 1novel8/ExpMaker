@@ -11,11 +11,12 @@ class MenuSection:
         self.menu_parent = menu_parent
         self.title = title
         self.position = position
+        self.actions = {}
 
     def activate(self):
         self._section = self.menu_parent.addMenu(self.title)
 
-    def add_action(self, action_title='', icon_path=None, shortcut=None, tip=None, on_click=lambda x: x):
+    def add_action(self, action_id='unassigned', action_title='', icon_path=None, shortcut=None, tip=None, on_click=lambda x: x):
         if not self._section:
             raise Exception('%s menu section is not activated' % self.title)
         icon = QIcon(icon_path) if icon_path else None
@@ -25,6 +26,7 @@ class MenuSection:
         if tip:
             action.setStatusTip(tip)
         action.triggered.connect(on_click)
+        self.actions[str(action_id)] = action
         self._section.addAction(action)
 
 
@@ -64,3 +66,13 @@ class MenuBar:
             raise Exception('Section is not initialized for %s' % section_key)
         self._sections[section_key].add_action(on_click=click_handler, **action_conf)
 
+    def disable_item(self, section_key, action_id, disable=True):
+        try:
+            section = self._sections[section_key]
+            action = section.actions[str(action_id)]
+            action.setDisabled(disable)
+        except Exception as err:
+            print(err)
+
+    def enable_item(self, section_key, action_id):
+        self.disable_item(section_key, action_id, disable=False)

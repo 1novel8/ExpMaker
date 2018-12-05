@@ -25,7 +25,7 @@ class ActionMessages:
         baseActions.LOAD_MDB_SPRAV: "Загрузка справочной информации завершена успешно",
         baseActions.SAVE_SPRAV: "Текущие настройки и справочники успешно сохранены",
         baseActions.LOAD_PKL_SESSION: "Сессия успешно загружена",
-        baseActions.SAVE_PKL_SESSION: "Сессия сохранена успешно",
+        baseActions.SAVE_PKL_SESSION: "Сессия успешно сохранена как %s",
 
         extractionActions.CONTROL: "Контроль данных пройден",
         extractionActions.CONVERTATION: "Конвертация данных успешно завершена. Доступно создание экспликаций.",

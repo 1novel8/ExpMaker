@@ -35,7 +35,7 @@ class BaseActivityThread(QThread):
             baseActions.LOAD_MDB_SPRAV: self.worker.load_mdb_sprav,
             baseActions.SAVE_SPRAV: self.worker.save_sprav,
             baseActions.LOAD_PKL_SESSION: self.worker.load_pkl_session,
-            # baseActions.SAVE_PKL_SESSION: self.worker.save_pkl_session,
+            baseActions.SAVE_PKL_SESSION: self.worker.save_pkl_session,
         }
         return activities[self.current_action](**self.current_params)
 

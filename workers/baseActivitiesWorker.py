@@ -9,22 +9,25 @@ class BaseWorker:
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
 
-    def load_pkl_session(self, db_file_path):
+    @staticmethod
+    def load_pkl_session(file_path=None):
         try:
-            with open(db_file_path, "rb") as inp:
-                exp_data = pickle.load(inp)
+            with open(file_path, "rb") as inp:
+                dump_data = pickle.load(inp)
                 inp.close()
-            loading_password = exp_data.pop()
+            loading_password = dump_data["app_key"]
         except Exception as err:
             raise CustomError(errTypes.general, customErrors.wrong_session + err)
         else:
             if loading_password == appKey:
-                return exp_data
+                return dump_data
             else:
                 raise CustomError(errTypes.general, customErrors.wrong_session)
 
-    def save_work_pkl(self, save_as, dump_data):
+    @staticmethod
+    def save_pkl_session(save_as, dump_data):
         try:
+            dump_data["app_key"] = appKey
             with open(save_as, "wb") as output:
                 pickle.dump(dump_data, output, 2)
             return save_as
@@ -56,7 +59,8 @@ class BaseWorker:
                     CustomError(errTypes.control_warning, err_message))
         return "Ok"
 
-    def load_mdb_sprav(self, sprav_holder=None, sprav_path=coreFiles.spr_default_path):
+    @staticmethod
+    def load_mdb_sprav(sprav_holder=None, sprav_path=coreFiles.spr_default_path):
         if sprav_holder.check_spr_db(sprav_path):
             try:
                 sprav_data = sprav_holder.get_data_from_db()
@@ -69,7 +73,8 @@ class BaseWorker:
             finally:
                 sprav_holder.close_db_connection()
 
-    def load_pkl_sprav(self, sprav_holder=None, settings_holder=None, sprav_path=coreFiles.spr_default_path):
+    @staticmethod
+    def load_pkl_sprav(sprav_holder=None, settings_holder=None, sprav_path=coreFiles.spr_default_path):
         is_default = sprav_path == coreFiles.spr_default_path
         try:
             with open(sprav_path, "rb") as inp:
@@ -90,7 +95,8 @@ class BaseWorker:
             print(err)
             raise CustomError(errTypes.control_failed, customErrors.spr_err_in_data)
 
-    def save_sprav(self, save_as=None, sprav_data=None, settings_data=None):
+    @staticmethod
+    def save_sprav(save_as=None, sprav_data=None, settings_data=None):
         if not save_as or not sprav_data or not settings_data:
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
         try:
@@ -101,4 +107,5 @@ class BaseWorker:
                     "spravKey": appKey + "_sprav",
                 }, output, 2)
         except Exception as err:
+            print("save error: ", err)
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
