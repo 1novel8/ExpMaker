@@ -641,37 +641,37 @@ class MainWindow(QtGui.QMainWindow):
         #
         # self.control_table = TableWidget(WidgNames.control_table_head, self.central_widget)
         # self.convert_table = TableWidget(WidgNames.convert_table_head, self.central_widget)
-        self.treeView = QtGui.QTreeView()
-        self.treeView.setAlternatingRowColors(True)
-        self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.treeView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.treeView.setHidden(True)
-        self.group_box = GroupBox(self)
-        self.group_box.hide()
-        self.expa_widget = QtGui.QWidget(self)
-        self.expa_box = QtGui.QGridLayout(self.expa_widget)
+        # self.treeView = QtGui.QTreeView()
+        # self.treeView.setAlternatingRowColors(True)
+        # self.treeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        # self.treeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        # self.treeView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        # self.treeView.setHidden(True)
+        # self.group_box = GroupBox(self)
+        # self.group_box.hide()
+        # self.expa_widget = QtGui.QWidget(self)
+        # self.expa_box = QtGui.QGridLayout(self.expa_widget)
 
-        self.filter_frame = QtGui.QFrame(self)
-        self.filter_frame.setHidden(True)
-        self.filter_box = QtGui.QHBoxLayout(self.filter_frame)
-        self.filter_btn = QtGui.QToolButton(self)
-        self.filter_btn.setText(u'...')
-        self.filter_btn.setAutoRaise(True)
-        self.filter_btn.setStyleSheet(u'color: white; background-color: #2558FF; border-radius: 8%; border: 1px solid white')
+        # self.filter_frame = QtGui.QFrame(self)
+        # self.filter_frame.setHidden(True)
+        # self.filter_box = QtGui.QHBoxLayout(self.filter_frame)
+        # self.filter_btn = QtGui.QToolButton(self)
+        # self.filter_btn.setText(u'...')
+        # self.filter_btn.setAutoRaise(True)
+        # self.filter_btn.setStyleSheet(u'color: white; background-color: #2558FF; border-radius: 8%; border: 1px solid white')
+        #
+        # self.filter_activation = QtGui.QCheckBox(u'Фильтр', self)
+        # self.filter_activation.setChecked(True)
 
-        self.filter_activation = QtGui.QCheckBox(u'Фильтр', self)
-        self.filter_activation.setChecked(True)
-
-        self.filter_activation.setFont(QtGui.QFont('Segoe Print', 9))
-        self.filter_activation.stateChanged.connect( lambda x: self.filter_changed())
+        # self.filter_activation.setFont(QtGui.QFont('Segoe Print', 9))
+        # self.filter_activation.stateChanged.connect( lambda x: self.filter_changed())
         # self.lbl.setAlignment(QtCore.Qt.AlignRight)
-        self.filter_box.addWidget(self.filter_activation)
-        self.filter_box.addWidget(self.filter_btn)
+        # self.filter_box.addWidget(self.filter_activation)
+        # self.filter_box.addWidget(self.filter_btn)
 
-        self.expa_box.addWidget(self.filter_frame, 0, 0, 1, 5)
-        self.expa_box.addWidget(self.treeView,1,0,21,21)
-        self.expa_box.addWidget(self.group_box,0,5,1,16)
+        # self.expa_box.addWidget(self.filter_frame, 0, 0, 1, 5)
+        # self.expa_box.addWidget(self.treeView,1,0,21,21)
+        # self.expa_box.addWidget(self.group_box,0,5,1,16)
 
         # self.splitter = QtGui.QSplitter(self)
         # self.splitter.addWidget(self.expa_widget)
@@ -679,11 +679,11 @@ class MainWindow(QtGui.QMainWindow):
         # self.splitter.addWidget(self.convert_table)
         # self.splitter.addWidget(self.event_table)
 
-        self.tree_text_widg = QtGui.QWidget()
-        self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
-        self.tree_text_box.addWidget(self.splitter)
+        # self.tree_text_widg = QtGui.QWidget()
+        # self.tree_text_box = QtGui.QHBoxLayout(self.tree_text_widg)
+        # self.tree_text_box.addWidget(self.splitter)
 
-        self.gridLayout.addWidget(self.tree_text_widg, 1, 2, 15, 11)
+        # self.gridLayout.addWidget(self.tree_text_widg, 1, 2, 15, 11)
         # self.clearbutton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         # self.setWindowIcon(QtGui.QIcon(u'%s\\Images\\exp.png' % project_dir))
         # self.setCentralWidget(self.central_widget)
@@ -1094,9 +1094,8 @@ class MainWindow(QtGui.QMainWindow):
             self.filter_window.close()
             self.add_event_log(u'Изменены условия фильтрации данных для экспликации')
             self.update_settings()
-        self.apply_exp_data_filter()
 
-    def apply_exp_data_filter(self):
+
         if self.settings.filter.enabled:
             filtered_rows = filter(self.filter_item, self._not_filtered_data)
         else:
@@ -1572,6 +1571,7 @@ class MainWindow(QtGui.QMainWindow):
         self.main_load_save_thr.update_settings_dict(self.settings.get_settings_dict())
         self.run_main_thr(self.settings.last_hold_pkl_dir, 4)
 
+
     def settings_loaded(self, settings_dict):
         self.settings.update_settings(settings_dict)
         self.set_default_active_cond()
@@ -1662,8 +1662,6 @@ class MainWindow(QtGui.QMainWindow):
         self.model.setHorizontalHeaderLabels([WidgNames.tree_header])
         self.treeView.setModel(self.model)
         self.treeView.setHidden(False)
-        # self.disconnect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.click_tree_cell)
-        # self.connect(self.treeView, QtCore.SIGNAL(u"activated(const QModelIndex &)"),self.click_tree_cell)
 
     @QtCore.pyqtSlot()
     def click_exp_b_btn(self):
@@ -1908,10 +1906,13 @@ class GroupBox(QtGui.QFrame):
 
     def change_first_cmb(self, data):
         self.first_cmb.change_data(data)
+
     def change_second_cmb(self, data):
         self.second_cmb.change_data(data)
+
     def get_first_index(self):
         return self.first_cmb.currentIndex()
+
     def get_second_index(self):
         return self.second_cmb.currentIndex()
 

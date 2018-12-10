@@ -25,6 +25,8 @@ class TitleLocales:
     warning_modal_title = 'Данные о текущем справочнике'
     load_sprav_source_finder_title = 'Загрузка справочника '
     save_sprav_source_finder_title = 'Сохранение текущих настроек и справочников'
+    group_box_title = u'Группировка данных'
+    exp_tree_header_title = "Набор экспликаций А"
 
     menu_1 = 'Файл'
     menu_2 = 'Справочники'

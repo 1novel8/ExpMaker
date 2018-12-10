@@ -17,6 +17,7 @@ class ExpAMaker(object):
         self.datadict = self.make_datadict(rows_data)
         # Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instance
         self.exps_dict = self.make_comb_data()
+        self.exp_tree = None
 
     def get_cc_soato_d(self):
         cc_soato_d = {}
@@ -95,7 +96,7 @@ class ExpAMaker(object):
             tree_dict[key1] = []
             for key2 in self.exps_dict[key1]:
                 tree_dict[key1].append(self.exps_dict[key1][key2])
-        return tree_dict
+        self.exp_tree = tree_dict
 
     def make_comb_data(self):
         comb_dicts = dict.fromkeys(list(self.datadict.keys()))

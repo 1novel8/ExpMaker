@@ -16,11 +16,15 @@ class DictAsObject(object):
 
 
 class SettingsHolder(object):
-    def __init__(self, xls_templates_dir, store_source):
+    def __init__(self, xls_templates_dir, store_source, on_save=lambda x, y: x):
         self.xls_templates_dir = xls_templates_dir
-        self.last_hold_pkl_dir = store_source
+        self.should_save_as = store_source
         self.set_default_settings()
+        self.on_save = on_save
         # super(SettingsHolder, self).__init__(settings_data)
+
+    def save(self):
+        self.on_save(self.should_save_as, self.get_settings_dict())
 
     def update_settings(self, settings_data):
         if self.validate_settings(settings_data):

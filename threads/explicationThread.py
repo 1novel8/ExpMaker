@@ -31,6 +31,7 @@ class ExplicationThread(QThread):
     def run_activity(self):
         activities = {
             expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
+            expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
             expActions.EXP_A_SINGLE: self.worker.run_exp_a,
             expActions.EXP_A_SV: self.worker.run_exp_a_sv,
             expActions.EXP_B: self.worker.run_exp_b,
