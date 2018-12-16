@@ -13,25 +13,25 @@ class RowDataCombiner(object):
         self.group_as_sad = group_as_sad
         self.errors = {}
 
-    def add_data(self, spr):
+    def add_data(self, sprav_holder):
         """
-        :param spr: sprav_holder instance
+        :param sprav_holder: sprav_holder instance
         Makes json-style simple explication a in case that it's not counted yet
         """
         if self.expl_data:
             # Data already added
             pass
         else:
-            expl_data = dict.fromkeys(spr.str_orders['a_r'])
+            expl_data = dict.fromkeys(sprav_holder.str_orders['a_r'])
             for r_key in expl_data:
                 if r_key == 'total':
                     filtered_rows = self.__init_data
                 else:
-                    r_codes = spr.expa_r_str[r_key]['codes']
-                    s_alias = spr.expa_r_str[r_key]['sort_alias']
+                    r_codes = sprav_holder.expa_r_str[r_key]['codes']
+                    s_alias = sprav_holder.expa_r_str[r_key]['sort_alias']
                     filtered_rows = [row for row in self.__init_data if row[s_alias] in r_codes]
                 try:
-                    expl_data[r_key] = RowDataCombiner.sum_by_lc(filtered_rows, spr.expa_f_str)
+                    expl_data[r_key] = RowDataCombiner.sum_by_lc(filtered_rows, sprav_holder.expa_f_str)
                 except (IndexError, TypeError, AttributeError) as e:
                     self.errors[r_key] = e.message
             self.expl_data = expl_data
@@ -56,6 +56,21 @@ class RowDataCombiner(object):
                     sv_row[r_key] = self.expl_data[r_key]['total']
             return sv_row
         return {}
+
+    @staticmethod
+    def prepare_out_matrix(s_dict, sprav_holder, for_xls=True):
+        """
+        Caution! The first row contains field Names in order to export!
+        :return : list, matrix to export
+        """
+        f_at_order = sprav_holder.str_orders['a_f']
+        matr = []
+        if not for_xls:
+            matr.append(f_at_order)
+        for row in sprav_holder.str_orders['a_r']:
+            digits = map(lambda x: s_dict[row][x]['val'], f_at_order)
+            matr.append(digits)
+        return matr
 
     @staticmethod
     def sum_by_lc(rows, f_str):

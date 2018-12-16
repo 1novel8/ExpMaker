@@ -2,6 +2,7 @@ __author__ = 'Aleksei'
 
 from .. import DbTools
 
+
 class DbExporter(DbTools.DBConn):
     def __init__(self, dbf_path, template_path):
         self.db_f_path = dbf_path
@@ -39,7 +40,7 @@ class DbExporter(DbTools.DBConn):
 
     def insert_row(self, t_name, fields, vals):
         fields = u','.join(fields)
-        vals = map(lambda x: u"'%s'" % x if isinstance(x, (unicode, str)) else unicode(x), vals)
+        vals = map(lambda x: "'%s'" % x if isinstance(x, str) else str(x), vals)
         vals = u','.join(vals)
         ins_query = u'INSERT into %s(%s) values (%s)' % (t_name, fields, vals)
         self.exec_query(ins_query)

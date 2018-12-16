@@ -5,11 +5,15 @@ from .buildUtils import ExpBuilder
 
 
 class ExpAMaker(object):
+    shape_area_sum = 0
+    exp_tree = None
+    sv_matrix=[]
+    row_counter = 1
+
     def __init__(self, rows_data, users_data, soato_data, sprav_holder, options=None):
         self.sprav_holder = sprav_holder
         self.errors_occured = {}
         self.usersInfo, self.soatoInfo = users_data, soato_data
-        self.shape_area_sum = 0
         if options and 'shape_sum_enabled' in options:
             self.shape_area_sum = options['shape_sum']
         self.cc_soato_d = self.get_cc_soato_d()
@@ -17,7 +21,6 @@ class ExpAMaker(object):
         self.datadict = self.make_datadict(rows_data)
         # Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instance
         self.exps_dict = self.make_comb_data()
-        self.exp_tree = None
 
     def get_cc_soato_d(self):
         cc_soato_d = {}
@@ -48,8 +51,7 @@ class ExpAMaker(object):
                     group_key = row.get_el_by_fkey_n('usern', n)
                 else:  # группировка по SOATo
                     group_key = row.soato
-                row_params = row.simplify_to_d(n,
-                                               need_keys)
+                row_params = row.simplify_to_d(n, need_keys)
                 # NEWUSNAME_%(N)d, Area_%(N)d, LANDCODE, MELIOCODE, ServType08, State_1
                 try:
                     f22_dict[f22_key][group_key]['r_params'].append(row_params)
@@ -258,6 +260,57 @@ class ExpAMaker(object):
         else:
             self.errors_occured[0] = 'No data'
             return sv_exp
+
+    def __push_to_sv_matrix(self, f22_desc, row_name, shapes, skip_num=False, for_xls=True):
+        row = []
+        if for_xls:
+            if skip_num:
+                row = ['', ]
+            else:
+                row = [self.row_counter, ]
+                self.row_counter += 1
+        row.extend([f22_desc, row_name])
+        row.extend(shapes)
+        self.sv_matrix.append(row)
+
+    def prepare_sv_matrix(self, sv_dict, for_xls=True):
+        """
+        Caution! The first row contains field Names in order to export!
+        :return : tuple, matrix to export
+        """
+        f_orders = self.sprav_holder.str_orders['sv_f']
+        r_order_base = sv_dict['texts']
+        self.sv_matrix = []
+        self.row_counter = 1
+        self.__push_to_sv_matrix('F22_id', 'description', f_orders, skip_num=True, for_xls=for_xls)
+        for f22_key in sorted(list(r_order_base.keys())):
+            if for_xls:
+                self.__push_to_sv_matrix('', '', ['', ] * (len(f_orders)+2), skip_num=True, for_xls=for_xls)
+                self.__push_to_sv_matrix(f22_key, self.sprav_holder.f22_notes[f22_key], ['', ]*len(f_orders),
+                                         skip_num=True, for_xls=for_xls)
+            vals_keys = map(lambda x, y: (y, x), r_order_base[f22_key].items())
+            n = 1
+            for row_name, row_key in sorted(vals_keys):
+                digits = map(lambda x: sv_dict[f22_key][row_key][x]['val'], f_orders)
+                self.__push_to_sv_matrix('%s.%d' % (f22_key, n), row_name, digits, skip_num=False, for_xls=for_xls)
+                n += 1
+            digits = map(lambda x: sv_dict[f22_key]['total'][x]['val'], f_orders)
+            self.__push_to_sv_matrix(f22_key+'*', 'Итого:', digits, skip_num=False, for_xls=for_xls)
+
+        if 'total' in sv_dict:
+            # добавление итоговой строки total
+            digits = map(lambda x: sv_dict['total'][x]['val'], f_orders)
+            self.__push_to_sv_matrix('**', 'Всего:', digits, skip_num=False, for_xls=for_xls)
+        if 'sh_sum' in sv_dict:
+            # добовление информационной строки Shape_area
+            digits = map(lambda x: sv_dict['sh_sum'][x]['val'], f_orders)
+            self.__push_to_sv_matrix('***', 'Shape_Area (для сравнения):', digits, skip_num=False, for_xls=for_xls)
+        if 'sh_init_sum' in sv_dict:
+            # добовление информационной строки Shape_area
+            digits = map(lambda x: sv_dict['sh_init_sum'][x]['val'], f_orders)
+            self.__push_to_sv_matrix('***', 'Фактическая сумма Shape_Area (для сравнения):', digits,
+                                     skip_num=False, for_xls=for_xls)
+        return self.sv_matrix
 
     @staticmethod
     def __round_sv(sv_nested_di, round_setts):

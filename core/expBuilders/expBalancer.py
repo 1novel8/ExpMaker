@@ -4,7 +4,7 @@
 import math
 
 
-class Balancer:
+class ExpBalancer:
     b_counter = 0
     accuracy = None
     current_exp = None
@@ -134,7 +134,8 @@ class Balancer:
 
         """
         Caution. This method changes the input objects
-        it doesnt changes the keys of input parameters, just adds bonuses which guarantees that val sums with bonuses are equal
+        it doesnt change the keys of input parameters,
+        just adds bonuses which guarantees that val sums with bonuses are equal
         :param parent_cell: parent cell
         :param child_cells: array of cells
         :return:
@@ -326,7 +327,8 @@ class Balancer:
         for field_stage in self.field_settings['lvls']:
             for lvl_f_key in self.field_settings[field_stage]:
                 # if is_first_lvl:
-                #     _run_matrix_anticlockwise_balancing(base_row, depend_rows, lvl_f_key, self.field_settings[field_stage][lvl_f_key])
+                #     run_matrix_anticlockwise_balancing(
+                #         base_row, depend_rows, lvl_f_key, self.field_settings[field_stage][lvl_f_key])
                 #     continue
                 # TODO: You can use this to upgrade performance
                 base_fields_fixed = True  # need clockwise balancing
@@ -384,12 +386,11 @@ class Balancer:
         self.merge_bonuses_to_values(self.current_exp)
 
     def run_as_balancer(self, main_exp, _f_settings, _r_settings):
-        print('Not yet implemented')
+        print('Not yet implemented', main_exp)
         # self.field_settings = modify_settings(_f_settings)
         # row_settings = modify_settings(_r_settings)
 
-    @staticmethod
-    def run_asv_balancer(main_exp, _f_settings, _r_settings):
+    def run_asv_balancer(self, main_exp, _f_settings, _r_settings):
         print('Not yet implemented')
         # self.field_settings = modify_settings(_f_settings)
         # row_settings = modify_settings(_r_settings)

@@ -324,9 +324,9 @@ class ExpAThread(QtCore.QThread):
         :return : list, matrix to export
         """
         f_at_order = self.sprav_holder.str_orders['a_f']
-        matr = [f_at_order,]
+        matr = [f_at_order, ]
         for row in self.sprav_holder.str_orders['a_r']:
-            digits =  map(lambda x: s_dict[row][x]['val'], f_at_order)
+            digits = map(lambda x: s_dict[row][x]['val'], f_at_order)
             matr.append(digits)
         return matr
 
@@ -347,7 +347,7 @@ class ExpAThread(QtCore.QThread):
                 if skip_num:
                     row = ['', ]
                 else:
-                    self.n+=1
+                    self.n += 1
             row.extend([first, second])
             row.extend(remain)
             matr.append(row)
@@ -418,6 +418,25 @@ class ExpAThread(QtCore.QThread):
             self.emit(QtCore.SIGNAL(u'exp_sv_success()'))
             if self.xl_settings.is_mdb_start:
                 export_db.run_db()
+
+    def run_mdb_export(self, fb_matr):
+        fields = ['f_'+f for f in fb_matr[0]]
+        t_name = u'ExpB_%s' % time.strftime(u"%d\%m\%Y_%H:%M")
+        f_str = {fields[0]: 'TEXT(8)', fields[1]: 'TEXT(150)'}
+        for f in fields[2:]:
+            f_str[f] = 'DOUBLE NULL'
+        try:
+            export_db = ToMdb.DbExporter(self.exp_file, templ_db_path)
+            export_db.create_table(t_name, f_str, fields)
+            export_db.run_export(t_name, fb_matr[1:], fields)
+        except Exception as err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), err.message)
+        else:
+            self.emit(QtCore.SIGNAL(u'success()'))
+            if self.xl_settings.is_mdb_start:
+                export_db.run_db()
+
+
 
 class ExpBThread(QtCore.QThread):
     def __init__(self, edbf, rows, sprav, settings, parent = None):
