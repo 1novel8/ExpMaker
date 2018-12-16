@@ -32,7 +32,7 @@ class ActionMessages:
         expActions.INIT_A_MAKER: "Инициализация данных для расчета экспликаций успешно проведена",
         expActions.EXP_A_SINGLE: "Выборочная экспликация А успешно создана",
         expActions.EXP_A_SV: "Сводная экспликация успешно создана",
-        expActions.EXP_B: "экспликация F22 успешно создана",
+        expActions.EXP_B: "Экспликация F22 успешно создана",
     }
     error_logs = {
         baseActions.LOAD_DB: "Ошибка при загрузке базы данных",
@@ -60,9 +60,12 @@ class ActionMessages:
         extractionActions.CONTROL: "Контроль данных",
         extractionActions.CONVERTATION: "Конвертация данных",
         expActions.INIT_A_MAKER: "Инициализация данных",
+        expActions.RELOAD_A_MAKER: "Перестроение дерева экспликаций",
         expActions.EXP_A_SINGLE: "Создание экспликации А",
         expActions.EXP_A_SV: "Создание сводной экспликации",
         expActions.EXP_B: "Создание экспликации F22",
+        expActions.MAKE_BALANCE: "Балансировка",
+        expActions.EXPORT_EXP: "Экспорт даннных",
     }
 
     def get_start_log(self, action_type):

@@ -44,5 +44,7 @@ class ExplicationActions:
     EXP_A_SINGLE = 'single_exp'
     EXP_A_SV = 'sv_exp'
     EXP_B = 'exp_f22'
-    enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B, INIT_A_MAKER]
+    MAKE_BALANCE = 'balance'
+    EXPORT_EXP = 'export explication'
+    enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B, INIT_A_MAKER, EXPORT_EXP, RELOAD_A_MAKER, MAKE_BALANCE]
 

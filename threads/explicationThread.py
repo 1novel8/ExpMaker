@@ -7,20 +7,28 @@ from constants import errTypes
 
 class ExplicationThread(QThread):
     success_signal = pyqtSignal('PyQt_PyObject')
+    progress_signal = pyqtSignal('PyQt_PyObject')
     error_signal = pyqtSignal('PyQt_PyObject')
     current_action = None
     current_params = None
 
-    def __init__(self, parent=None, success_handler=lambda x: x, error_handler=lambda x: x):
+    def __init__(self, parent=None,
+                 success_handler=lambda x: x,
+                 progress_handler=lambda x: x,
+                 error_handler=lambda x: x):
         super(ExplicationThread, self).__init__(parent)
         self.success_signal.connect(success_handler)
+        self.progress_signal.connect(progress_handler)
         self.error_signal.connect(error_handler)
-        self.worker = ExplicationWorker(self.emit_error)
+        self.worker = ExplicationWorker(process_event_handler=self.emit_progress)
 
     def start(self, action, **kvargs):
         self.current_action = action
         self.current_params = kvargs
         super(ExplicationThread, self).start()
+
+    def emit_progress(self, progress_meta):
+        self.progress_signal.emit(progress_meta)
 
     def emit_error(self, error):
         if not isinstance(error, CustomError):

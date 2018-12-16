@@ -296,8 +296,6 @@ class ExpAThread(QtCore.QThread):
     def do_s_balance(self, e_dict):
         Balance.run_as_balancer(e_dict, self.sprav_holder.expa_f_str, self.sprav_holder.expa_r_str)
 
-
-
     def do_sv_balance(self, e_dict):
         Balance.run_asv_balancer(e_dict, self.sprav_holder.expa_f_str, self.sprav_holder.expa_r_str)
 
@@ -360,7 +358,7 @@ class ExpAThread(QtCore.QThread):
                 push_to_matr('','', ['', ] * (len(f_orders)+2), True)
                 push_to_matr(f22_key, self.sprav_holder.f22_notes[f22_key], ['',]*len(f_orders), True)
 
-            vals_keys = map(lambda (x, y): (y, x), r_order_base[f22_key].items())
+            vals_keys = map(lambda x, y: (y, x), r_order_base[f22_key].items())
             n = 1
             for row_name, row_key in sorted(vals_keys):
                 digits = map(lambda x: sv_dict[f22_key][row_key][x]['val'], f_orders)
@@ -479,9 +477,6 @@ class ExpBThread(QtCore.QThread):
         exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.join(os.path.dirname(self.exp_file), exl_file_name)
         xls = self.xl_settings
-
-
-
         if os.path.isfile(exl_file_path):
             try:
                 os.remove(exl_file_path)
@@ -493,7 +488,6 @@ class ExpBThread(QtCore.QThread):
         if not template or not os.path.isfile(template):
             self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), u'Не верно указан шаблон для экспорта')
         shutil.copyfile(template, exl_file_path)
-
 
         try:
             ToXL.exp_matrix(fb_matr, save_as = exl_file_path, start_f = xls.b_l, start_r = xls.b_n, sh_name = xls.b_sh_name, is_xls_start = xls.is_xls_start, templ_path = exl_file_path)
@@ -1710,7 +1704,6 @@ class MainWindow(QtGui.QMainWindow):
             exp_index = indexes_before_sort[pressed_exp_ind]
             pressed_exp = data[pressed_f22][exp_index]
             self.run_single_exp_a(pressed_exp, u'%s.%d' % (pressed_f22, pressed_exp_ind+1))
-
 
     def add_event_log(self, text, with_time = True):
         if with_time:

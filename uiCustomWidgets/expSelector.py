@@ -93,7 +93,7 @@ not_groupped_key = 'not_groupped'
 
 
 class ExpSelector(QWidget):
-    def __init__(self, parent=None, settings=None, sprav=None, reinit_exp_hook=lambda x: x):
+    def __init__(self, parent=None, settings=None, sprav=None, reinit_exp_hook=lambda x: x, handle_exp_click=lambda x: x):
         QWidget.__init__(self, parent)
         self.settings = settings
         self.sprav_holder = sprav
@@ -246,6 +246,17 @@ class ExpSelector(QWidget):
         self.tree_index_dict = tree_index_dict
         model.setHorizontalHeaderLabels([titleLocales.exp_tree_header_title])
         self.treeView.setModel(model)
+
+    def on_tree_cell_click(self, qindex):
+        if qindex.parent().isValid():
+            data = self.exp_a_thr.exp_tree
+            pressed_f22_ind = qindex.parent().row()
+            pressed_exp_ind = qindex.row()
+            pressed_f22 = sorted(data.keys())[pressed_f22_ind]
+            indexes_before_sort = self.tree_index_dict[pressed_f22]
+            exp_index = indexes_before_sort[pressed_exp_ind]
+            pressed_exp = data[pressed_f22][exp_index]
+            self.handle_exp_click(pressed_exp)
 
     def make_soato_groups(self):
         s_kods = self.soato_titles.keys()
