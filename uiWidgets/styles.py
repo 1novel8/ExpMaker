@@ -99,6 +99,31 @@ loading_label = apply_theme("""
 """)
 
 
+class ExpSelectorStyles:
+    root = apply_theme("""
+        background-color: {color.primary_blue};
+        color: {color.primary_light};
+        padding: 0;
+        margin: 0;
+        border-radius: 4px; 
+        font-size: 14px;
+        font-weight: bold;
+    """)
+    dropdown = apply_theme("""
+        border-radius: 2px;
+        font-size: 12px; 
+        padding: 0 2px;
+        color: white; 
+        min-height: 14px;
+        border: 1px solid #C3FFF1;
+    """)
+    title = """
+        color: #C3FFF1;
+        font-size: 12px;
+        min-height: 14px;
+    """
+
+
 class SourceWidgetStyles:
     src_lbl = """
         color: white; 

@@ -8,15 +8,16 @@ base_dir = getcwd()
 
 
 class SrcFrame(QFrame):
-    def __init__(self, parent=None, title='...', on_select=lambda x: x):
+    def __init__(self, parent=None, title='...', on_select=lambda x: x, get_dir=False, placeholder=''):
         QFrame.__init__(self, parent)
         self.title = title
+        self.is_dir_required = get_dir
         self.on_select = on_select
         self.setMinimumSize(QSize(240, 80))
         self.grid = QVBoxLayout(self)
         self.h_box = QHBoxLayout()
         self.src_btn = PrimaryButton(self, title=titleLocales.src_frame_select_file_btn)
-        self.src_lbl = QLabel(titleLocales.src_frame_no_file_chosen, self)
+        self.src_lbl = QLabel(placeholder, self)
         self.src_lbl.setStyleSheet(Styles.src_lbl)
         self.src_btn.setStyleSheet(Styles.src_btn)
         self.src_lbl.setAlignment(Qt.AlignRight)
@@ -37,20 +38,27 @@ class SrcFrame(QFrame):
         self.src_btn.click()
 
     def __open_src_dialog(self):
-        db_f = QFileDialog(self)\
-            .getOpenFileName(self,
-                             self.title,
-                             base_dir,
-                             'Valid media files (*.mdb *.pkl);; All files (*)',
-                             options=QFileDialog.DontUseNativeDialog)
-        if db_f[0]:
-            self.selected_file = str(db_f[0])
-            # self.src_lbl.setText('Selected file: %s' % self.selected_file)
+        if not self.is_dir_required:
+            src = QFileDialog(self)\
+                .getOpenFileName(self, self.title, base_dir,
+                                 'Valid media files (*.mdb *.pkl);; All files (*)',
+                                 options=QFileDialog.DontUseNativeDialog)
+            src = str(src[0]).replace('/', '\\')
+        else:
+            src = QFileDialog(self)\
+                .getExistingDirectory(self, self.title, base_dir,
+                                      options=QFileDialog.DontUseNativeDialog)
+            src = str(src).replace('/', '\\')
+        if src:
+            self.selected_file = src
             self.on_select(self.selected_file)
         # else:
         #     self.selected_file = ''
         #     self.src_lbl.setText('No file chosen')
         #
+
+    def get_selected_file(self):
+        return self.selected_file
 
     def set_src_text(self, collapse_len=40):
         """

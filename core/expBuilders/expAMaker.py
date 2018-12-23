@@ -285,12 +285,11 @@ class ExpAMaker(object):
         self.__push_to_sv_matrix('F22_id', 'description', f_orders, skip_num=True, for_xls=for_xls)
         for f22_key in sorted(list(r_order_base.keys())):
             if for_xls:
-                self.__push_to_sv_matrix('', '', ['', ] * (len(f_orders)+2), skip_num=True, for_xls=for_xls)
-                self.__push_to_sv_matrix(f22_key, self.sprav_holder.f22_notes[f22_key], ['', ]*len(f_orders),
+                self.__push_to_sv_matrix('', '', ['', ] * (len(f_orders) + 2), skip_num=True, for_xls=for_xls)
+                self.__push_to_sv_matrix(f22_key, self.sprav_holder.f22_notes[f22_key], ['', ] * len(f_orders),
                                          skip_num=True, for_xls=for_xls)
-            vals_keys = map(lambda x, y: (y, x), r_order_base[f22_key].items())
             n = 1
-            for row_name, row_key in sorted(vals_keys):
+            for row_key, row_name in sorted(list(r_order_base[f22_key].items())):
                 digits = map(lambda x: sv_dict[f22_key][row_key][x]['val'], f_orders)
                 self.__push_to_sv_matrix('%s.%d' % (f22_key, n), row_name, digits, skip_num=False, for_xls=for_xls)
                 n += 1

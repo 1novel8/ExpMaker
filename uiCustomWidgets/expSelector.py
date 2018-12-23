@@ -7,30 +7,25 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
 from uiWidgets import Dropdown, PrimaryButton, SettingsWindow
-from uiWidgets.styles import SourceWidgetStyles as Styles
+from uiWidgets.styles import ExpSelectorStyles as styles
 from locales import titleLocales
 
 
 class GroupHeader(QFrame):
     def __init__(self, parent=None, on_cmb1_changes=lambda x: x, on_cmb2_changes=lambda x: x):
         QFrame.__init__(self, parent)
-        border_color = '#C3FFF1'
         self.setMaximumHeight(33)
-        self.setStyleSheet(
-            'background-color: #2558FF; '
-            'border-radius: 4%;'
-            'padding-right: 5px;'
-            'padding-left: 5px')
+        self.setStyleSheet(styles.root)
         self.h_box = QHBoxLayout(self)
         self.first_cmb = Dropdown(self, width=180)
         self.second_cmb = Dropdown(self, width=180)
         self.first_cmb.activated.connect(on_cmb1_changes)
         self.second_cmb.activated.connect(on_cmb2_changes)
         self.second_cmb.hide()
-        self.first_cmb.setStyleSheet('border-radius: 2% ; border: 1px solid ' + border_color)
-        self.second_cmb.setStyleSheet('border-radius: 2% ; border: 1px solid ' + border_color)
         self.lbl = QLabel(titleLocales.group_box_title, self)
-        self.lbl.setStyleSheet('color: #C3FFF1;')
+        self.second_cmb.setStyleSheet(styles.dropdown)
+        self.first_cmb.setStyleSheet(styles.dropdown)
+        self.lbl.setStyleSheet(styles.title)
         self.lbl.setAlignment(Qt.AlignCenter)
         self.h_box.addWidget(self.lbl)
         self.h_box.addWidget(self.first_cmb)

@@ -55,7 +55,7 @@ class ExplicationWorker:
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(sv_data, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
-        self.__emit_process_changes(expActions.EXPORT_EXP)
+        # self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_sv_matrix(sv_data, for_xls=is_xls_mode)
         if is_xls_mode:
             self.export_sv_to_xl(matrix, settings_holder.xls, out_exp_file)
