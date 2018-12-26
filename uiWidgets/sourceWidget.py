@@ -8,9 +8,10 @@ base_dir = getcwd()
 
 
 class SrcFrame(QFrame):
-    def __init__(self, parent=None, title='...', on_select=lambda x: x, get_dir=False, placeholder=''):
+    def __init__(self, parent=None, title='...', on_select=None, get_dir=False, placeholder=''):
         QFrame.__init__(self, parent)
         self.title = title
+        self.placeholder = placeholder
         self.is_dir_required = get_dir
         self.on_select = on_select
         self.setMinimumSize(QSize(240, 80))
@@ -51,23 +52,29 @@ class SrcFrame(QFrame):
             src = str(src).replace('/', '\\')
         if src:
             self.selected_file = src
-            self.on_select(self.selected_file)
-        # else:
-        #     self.selected_file = ''
-        #     self.src_lbl.setText('No file chosen')
-        #
+            if self.on_select:
+                self.on_select(self.selected_file)
+            else:
+                self.set_src_text()
 
     def get_selected_file(self):
         return self.selected_file
 
-    def set_src_text(self, collapse_len=40):
+    def clear(self, hide=False):
+        self.selected_file = ''
+        self.set_src_text(src_text=self.placeholder)
+        self.setHidden(hide)
+
+    def set_src_text(self, src_text=None, collapse_len=40):
         """
         В строке text делается перенос относительно \ если длина превышает 40 символов
-        # :param text: new source label text
+        :param src_text: new source text
         :param collapse_len: len to split text
         :return:
         """
-        path_parts = self.selected_file.split('\\')
+        if not src_text:
+            src_text = str(self.selected_file)
+        path_parts = src_text.split('\\')
         text = path_parts.pop(0)
         if path_parts:
             temp_text = ''
