@@ -1,7 +1,7 @@
 from os import getcwd
 from PyQt5.QtWidgets import (QFrame, QVBoxLayout, QLabel, QHBoxLayout, QFileDialog)
 from PyQt5.QtCore import Qt, QSize
-from .styles import SourceWidgetStyles as Styles
+from ui.styles import SourceWidgetStyles as Styles
 from .buttons import PrimaryButton
 from locales import titleLocales
 base_dir = getcwd()

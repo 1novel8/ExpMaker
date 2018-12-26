@@ -1,4 +1,4 @@
-from uiWidgets import TableWidget, TableLabel
+from ui.components import TableWidget, TableLabel
 from locales import titleLocales
 import time
 

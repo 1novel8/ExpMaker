@@ -2,9 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eda30c90-998a-4bae-a9b9-20aaae7fe5f6" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/ui/__init__.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/ui/custom/__init__.py" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/Explication.py" afterPath="$PROJECT_DIR$/Explication.py" />
-      <change beforePath="$PROJECT_DIR$/uiWidgets/sourceWidget.py" afterPath="$PROJECT_DIR$/uiWidgets/sourceWidget.py" />
+      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/__init__.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/expSelector.py" afterPath="$PROJECT_DIR$/ui/custom/expSelector.py" />
+      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/logTable.py" afterPath="$PROJECT_DIR$/ui/custom/logTable.py" />
+      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/logoFrame.py" afterPath="$PROJECT_DIR$/ui/custom/logoFrame.py" />
+      <change beforePath="$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py" afterPath="$PROJECT_DIR$/ui/custom/mainControlsFrame.py" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/__init__.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/buttons.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/dropdown.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/loadingLabel.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/progressBar.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/settingsWindow.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/sourceWidget.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/styles.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/table.py" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/uiWidgets/theme.py" afterPath="" />
     </list>
     <ignored path="GitProject.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -18,7 +34,7 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/explication$Project.coverage" NAME="Project Coverage Results" MODIFIED="1538603567563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/GitProject$Project.coverage" NAME="Project Coverage Results" MODIFIED="1495576976963" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1545857206664" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1545862403056" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -53,7 +69,7 @@
       <file leaf-file-name="xlsExporter.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/exporters/xlsExporter.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="147">
+            <state relative-caret-position="21">
               <caret line="8" column="8" lean-forward="false" selection-start-line="8" selection-start-column="8" selection-end-line="8" selection-end-column="8" />
               <folding>
                 <element signature="e#47#56#0" expanded="true" />
@@ -62,90 +78,74 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ErrMessage.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Packages/Titles/ErrMessage.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="966">
-              <caret line="46" column="0" lean-forward="false" selection-start-line="46" selection-start-column="0" selection-end-line="51" selection-end-column="1" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="xlsError.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/errors/xlsError.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Explication.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Explication.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Explication.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="239">
-              <caret line="206" column="22" lean-forward="true" selection-start-line="206" selection-start-column="22" selection-end-line="206" selection-end-column="22" />
-              <folding>
-                <element signature="e#127#137#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="294">
+              <caret line="14" column="61" lean-forward="true" selection-start-line="14" selection-start-column="61" selection-end-line="14" selection-end-column="61" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="spravError.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/errors/spravError.py">
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ui/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
               <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#47#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="customError.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/errors/customError.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="42">
-              <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="9" selection-end-column="54" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dberror.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/errors/dberror.py">
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/ui/components/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="84">
-              <caret line="4" column="12" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="12" />
+              <caret line="4" column="42" lean-forward="false" selection-start-line="4" selection-start-column="42" selection-end-line="4" selection-end-column="42" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sourceWidget.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/uiWidgets/sourceWidget.py">
+      <file leaf-file-name="mainControlsFrame.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ui/custom/mainControlsFrame.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="64" column="0" lean-forward="false" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
+            <state relative-caret-position="42">
+              <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="logTable.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ui/custom/logTable.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="13" lean-forward="true" selection-start-line="0" selection-start-column="13" selection-end-line="0" selection-end-column="13" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ui/custom/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="14" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
               <folding>
-                <element signature="e#0#21#0" expanded="true" />
+                <element signature="e#28#60#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mdbExporter.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/exporters/mdbExporter.py">
+      <file leaf-file-name="expSelector.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ui/custom/expSelector.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="6" column="6" lean-forward="false" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
-              <folding>
-                <marker date="1545564730666" expanded="true" signature="1550:1580" ph="INSERT into missing_value... " />
-              </folding>
+            <state relative-caret-position="168">
+              <caret line="8" column="36" lean-forward="false" selection-start-line="8" selection-start-column="36" selection-end-line="8" selection-end-column="65" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -204,13 +204,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/core/extractors/validator.py" />
-        <option value="$PROJECT_DIR$/core/errors/spravError.py" />
-        <option value="$PROJECT_DIR$/core/db/connector.py" />
-        <option value="$PROJECT_DIR$/core/db/control.py" />
-        <option value="$PROJECT_DIR$/core/extractors/__init__.py" />
-        <option value="$PROJECT_DIR$/workers/extractionWorker.py" />
-        <option value="$PROJECT_DIR$/core/extractors/ctrRow.py" />
         <option value="$PROJECT_DIR$/uiWidgets/table.py" />
         <option value="$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py" />
         <option value="$PROJECT_DIR$/threads/extractionThread.py" />
@@ -229,7 +222,6 @@
         <option value="$PROJECT_DIR$/uiWidgets/settingsWindow.py" />
         <option value="$PROJECT_DIR$/uiWidgets/__init__.py" />
         <option value="$PROJECT_DIR$/uiWidgets/expSelector.py" />
-        <option value="$PROJECT_DIR$/uiCustomWidgets/__init__.py" />
         <option value="$PROJECT_DIR$/locales/actionsMessages.py" />
         <option value="$PROJECT_DIR$/core/expBuilders/balancer.py" />
         <option value="$PROJECT_DIR$/Packages/Exports/__init__.py" />
@@ -254,7 +246,15 @@
         <option value="$PROJECT_DIR$/locales/componentTitlesLocales.py" />
         <option value="$PROJECT_DIR$/core/errors/xlsError.py" />
         <option value="$PROJECT_DIR$/uiWidgets/sourceWidget.py" />
+        <option value="$PROJECT_DIR$/uiWidgets/components/__init__.py" />
+        <option value="$PROJECT_DIR$/ui/__init__.py" />
+        <option value="$PROJECT_DIR$/uiCustomWidgets/__init__.py" />
+        <option value="$PROJECT_DIR$/ui/custom/__init__.py" />
         <option value="$PROJECT_DIR$/Explication.py" />
+        <option value="$PROJECT_DIR$/ui/custom/expSelector.py" />
+        <option value="$PROJECT_DIR$/ui/custom/mainControlsFrame.py" />
+        <option value="$PROJECT_DIR$/ui/custom/logTable.py" />
+        <option value="$PROJECT_DIR$/ui/components/__init__.py" />
       </list>
     </option>
   </component>
@@ -320,16 +320,6 @@
               <item name="Packages" type="462c0819:PsiDirectoryNode" />
               <item name="Titles" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
-              <item name="explication" type="462c0819:PsiDirectoryNode" />
-              <item name="uiCustomWidgets" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
-              <item name="explication" type="462c0819:PsiDirectoryNode" />
-              <item name="uiWidgets" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -346,15 +336,17 @@
     <property name="ToolWindowPython Console.ShowToolbar" value="false" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\LENOVO\WorkSpace\explication\uiCustomWidgets" />
-      <recent name="C:\Users\LENOVO\WorkSpace\explication\Images\menu" />
-      <recent name="C:\Users\LENOVO\WorkSpace\explication\menu" />
-    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\LENOVO\WorkSpace\explication\core\settingsHolders" />
       <recent name="C:\Users\LENOVO\WorkSpace\explication\uiCustomWidgets" />
       <recent name="C:\Users\LENOVO\WorkSpace\explication" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\LENOVO\WorkSpace\explication\ui\custom" />
+      <recent name="C:\Users\LENOVO\WorkSpace\explication\ui" />
+      <recent name="C:\Users\LENOVO\WorkSpace\explication\uiWidgets\components" />
+      <recent name="C:\Users\LENOVO\WorkSpace\explication\uiCustomWidgets" />
+      <recent name="C:\Users\LENOVO\WorkSpace\explication\Images\menu" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -685,10 +677,10 @@
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27658433" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="814" height="1208" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295325" sideWeight="0.70408165" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32611173" sideWeight="0.910408" order="9" side_tool="false" content_ui="tabs" x="3" y="17" width="1914" height="995" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33979475" sideWeight="0.4651094" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23717217" sideWeight="0.4742756" order="10" side_tool="false" content_ui="tabs" x="918" y="490" width="166" height="50" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18635875" sideWeight="0.49717057" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3257882" sideWeight="0.910408" order="9" side_tool="false" content_ui="tabs" x="3" y="17" width="1914" height="995" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33953112" sideWeight="0.4651094" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23686337" sideWeight="0.4742756" order="10" side_tool="false" content_ui="tabs" x="918" y="490" width="166" height="50" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1916026" sideWeight="0.49717057" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32998225" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -697,7 +689,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.11945594" sideWeight="0.50282943" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27708095" sideWeight="0.6179775" order="5" side_tool="false" content_ui="tabs" x="749" y="207" width="422" height="616" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.51083237" sideWeight="0.6179775" order="5" side_tool="false" content_ui="tabs" x="749" y="207" width="422" height="616" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -753,7 +745,7 @@
           <option name="timeStamp" value="121" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/uiWidgets/table.py</url>
+          <url>file://$PROJECT_DIR$/ui/components/table.py</url>
           <line>99</line>
           <option name="timeStamp" value="128" />
         </line-breakpoint>
@@ -764,13 +756,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Explication.py</url>
-          <line>289</line>
+          <line>282</line>
           <option name="timeStamp" value="170" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Explication.py</url>
-          <line>79</line>
-          <option name="timeStamp" value="188" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/workers/explicationWorker.py</url>
@@ -790,34 +777,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/core/extractors/converter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="819">
-          <caret line="41" column="30" lean-forward="false" selection-start-line="41" selection-start-column="30" selection-end-line="42" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/workers/extractionWorker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="651">
-          <caret line="34" column="33" lean-forward="false" selection-start-line="34" selection-start-column="33" selection-end-line="34" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/menu/menuConf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="394">
-          <caret line="91" column="0" lean-forward="false" selection-start-line="91" selection-start-column="0" selection-end-line="91" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/menu/menuBar.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1449">
-          <caret line="72" column="0" lean-forward="false" selection-start-line="72" selection-start-column="0" selection-end-line="72" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/workers/baseActivitiesWorker.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="336">
@@ -856,7 +815,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/table.py">
+    <entry file="file://$PROJECT_DIR$/ui/components/table.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="189">
           <caret line="20" column="27" lean-forward="false" selection-start-line="20" selection-start-column="27" selection-end-line="20" selection-end-column="27" />
@@ -885,17 +844,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/progressBar.py">
+    <entry file="file://$PROJECT_DIR$/ui/components/progressBar.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="63">
-          <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
         </state>
       </provider>
     </entry>
@@ -913,21 +865,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/settingsWindow.py">
+    <entry file="file://$PROJECT_DIR$/ui/components/settingsWindow.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
           <caret line="5" column="20" lean-forward="false" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiCustomWidgets/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="5" column="36" lean-forward="false" selection-start-line="5" selection-start-column="36" selection-end-line="5" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/dropdown.py">
+    <entry file="file://$PROJECT_DIR$/ui/components/dropdown.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="168">
           <caret line="8" column="48" lean-forward="false" selection-start-line="8" selection-start-column="48" selection-end-line="8" selection-end-column="48" />
@@ -938,13 +883,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="387">
           <caret line="67" column="49" lean-forward="true" selection-start-line="67" selection-start-column="49" selection-end-line="67" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/uiCustomWidgets/mainControlsFrame.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="8" column="36" lean-forward="false" selection-start-line="8" selection-start-column="36" selection-end-line="8" selection-end-column="36" />
         </state>
       </provider>
     </entry>
@@ -1068,13 +1006,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/styles.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="474">
-          <caret line="120" column="20" lean-forward="false" selection-start-line="120" selection-start-column="20" selection-end-line="120" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/workers/explicationWorker.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="474">
@@ -1092,22 +1023,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiCustomWidgets/expSelector.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="24" column="46" lean-forward="false" selection-start-line="24" selection-start-column="46" selection-end-line="24" selection-end-column="46" />
-          <folding>
-            <element signature="e#28#172#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/errors/spravError.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#47#0" expanded="true" />
+            <element signature="e#0#47#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1127,24 +1048,6 @@
           <folding>
             <marker date="1545564730666" expanded="true" signature="1550:1580" ph="INSERT into missing_value... " />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/exporters/xlsExporter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="8" column="8" lean-forward="false" selection-start-line="8" selection-start-column="8" selection-end-line="8" selection-end-column="8" />
-          <folding>
-            <element signature="e#47#56#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Packages/Titles/ErrMessage.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="966">
-          <caret line="46" column="0" lean-forward="false" selection-start-line="46" selection-start-column="0" selection-end-line="51" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1172,9 +1075,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/uiWidgets/sourceWidget.py">
+    <entry file="file://$PROJECT_DIR$/Packages/Titles/ErrMessage.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
+        <state relative-caret-position="844">
+          <caret line="46" column="0" lean-forward="false" selection-start-line="46" selection-start-column="0" selection-end-line="51" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/exporters/xlsExporter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="21">
+          <caret line="8" column="8" lean-forward="false" selection-start-line="8" selection-start-column="8" selection-end-line="8" selection-end-column="8" />
+          <folding>
+            <element signature="e#47#56#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/components/buttons.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#66#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/uiCustomWidgets/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/components/sourceWidget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1344">
           <caret line="64" column="0" lean-forward="false" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
@@ -1182,13 +1129,61 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ui/styles.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2520">
+          <caret line="120" column="20" lean-forward="false" selection-start-line="120" selection-start-column="20" selection-end-line="120" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Explication.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="206" column="22" lean-forward="true" selection-start-line="206" selection-start-column="22" selection-end-line="206" selection-end-column="22" />
+        <state relative-caret-position="294">
+          <caret line="14" column="61" lean-forward="true" selection-start-line="14" selection-start-column="61" selection-end-line="14" selection-end-column="61" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/custom/expSelector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="8" column="36" lean-forward="false" selection-start-line="8" selection-start-column="36" selection-end-line="8" selection-end-column="65" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/custom/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="14" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
           <folding>
-            <element signature="e#127#137#0" expanded="true" />
+            <element signature="e#28#60#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/custom/mainControlsFrame.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/custom/logTable.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="13" lean-forward="true" selection-start-line="0" selection-start-column="13" selection-end-line="0" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/components/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="84">
+          <caret line="4" column="42" lean-forward="false" selection-start-line="4" selection-start-column="42" selection-end-line="4" selection-end-column="42" />
+          <folding />
         </state>
       </provider>
     </entry>

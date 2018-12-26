@@ -2,7 +2,7 @@ import time
 from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QTextEdit
 from PyQt5.QtCore import Qt
 from .buttons import PrimaryButton
-from .styles import default_table, representation_table_label
+from ui.styles import default_table, representation_table_label
 from locales import protocolErrors
 
 

@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
-from uiWidgets import Dropdown, PrimaryButton, SettingsWindow
-from uiWidgets.styles import ExpSelectorStyles as styles
+from ui.components import Dropdown, PrimaryButton, SettingsWindow
+from ui.styles import ExpSelectorStyles as styles
 from locales import titleLocales
 
 
