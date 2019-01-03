@@ -10,7 +10,7 @@ class LogoFrame(QFrame):
         self.logo_box = QGridLayout(self)
         self.logo_img = QLabel(self)
         self.logo_img.setGeometry(10, 10, 100, 100)
-        self.logo_img.setPixmap(QPixmap(u'%s\\Images\\logo.png' % base_dir))
+        self.logo_img.setPixmap(QPixmap('%s\\Images\\logo.png' % base_dir))
         self.logo_img.setMaximumHeight(40)
         self.logo_img.setMaximumWidth(40)
         self.logo_img.setScaledContents(True)

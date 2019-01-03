@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
-from ui.components import Dropdown, PrimaryButton, SettingsWindow
+from ui.components import Dropdown, PrimaryButton, SettingsWindow, IconLabel
 from ui.styles import ExpSelectorStyles as styles
 from locales import titleLocales
 
@@ -96,11 +96,13 @@ class ExpSelector(QWidget):
         self.grid = QGridLayout(self)
         self.header = GroupHeader(self, on_cmb1_changes=self.handle_cmb1_click, on_cmb2_changes=self.handle_cmb2_click)
         self.filter = ExpFilter(self, filter_settings=settings.filter, on_changes=self.handle_filter_changes)
+        self.handle_exp_click = handle_exp_click
         self.treeView = QTreeView()
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.treeView.activated.connect(self.on_tree_cell_click)
         self.tree_index_dict = {}
         self.grid.addWidget(self.header, 0, 0, 1, 15)
         self.grid.addWidget(self.filter, 0, 16, 1, 5)
@@ -114,6 +116,7 @@ class ExpSelector(QWidget):
         self.cmb1_recovery = None
         self.cmb2_recovery = None
         self.groupped_soatos = None
+        self.current_exps = None
 
     def handle_filter_changes(self, settings_changed=False):
         self.settings.filter.enabled = bool(self.filter.activation_switcher.isChecked())
@@ -234,17 +237,26 @@ class ExpSelector(QWidget):
                 index_li.append(item_names.index(exp_item))
                 # заполняет позициями элементов до сортировки, для дальнейшего определения инстанса в data[key]
                 child_item = QStandardItem('%d. ' % ch_item_count + exp_item)
+
+                # icon_lbl = PrimaryButton(title="sfdsfsfsfsfssf")
+                #
+                # # icon_lbl.setStyleSheet('''
+                # #     position: absolute;
+                # # ''')
+                # self.treeView.setIndexWidget(child_item.index(), icon_lbl)
+
                 child_item.setFont(QFont('Serif', 10))
                 f22_item.appendRow(child_item)
                 ch_item_count += 1
             tree_index_dict[key] = index_li
-        self.tree_index_dict = tree_index_dict
         model.setHorizontalHeaderLabels([titleLocales.exp_tree_header_title])
         self.treeView.setModel(model)
+        self.tree_index_dict = tree_index_dict
+        self.current_exps = current_exps
 
     def on_tree_cell_click(self, qindex):
         if qindex.parent().isValid():
-            data = self.exp_a_thr.exp_tree
+            data = self.current_exps
             pressed_f22_ind = qindex.parent().row()
             pressed_exp_ind = qindex.row()
             pressed_f22 = sorted(data.keys())[pressed_f22_ind]

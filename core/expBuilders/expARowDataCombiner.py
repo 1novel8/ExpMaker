@@ -68,7 +68,7 @@ class RowDataCombiner(object):
         if not for_xls:
             matr.append(f_at_order)
         for row in sprav_holder.str_orders['a_r']:
-            digits = map(lambda x: s_dict[row][x]['val'], f_at_order)
+            digits = list(map(lambda x: s_dict[row][x]['val'], f_at_order))
             matr.append(digits)
         return matr
 

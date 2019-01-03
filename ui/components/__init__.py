@@ -6,3 +6,4 @@ from .table import TableWidget, TableLabel
 from .sourceWidget import SrcFrame
 from .buttons import PrimaryButton
 from .settingsWindow import SettingsWindow
+from .iconLabel import IconLabel

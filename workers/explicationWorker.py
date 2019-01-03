@@ -33,7 +33,7 @@ class ExplicationWorker:
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_provider.prepare_out_matrix(counted_exp, sprav_holder)
         self.export_s_to_xl(matrix, settings_holder.xls, out_exp_file, 
-                            f22_ind=exp_provider.f22_ind,  obj_name=exp_provider.obj_name)
+                            f22_ind=exp_provider.full_obj_name,  obj_name=exp_provider.obj_name)
 
     def create_exp_a_sv(self, exp_maker=None, sprav_holder=None, settings_holder=None, out_exp_file=None):
         group_sv_by = settings_holder.conditions.groupping_by
@@ -55,7 +55,7 @@ class ExplicationWorker:
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(sv_data, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
-        # self.__emit_process_changes(expActions.EXPORT_EXP)
+        self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_sv_matrix(sv_data, for_xls=is_xls_mode)
         if is_xls_mode:
             self.export_sv_to_xl(matrix, settings_holder.xls, out_exp_file)
@@ -73,18 +73,17 @@ class ExplicationWorker:
     @staticmethod
     def export_s_to_xl(matrix, out_settings, out_db_file, f22_ind="", obj_name=""):
         try:
-            out_dir = path.dirname(out_db_file) + '\\%s_xlsx_files' % path.basename(out_db_file)[4:-4]
-            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind)
-            exporter = XlExporter(save_as, out_settings.a_s_path)
+            out_dir = path.dirname(out_db_file) + '\\%s_xlsx_files' % path.basename(out_db_file)[:-4]
+            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind.replace('/', ''))
+            exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)
         except XlsError as err:
             print(err)
             raise err
-            # self.emit(QtCore.SIGNAL('error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
 
     @staticmethod
     def export_sv_to_xl(matrix, out_settings, out_db_file):
-        exl_file_name = 'fA_%s_%s.xlsx' % (path.basename(out_db_file)[4:-4], time.strftime('%d-%m-%Y'))
+        exl_file_name = 'fA_%s_%s.xlsx' % (path.basename(out_db_file)[:-4], time.strftime('%d-%m-%Y'))
         exl_file_path = path.join(path.dirname(out_db_file), exl_file_name)
         try:
             exporter = XlExporter(exl_file_path, out_settings.a_sv_path)
@@ -95,7 +94,6 @@ class ExplicationWorker:
         except XlsError as err:
             print(err)
             raise err
-            # self.emit(QtCore.SIGNAL('error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
 
     @staticmethod
     def export_to_mdb(matrix, out_file, save_as_table=None, start_when_ready=False):

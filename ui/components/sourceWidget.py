@@ -1,4 +1,4 @@
-from os import getcwd
+from os import getcwd, path
 from PyQt5.QtWidgets import (QFrame, QVBoxLayout, QLabel, QHBoxLayout, QFileDialog)
 from PyQt5.QtCore import Qt, QSize
 from ui.styles import SourceWidgetStyles as Styles
@@ -57,7 +57,11 @@ class SrcFrame(QFrame):
             else:
                 self.set_src_text()
 
-    def get_selected_file(self):
+    def get_selected_file(self, name_only=False):
+        if '\\' not in self.selected_file:
+            return ''
+        if name_only:
+            return path.basename(self.selected_file)
         return self.selected_file
 
     def clear(self, hide=False):

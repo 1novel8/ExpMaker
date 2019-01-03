@@ -14,18 +14,20 @@ class ExpBuilder:
         if isinstance(basic, dict):
             resultdict = basic.copy()
             if add_ok:
-                def func(key):
-                    if add_d.get(key) is not None:
-                        resultdict[key] += add_d[key]
+                def increase(target_d, key):
+                    if key in target_d:
+                        resultdict[key] += target_d[key]
             else:
-                def func(key):
-                    if add_d.get(key) is not None:
-                        resultdict[key] -= add_d[key]
-            for add_d in add_dicts_li:
+                def increase(target_d, key):
+                    if key in target_d:
+                        resultdict[key] -= target_d[key]
+
+            for item in add_dicts_li:
                 try:
-                    map(func, resultdict.keys())
-                except KeyError:
-                    pass
+                    for k in list(resultdict.keys()):
+                        increase(item, k)
+                except KeyError as err:
+                    print(err)
                 except Exception:
                     raise
             return resultdict

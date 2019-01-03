@@ -2,14 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import openpyxl
-
-
-class XlsError(Exception):
-    def __init__(self, err_type, file_name, *args, **kwargs):
-        self.err_type = err_type
-        self.file_name = file_name
-        super(XlsError, self).__init__(args, kwargs)
+from openpyxl import load_workbook, utils
+from core.errors import XlsError
 
 
 class XlExporter:
@@ -23,16 +17,13 @@ class XlExporter:
         """
         You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
         """
-        if self.template_path:
-            w_book = self.try_load_wb(self.template_path)
-            sheet = self.get_sheet_by_name(w_book, sh_name)
-        else:
-            raise XlsError(4, self.template_path)
+        w_book = self.try_load_wb(self.template_path)
+        sheet = self.get_sheet_by_name(w_book, sh_name)
         self.export_matrix_to_sheet(sheet, matrix, start_f, start_r)
         try:
             w_book.save(self.out_filename)
         except IOError:
-            raise XlsError(2, self.out_filename)
+            raise XlsError('not_found', self.out_filename)
 
     def start_excel(self):
         os.system('start excel.exe %s' % self.out_filename)
@@ -40,7 +31,7 @@ class XlExporter:
     def exp_single_fa(self, fa_data, obj_name, a_l, a_n, a_obj_l, a_obj_n, a_path, a_sh_name, **kwargs):
         w_book = self.try_load_wb(a_path)
         sheet = self.get_sheet_by_name(w_book, a_sh_name)
-        sheet.cell('%s%s' % (a_obj_l, a_obj_n)).value = obj_name
+        sheet.cell(a_obj_n, utils.column_index_from_string(a_obj_l)).value = obj_name
         self.export_matrix_to_sheet(sheet, fa_data, a_l, a_n)
         if not os.path.isfile(self.out_filename):
             w_book.save(filename=self.out_filename)
@@ -49,7 +40,7 @@ class XlExporter:
                 os.remove(self.out_filename)
             except Exception as err:
                 print(err)
-                raise XlsError(1, self.out_filename)
+                raise XlsError('already_opened', self.out_filename)
             w_book.save(filename=self.out_filename)
 
     @staticmethod
@@ -70,7 +61,7 @@ class XlExporter:
             l1 = chr(final_len % 26+65)
             l2 = final_len/26
             if l2:
-                return u"%s%s" % (chr(int(l2+64)), l1)
+                return "%s%s" % (chr(int(l2+64)), l1)
             else:
                 return l1
         else:
@@ -85,10 +76,14 @@ class XlExporter:
 
     @staticmethod
     def try_load_wb(l_path):
+        if not os.path.isfile(l_path):
+            raise XlsError('not_found', l_path)
         try:
-            return openpyxl.load_workbook(l_path)
+            return load_workbook(filename=l_path, data_only=True)
         except IOError:
-            raise XlsError(1, l_path)
+            raise XlsError('already_opened', l_path)
+        except Exception:
+            raise XlsError('load_failed', l_path)
 
     def export_matrix_to_sheet(self, xl_sheet, matrix, start_f, start_r):
         max_letter = self.get_xl_letter(len(matrix[0]), start_f)

@@ -20,7 +20,8 @@ class LoadingLabel(QLabel):
         self.setHidden(False)
         self.loading_message = process_message
         self.setText(process_message)
-        self.load_thr.start()
+        if not self.load_thr.isRunning():
+            self.load_thr.start()
 
     def stop_loading(self):
         self.load_thr.terminate()
