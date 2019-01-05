@@ -61,8 +61,14 @@ class SrcFrame(QFrame):
         if '\\' not in self.selected_file:
             return ''
         if name_only:
-            return path.basename(self.selected_file)
+            file_name = path.basename(self.selected_file)
+            return path.splitext(file_name)[0]
         return self.selected_file
+
+    def set_selected_file(self, new_src):
+        if new_src:
+            self.selected_file = new_src
+            self.set_src_text()
 
     def clear(self, hide=False):
         self.selected_file = ''

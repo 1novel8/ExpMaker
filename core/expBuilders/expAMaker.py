@@ -7,7 +7,7 @@ from .buildUtils import ExpBuilder
 class ExpAMaker(object):
     shape_area_sum = 0
     exp_tree = None
-    sv_matrix=[]
+    sv_matrix = []
     row_counter = 1
 
     def __init__(self, rows_data, users_data, soato_data, sprav_holder, options=None):

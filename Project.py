@@ -492,6 +492,18 @@ class ExpBThread(QtCore.QThread):
         else:
             self.run_mdb_export(exp_matr)
 
+    def export_sv_to_xl(self, matrix):
+        exl_file_name = u'fA_%s_%s.xlsx' % (os.path.basename(self.exp_db_file)[4:-4],time.strftime(u"%d-%m-%Y"))
+        exl_file_path = os.path.join(os.path.dirname(self.exp_db_file), exl_file_name)
+        xl_s = self.xl_settings
+        try:
+            ToXL.exp_matrix(matrix, save_as = exl_file_path, start_f = xl_s.a_sv_l, start_r = xl_s.a_sv_n, sh_name = xl_s.a_sv_sh_name, is_xls_start= xl_s.is_xls_start, templ_path = xl_s.a_sv_path)
+        except ToXL.XlsIOError as err:
+            self.emit(QtCore.SIGNAL(u'error_occured(const QString&)'), ErrMessage.xl_io_error[err.err_type](err.file_name))
+        else:
+            self.emit(QtCore.SIGNAL(u'exp_sv_success()'))
+
+
     def run_xl_export(self, fb_matr):
         exl_file_name = u'fB_%s_%s.xlsx' % (os.path.basename(self.exp_file)[4:-4],time.strftime(u"%d-%m-%Y"))
         exl_file_path = os.path.join(os.path.dirname(self.exp_file), exl_file_name)

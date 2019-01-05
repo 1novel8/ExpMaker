@@ -13,7 +13,7 @@ class XlExporter:
         if not os.path.exists(os.path.dirname(self.out_filename)):
             os.makedirs(os.path.dirname(self.out_filename))
 
-    def export_matrix(self, matrix, start_f, start_r, sh_name=None):
+    def export_matrix(self, matrix, start_f, start_r, sh_name=None, **kwargs):
         """
         You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
         """

@@ -14,18 +14,18 @@ class ExpBuilder:
         if isinstance(basic, dict):
             resultdict = basic.copy()
             if add_ok:
-                def increase(target_d, key):
+                def apply_changes(target_d, key):
                     if key in target_d:
                         resultdict[key] += target_d[key]
             else:
-                def increase(target_d, key):
+                def apply_changes(target_d, key):
                     if key in target_d:
                         resultdict[key] -= target_d[key]
 
             for item in add_dicts_li:
                 try:
                     for k in list(resultdict.keys()):
-                        increase(item, k)
+                        apply_changes(item, k)
                 except KeyError as err:
                     print(err)
                 except Exception:
