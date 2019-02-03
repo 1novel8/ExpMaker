@@ -1,12 +1,12 @@
 __author__ = 'Alex Konkov'
 
 from PyQt5.QtWidgets import (
-    QWidget, QFrame, QGridLayout, QHBoxLayout, QLabel, QCheckBox, QRadioButton, QTreeView,
-    QAbstractItemView
+    QWidget, QFrame, QGridLayout, QHBoxLayout, QLabel, QCheckBox,
+    QRadioButton, QTreeView, QAbstractItemView
 )
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
-from ui.components import Dropdown, PrimaryButton, SettingsWindow, IconLabel
+from ui.components import Dropdown, PrimaryButton, ModalWindow, IconLabel
 from ui.styles import ExpSelectorStyles as styles
 from locales import titleLocales
 
@@ -60,7 +60,7 @@ class ExpFilter(QFrame):
         self.filter_window = None
 
     def show_filter_setup(self):
-        filter_window = SettingsWindow(self, 'Настройки фильтра', 300, 150)
+        filter_window = ModalWindow(self, 'Настройки фильтра', 300, 150)
         melio_filter_used = QRadioButton('Вкючить фильтр по полю MELIOCODE', filter_window)
         servtype_filter_used = QRadioButton('Вкючить фильтр по полю SERVTYPE', filter_window)
         change_btn = PrimaryButton(filter_window, title='Применить фильтр')

@@ -578,6 +578,7 @@ class SettingsWindow(QtGui.QMainWindow):
     def add_widget(self, widget, *args):
         self.main_layout.addWidget(widget, *args)
 
+
 class ColoredBlock(QtGui.QFrame):
     def __init__(self, block_name = '', color = '#01A6D3', parent = None, ):
         super(ColoredBlock, self).__init__(parent)
@@ -590,7 +591,7 @@ class ColoredBlock(QtGui.QFrame):
     def add_widget(self, widget, *args):
         if args:
             args = list(args)
-            args[0] +=1
+            args[0] += 1
         self.box.addWidget(widget, *args)
 
 
@@ -1091,7 +1092,7 @@ class MainWindow(QtGui.QMainWindow):
     def update_balance_settings(self):
         # self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
         # self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
-        self.settings.balance.include_b_balance  = bool(self.edit_b_balance.isChecked())
+        self.settings.balance.include_b_balance = bool(self.edit_b_balance.isChecked())
 
         self.add_event_log(u'Установлены новые настройки запуска баланса')
         self.balance_window.close()

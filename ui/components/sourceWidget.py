@@ -8,10 +8,13 @@ base_dir = getcwd()
 
 
 class SrcFrame(QFrame):
-    def __init__(self, parent=None, title='...', on_select=None, get_dir=False, placeholder=''):
+    def __init__(self, parent=None, title="...", on_select=None, get_dir=False,
+                 placeholder="", valid_files="*.mdb *.pkl", default_dir=base_dir):
         QFrame.__init__(self, parent)
         self.title = title
         self.placeholder = placeholder
+        self.valid_files = valid_files
+        self.default_dir = default_dir
         self.is_dir_required = get_dir
         self.on_select = on_select
         self.setMinimumSize(QSize(240, 80))
@@ -41,13 +44,13 @@ class SrcFrame(QFrame):
     def __open_src_dialog(self):
         if not self.is_dir_required:
             src = QFileDialog(self)\
-                .getOpenFileName(self, self.title, base_dir,
+                .getOpenFileName(self, self.title, self.default_dir,
                                  'Valid media files (*.mdb *.pkl);; All files (*)',
                                  options=QFileDialog.DontUseNativeDialog)
             src = str(src[0]).replace('/', '\\')
         else:
             src = QFileDialog(self)\
-                .getExistingDirectory(self, self.title, base_dir,
+                .getExistingDirectory(self, self.title, self.default_dir,
                                       options=QFileDialog.DontUseNativeDialog)
             src = str(src).replace('/', '\\')
         if src:
