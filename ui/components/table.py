@@ -7,32 +7,31 @@ from locales import protocolErrors
 
 
 class TableLabel(QTextEdit):
-    def __init__(self, data):
+    def __init__(self, data, styles=representation_table_label):
         QTextEdit.__init__(self)
         self.setText(data)
         self.setTextInteractionFlags(Qt.NoTextInteraction)
         self.setTextInteractionFlags(Qt.TextSelectableByKeyboard | Qt.TextSelectableByMouse)
         self.setMinimumHeight(40)
         self.setMinimumWidth(200)
-        self.setStyleSheet('color: #AAAAAA; background-color: #22232F; font-size: 14px;'
-                           'padding-right: 10px;padding-left: 15px')
+        self.setStyleSheet(styles)
 
 
 class TableWidget(QWidget):
-    def __init__(self, parent=None, headers=None, with_clear=False):
+    def __init__(self, parent=None, headers=None, with_clear=False, styles=default_table):
         QWidget.__init__(self, parent)
         self.__row_count = 0
         self.max_rows_allowed = 100
         self.box = QGridLayout(self)
         self.table = QTableWidget(self)
-        self.init_table_defaults(headers)
+        self.init_table_defaults(headers, styles)
         self.box.addWidget(self.table, 0, 0, 21, 21)
         if with_clear:
             self.clear_btn = PrimaryButton(parent, 'clear', on_click=self.clear_rows)
             self.box.addWidget(self.clear_btn, 21, 10, 2, 2)
             # self.hide()
 
-    def init_table_defaults(self, headers):
+    def init_table_defaults(self, headers, styles):
         self.table.horizontalHeader().setCascadingSectionResizes(True)
         self.table.verticalHeader().setCascadingSectionResizes(True)
         self.table.horizontalHeader().setStretchLastSection(True)
@@ -41,15 +40,15 @@ class TableWidget(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setAlternatingRowColors(True)
         self.table.setAutoScroll(True)
-        self.table.setStyleSheet(default_table)
+        self.table.setStyleSheet(styles)
 
     def get_row_count(self):
         return self.__row_count
 
-    def add_representation_row(self, title, with_span=True):
+    def add_representation_row(self, title, with_span=True, styles=representation_table_label):
         self.table.setRowCount(self.__row_count + 1)
-        title_label = TableLabel(title)
-        title_label.setStyleSheet(representation_table_label)
+        title_label = TableLabel(title, styles=styles)
+        title_label.setStyleSheet(styles)
         self.table.setCellWidget(self.__row_count, 0, title_label)
         if with_span:
             title_label.setAlignment(Qt.AlignCenter)

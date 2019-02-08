@@ -1,9 +1,10 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox, QMessageBox, QRadioButton)
+from PyQt5.QtWidgets import (QFrame, QVBoxLayout, QLabel, QLineEdit, QCheckBox, QMessageBox, QRadioButton)
 from constants import settingsActions
 from locales import titleLocales
 from ui.components import ModalWindow, Dropdown, TableWidget, PrimaryButton, SrcFrame
 from constants import coreFiles
+
+from ui.styles import title_label, xls_table as xls_table_styles, representation_xls_table_label
 
 
 def prepare_xl_letters(initial_val):
@@ -15,13 +16,14 @@ def prepare_xl_digits(initial_val):
 
 
 class SettingsBlock(QFrame):
-    def __init__(self, parent=None, title='', color='#01A6D3'):
+    def __init__(self, parent=None, title=''):
         super(SettingsBlock, self).__init__(parent)
-        self.box = QGridLayout(self)
+        self.box = QVBoxLayout(self)
         self.setLayout(self.box)
-        self.name_lbl = QLabel(title, self)
-        self.box.addWidget(self.name_lbl, 0, 0, 1, 3)
-        self.setStyleSheet('background-color: %s; color: white; border-radius: 13;' % color)
+        if title:
+            self.name_lbl = QLabel(title, self)
+            self.name_lbl.setStyleSheet(title_label)
+            self.box.addWidget(self.name_lbl)
 
     def add_widget(self, widget, *args):
         if args:
@@ -35,8 +37,9 @@ class EditSettingsWindow(ModalWindow):
         self.settings = initial_settings
         self.sprav_holder = sprav_holder
         self.setts_type = edit_action_type
+        self.emit_settings_updated = on_save
         if edit_action_type == settingsActions.SHOW_XLS:
-            init_params = (titleLocales.edit_settings_xls_title, 800, 530)
+            init_params = (titleLocales.edit_settings_xls_title, 960, 710)
             init_method = self.init_xl_widgets
         elif edit_action_type == settingsActions.SHOW_BALANCE:
             init_params = (titleLocales.edit_settings_balance_title, 300, 150)
@@ -54,15 +57,18 @@ class EditSettingsWindow(ModalWindow):
 
     def init_xl_widgets(self):
         settings = self.settings.xls
-        block_a = SettingsBlock(self, titleLocales.edit_settings_xls_block_a, '#35B953')
-        block_a_sv = SettingsBlock(self, titleLocales.edit_settings_xls_block_a_sv, '#51D04C')
-        block_b = SettingsBlock(self, titleLocales.edit_settings_xls_block_b, '#35B953')
+        tables_box = SettingsBlock(self, title='')
+        sources_box = SettingsBlock(self, title='')
+        tables_box.setMinimumWidth(450)
+        block_a = SettingsBlock(tables_box, titleLocales.edit_settings_xls_block_a)
+        block_a_sv = SettingsBlock(tables_box, titleLocales.edit_settings_xls_block_a_sv)
+        block_b = SettingsBlock(tables_box, titleLocales.edit_settings_xls_block_b)
+        tables_box.add_widget(block_a, 3)
+        tables_box.add_widget(block_a_sv, 2)
+        tables_box.add_widget(block_b, 2)
         self.sh_edit_ea = QLineEdit(settings.a_sh_name)
         self.sh_edit_easv = QLineEdit(settings.a_sv_sh_name)
         self.sh_edit_eb = QLineEdit(settings.b_sh_name)
-        self.sh_edit_ea.setMinimumWidth(250)
-        self.sh_edit_easv.setMinimumWidth(250)
-        self.sh_edit_eb.setMinimumWidth(250)
         self.cmb_let_ea = Dropdown(self, data=prepare_xl_letters(settings.a_l))
         self.cmb_let_ea_obj = Dropdown(self, data=prepare_xl_letters(settings.a_obj_l))
         self.cmb_let_ea_sv = Dropdown(self, data=prepare_xl_letters(settings.a_sv_l))
@@ -71,36 +77,36 @@ class EditSettingsWindow(ModalWindow):
         self.cmb_num_ea_obj = Dropdown(self, data=prepare_xl_digits(settings.a_obj_n))
         self.cmb_num_ea_sv = Dropdown(self, data=prepare_xl_digits(settings.a_sv_n))
         self.cmb_num_eb = Dropdown(self, data=prepare_xl_digits(settings.b_n))
-        table_a = TableWidget(self, titleLocales.edit_xls_table_header)
-        table_a.add_representation_row(titleLocales.edit_xls_table_out_matrix)
+        table_a = TableWidget(self, titleLocales.edit_xls_table_header, styles=xls_table_styles)
+        table_a.add_representation_row(titleLocales.edit_xls_table_out_matrix, styles=representation_xls_table_label)
         table_a.add_widgets_row([self.sh_edit_ea, self.cmb_let_ea, self.cmb_num_ea])
-        table_a.add_representation_row(titleLocales.edit_xls_table_out_object)
+        table_a.add_representation_row(titleLocales.edit_xls_table_out_object, styles=representation_xls_table_label)
         table_a.add_widgets_row([None, self.cmb_let_ea_obj, self.cmb_num_ea_obj])
         block_a.add_widget(table_a)
-        table_a_sv = TableWidget(self, titleLocales.edit_xls_table_header)
-        table_a_sv.add_representation_row(titleLocales.edit_xls_table_out_matrix)
+        table_a_sv = TableWidget(self, titleLocales.edit_xls_table_header, styles=xls_table_styles)
+        table_a_sv.add_representation_row(titleLocales.edit_xls_table_out_matrix, styles=representation_xls_table_label)
         table_a_sv.add_widgets_row([self.sh_edit_easv, self.cmb_let_ea_sv, self.cmb_num_ea_sv])
         block_a_sv.add_widget(table_a_sv)
-        table_b = TableWidget(self, titleLocales.edit_xls_table_header)
-        table_b.add_representation_row(titleLocales.edit_xls_table_out_matrix)
+        table_b = TableWidget(self, titleLocales.edit_xls_table_header, styles=xls_table_styles)
+        table_b.add_representation_row(titleLocales.edit_xls_table_out_matrix, styles=representation_xls_table_label)
         table_b.add_widgets_row([self.sh_edit_eb, self.cmb_let_eb, self.cmb_num_eb])
         block_b.add_widget(table_b)
 
         self.xl_a_src_widget = SrcFrame(title=titleLocales.edit_xls_a_src_title,
                                         default_dir=coreFiles.xls_templates_dir,
-                                        valid_files="*.xls *.xlsx",
-                                        on_select=lambda f: self.set_xls_path('a', f))
+                                        valid_files="*.xls *.xlsx")
         self.xl_a_sv_src_widget = SrcFrame(title=titleLocales.edit_xls_a_sv_src_title,
                                            default_dir=coreFiles.xls_templates_dir,
-                                           valid_files="*.xls *.xlsx",
-                                           on_select=lambda f: self.set_xls_path('a_sv', f))
+                                           valid_files="*.xls *.xlsx")
         self.xl_b_src_widget = SrcFrame(title=titleLocales.edit_xls_b_src_title,
                                         default_dir=coreFiles.xls_templates_dir,
-                                        valid_files="*.xls *.xlsx",
-                                        on_select=lambda f: self.set_xls_path('b', f))
+                                        valid_files="*.xls *.xlsx")
         self.xl_b_src_widget.set_selected_file(settings.b_path)
         self.xl_a_src_widget.set_selected_file(settings.a_path)
         self.xl_a_sv_src_widget.set_selected_file(settings.a_sv_path)
+        sources_box.add_widget(self.xl_a_src_widget)
+        sources_box.add_widget(self.xl_a_sv_src_widget)
+        sources_box.add_widget(self.xl_b_src_widget)
 
         self.edit_xls_start = QCheckBox(titleLocales.edit_xls_run_mode_title)
         self.edit_mdb_start = QCheckBox(titleLocales.edit_mdb_run_mode_title)
@@ -108,26 +114,11 @@ class EditSettingsWindow(ModalWindow):
         self.edit_mdb_start.setChecked(settings.is_mdb_start)
 
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
-        self.add_widget(block_a, 0, 0, 10, 6)
-        self.add_widget(block_a_sv, 10, 0, 4, 6)
-        self.add_widget(block_b, 14, 0, 4, 6)
-        self.add_widget(self.xl_a_src_widget, 4, 8, 1, 5)
-        self.add_widget(self.xl_a_sv_src_widget, 7, 8, 1, 5)
-        self.add_widget(self.xl_b_src_widget, 11, 8, 1, 5)
-        self.add_widget(self.edit_xls_start, 13, 8, 1, 5)
-        self.add_widget(self.edit_mdb_start, 14, 8, 1, 5)
-        self.add_widget(save_btn, 17, 10, 1, 2)
-
-    def set_xls_path(self, expl_type, templ_path):
-        if templ_path and 'xls' in templ_path:
-            if expl_type == 'a':
-                self.settings.xls.a_path = templ_path
-            elif expl_type == 'a_sv':
-                self.settings.xls.a_sv_path = templ_path
-            elif expl_type == 'b':
-                self.settings.xls.b_path = templ_path
-        else:
-            QMessageBox.warning(self, titleLocales.error_modal_warning, titleLocales.edit_xls_src_warning, QMessageBox.Ok)
+        self.add_widget(tables_box, 0, 0, 12, 7)
+        self.add_widget(sources_box, 0, 7, 7, 5)
+        self.add_widget(self.edit_xls_start, 9, 8, 1, 3)
+        self.add_widget(self.edit_mdb_start, 10, 8, 1, 3)
+        self.add_widget(save_btn, 11, 9, 1, 1)
 
     def init_balance_widgets(self):
         balance_settings = self.settings.balance
@@ -166,7 +157,7 @@ class EditSettingsWindow(ModalWindow):
         self.add_widget(self.edit_a_sv_accuracy, 1, 5, 1, 1)
         self.add_widget(lbl_b_accuracy, 2, 0, 1, 5)
         self.add_widget(self.edit_b_accuracy, 2, 5, 1, 1)
-        self.add_widget(save_btn, 4, 3, 1, 2)
+        self.add_widget(save_btn, 5, 4, 1, 2)
 
     def init_conditions_widgets(self):
         conditions_settings = self.settings.conditions
@@ -197,6 +188,8 @@ class EditSettingsWindow(ModalWindow):
 
         selection_title_lbl = QLabel(titleLocales.edit_settings_conditions_ctr_filter, parent=self)
         groupping_title_lbl = QLabel(titleLocales.edit_settings_conditions_sv_exp_groupping, parent=self)
+        selection_title_lbl.setStyleSheet(title_label)
+        groupping_title_lbl.setStyleSheet(title_label)
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
         self.add_widget(selection_title_lbl, 0, 0, 1, 6)
         self.add_widget(groupping_title_lbl, grid_y, 0, 1, 6)
@@ -204,5 +197,85 @@ class EditSettingsWindow(ModalWindow):
         self.add_widget(save_btn, grid_y + 3, 6, 1, 2)
 
     def update_settings(self):
-        print(self.setts_type)
-        pass
+        upd_successfull = False
+        if self.setts_type == settingsActions.SHOW_XLS:
+            upd_successfull = self._change_xls_setts()
+        elif self.setts_type == settingsActions.SHOW_BALANCE:
+            upd_successfull = self._change_balance_setts()
+        elif self.setts_type == settingsActions.SHOW_ACCURACY:
+            upd_successfull = self._change_accuracy_setts()
+        elif self.setts_type == settingsActions.SHOW_CONDITIONS:
+            upd_successfull = self._change_conditions_setts()
+        if upd_successfull:
+            self.emit_settings_updated(self.setts_type)
+
+    def get_xls_templates(self):
+        a_path = self.xl_a_src_widget.get_selected_file()
+        a_sv_path = self.xl_a_sv_src_widget.get_selected_file()
+        b_path = self.xl_b_src_widget.get_selected_file()
+        for p in (a_path, a_sv_path, b_path):
+            if not p or 'xls' not in p:
+                QMessageBox.warning(self, titleLocales.error_modal_warning, titleLocales.edit_xls_src_warning,
+                                    QMessageBox.Ok)
+                return
+        return a_path, a_sv_path, b_path
+
+    def _change_xls_setts(self):
+        if not hasattr(self, 'sh_edit_ea'):
+            raise Exception("Unable to retrieve new settings; unexpected method call")
+        xls_setts = self.settings.xls
+        selected_templates = self.get_xls_templates()
+        if not selected_templates:
+            return False
+        xls_setts.a_path, xls_setts.a_sv_path, xls_setts.b_path = selected_templates
+        xls_setts.a_sh_name = str(self.sh_edit_ea.text())
+        xls_setts.a_sv_sh_name = str(self.sh_edit_easv.text())
+        xls_setts.b_sh_name = str(self.sh_edit_eb.text())
+        xls_setts.a_l = str(self.cmb_let_ea.currentText())
+        xls_setts.a_obj_l = str(self.cmb_let_ea_obj.currentText())
+        xls_setts.a_sv_l = str(self.cmb_let_ea_sv.currentText())
+        xls_setts.b_l = str(self.cmb_let_eb.currentText())
+        xls_setts.a_n = int(self.cmb_num_ea.currentText())
+        xls_setts.a_obj_n = int(self.cmb_num_ea_obj.currentText())
+        xls_setts.a_sv_n = int(self.cmb_num_ea_sv.currentText())
+        xls_setts.b_n = int(self.cmb_num_eb.currentText())
+        xls_setts.is_xls_start = bool(self.edit_xls_start.isChecked())
+        xls_setts.is_mdb_start = bool(self.edit_mdb_start.isChecked())
+        return True
+
+    def _change_balance_setts(self):
+        # self.settings.balance.include_a_balance = bool(self.edit_a_balance.isChecked())
+        # self.settings.balance.include_a_sv_balance = bool(self.edit_a_sv_balance.isChecked())
+        balance_settings = self.settings.balance
+        balance_settings.include_b_balance = bool(self.edit_b_balance.isChecked())
+        return True
+
+    def _change_accuracy_setts(self):
+        accuracy_settings = self.settings.rnd
+        accuracy_settings.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
+        accuracy_settings.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
+        accuracy_settings.b_accuracy = int(self.edit_b_accuracy.get_current_item())
+        return True
+
+    def _change_conditions_setts(self):
+        try:
+            selected_condition = list(filter(lambda x: self.selection_options_radio[x].isChecked(), self.selection_options_radio.keys()))[0]
+            prev_condition = self.settings.conditions.active_cond
+            self.settings.conditions.active_cond = selected_condition
+        except Exception as err:
+            print(err)
+            QMessageBox.warning(self, titleLocales.error_modal_warning, "Invalid data selected",
+                                QMessageBox.Ok)
+            return
+        if self.group_by_cc_activated.isChecked():
+            self.settings.conditions.groupping_by = 'cc'
+        # elif self.group_by_np_activated.isChecked():
+        #     self.settings.conditions.groupping_by = u'np'
+        else:
+            self.settings.conditions.groupping_by = 'np'
+        return True
+        # TODO: check this logic active_condition_changed = selected_condition == prev_condition
+        # if self.exp_a_btn.isEnabled() and self.exp_a_thr and active_condition_changed and not self.__is_session:
+        #     self.reset_parameters()
+        #     self.control_btn.setEnabled(True)
+        #     self.convert_btn.setEnabled(True)

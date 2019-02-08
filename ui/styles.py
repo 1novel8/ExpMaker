@@ -44,10 +44,32 @@ default_table = apply_theme("""
     font-size: 12px
 """)
 
+xls_table = apply_theme("""
+    QHeaderView::section{
+        background-color: #32724a;
+        color: {color.primary_light};
+        padding: 2px;
+        margin: 1px;
+        border-radius: 2px; 
+        font-size: 14px;
+        font-weight: bold;
+    }
+    border-radius: 2px;
+    font-size: 16px;
+    font-weight: bold;
+""")
+
 representation_table_label = """
     color: #D3D3D3; 
     background-color: #323C3D;
     font-size: 14px; 
+    padding: 0 15px;
+"""
+representation_xls_table_label = """
+    color: white; 
+    background-color: #38a863;
+    border-radius: 2px;
+    font-size: 16px;
     padding: 0 15px;
 """
 
@@ -89,6 +111,7 @@ title_label = apply_theme("""
     color: {color.secondary_green};
     font-size: 16px;
     font-weight: bold;
+    padding-left: 4px;
 """)
 
 loading_label = apply_theme("""

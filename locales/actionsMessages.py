@@ -1,4 +1,4 @@
-from constants import baseActions, extractionActions, expActions
+from constants import baseActions, extractionActions, expActions, settingsActions
 
 
 class ActionMessages:
@@ -68,6 +68,13 @@ class ActionMessages:
         expActions.EXPORT_EXP: "Экспорт даннных",
     }
 
+    save_settings_messages = {
+        settingsActions.SHOW_XLS: "Установлены новые настройки выгрузки в Excel",
+        settingsActions.SHOW_BALANCE: "Установлены новые настройки запуска баланса",
+        settingsActions.SHOW_ACCURACY: "Установлены новые настройки округления",
+        settingsActions.SHOW_CONDITIONS: "Установлены новые настройки выборки и группировки данных",
+    }
+
     def get_start_log(self, action_type):
         return ActionMessages.get_message_by_action(action_type, self.start_process_logs)
 
@@ -79,6 +86,9 @@ class ActionMessages:
 
     def get_loading_msg(self, action_type):
         return ActionMessages.get_message_by_action(action_type, self.loading_messages)
+
+    def get_save_setts_msg(self, action_type):
+        return ActionMessages.get_message_by_action(action_type, self.save_settings_messages)
 
     @staticmethod
     def get_message_by_action(action_type, available_messages):
