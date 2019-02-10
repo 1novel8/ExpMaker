@@ -36,7 +36,7 @@ class CtrRow(object):
         self.new_lc = None
         self.dopname = [None]*self.n
         self.nusname = [None]*self.n
-        self.bgd_control(spr_holder)
+        self.run_bgd_control(spr_holder)
         if not self.has_err:
             self.remake_area()
             self.remake_usern()
@@ -145,7 +145,7 @@ class CtrRow(object):
                 return False
         return True
 
-    def bgd_control(self, s_h):
+    def run_bgd_control(self, s_h):
         if self.n == 1:
             if self.bgd1_control(s_h, 0):
                 pass

@@ -74,15 +74,15 @@ class ExplicationWorker:
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     def create_exp_b(self, rows_data, sprav_holder=None, settings_holder=None, out_exp_file=None):
-        with_balance = settings_holder.balance.include_a_sv_balance
+        with_balance = settings_holder.balance.include_b_balance
         is_xls_mode = True
         exp_maker = ExpF22Maker(rows_data, sprav_holder)
         exp_dict = exp_maker.create_exp_dict(settings_holder.rnd)
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_b_balancer(exp_dict,
-                                        sprav_holder.expa_f_str,
-                                        sprav_holder.expa_r_str,
+                                        sprav_holder.expb_f_str,
+                                        sprav_holder.expb_r_str,
                                         settings_holder.rnd.b_accuracy)
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_matrix(exp_dict, sprav_holder)

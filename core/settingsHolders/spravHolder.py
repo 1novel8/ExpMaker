@@ -648,7 +648,7 @@ class SpravHolder(object):
                         for npt in nptypeliremaked:
                             bgd2.append((row[0], utype, state, int(row[8]), row[1],  npt[0], npt[1], row[4], row[5], nlc, row[9], row[10]))
                             # bgd_row: F22, UTYPE, State, SLNAD, newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
-            bgd2 = (self.remake_bgd1(),bgd2)
+            bgd2 = (self.remake_bgd1(), bgd2)
         return bgd2
 
     def get_f22_names(self):
@@ -715,11 +715,11 @@ class SpravHolder(object):
             w = 1
             while i+w < lilen:
                 if li[i+w] - li[i+w-1] == 1:
-                    w+=1
+                    w += 1
                 else:
-                    inext = i+w
+                    inext = i + w
                     maxli.append(li[i+w-1])
                     minli.append(li[i+w])
                     break
-        return zip(minli,maxli)
+        return list(zip(minli, maxli))
 
