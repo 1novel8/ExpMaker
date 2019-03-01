@@ -18,7 +18,7 @@ class CtrConverter:
         except Exception as err:
             raise Exception('Ошибка при загрузке данных из crostab: %s' % err)
         shape_area_sum = CtrConverter.get_shape_area_sum(ctr_conn)
-        del ctr_conn
+        # ctr_conn.close_conn()
 
         rows_ok = []
         whats_err = {1: {}, 2: {}, 3: {}, 4: {}}
@@ -37,7 +37,6 @@ class CtrConverter:
                     got_errors = True
             else:
                 rows_ok.append(new_row)
-
         if got_errors:
             return whats_err
         else:

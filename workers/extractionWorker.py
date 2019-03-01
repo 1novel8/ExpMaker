@@ -23,7 +23,7 @@ class ExtractionWorker:
         select_condition = {}
         if isinstance(sprav_holder.select_conditions, list):
             for select_op in sprav_holder.select_conditions:
-                if select_op[u'Id'] == settings_holder.conditions.active_cond:
+                if select_op['Id'] == settings_holder.conditions.active_cond:
                     select_condition = select_op
         try:
             converted_data = CtrConverter.convert(sprav_holder, coreFiles.tempDB_path, select_condition)

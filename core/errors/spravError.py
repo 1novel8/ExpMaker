@@ -30,6 +30,7 @@ class SpravError(Exception):
                        % args[2] if len(args) >= 3 else args_err,
             5: lambda: errors[2]() + 'Не указана ссылка на суммарную строку.' if len(args) >= 2 else args_err,
         }
+        self.type = err_type
         self.message = str(errors[err_type]())
         super(SpravError, self).__init__(self.message)
 

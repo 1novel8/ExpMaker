@@ -154,11 +154,14 @@ class ExpSelector(QWidget):
                     ate_expl_data[not_groupped_key].append(expl)
                 except AttributeError:
                     ate_expl_data[not_groupped_key] = [expl]
+        defined_ate_data = {}
         for k, v in ate_expl_data.items():
-            if v is None:
-                del ate_expl_data[k]
-                del group_soatos[k]
-        self.exp_data_by_ate = ate_expl_data
+            if v:
+                defined_ate_data[k] = v
+            else:
+                if k in group_soatos:
+                    del group_soatos[k]
+        self.exp_data_by_ate = defined_ate_data
         names = []
         for key in group_soatos:
             names.append((self.soato_titles[key + '000'], key))
