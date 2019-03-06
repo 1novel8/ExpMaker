@@ -21,6 +21,7 @@ class SettingsActions:
     SHOW_BALANCE = 'show_balance'
     SHOW_ACCURACY = 'show_accuracy'
     SHOW_CONDITIONS = 'show_conditions'
+    SHOW_EXP_FILTER = 'show_exp_filter'
 
 
 class BaseActivityActions:

@@ -67,6 +67,7 @@ class TitleLocales:
     edit_settings_accuracy_a_sv_title = "Точность округления формы А сводная"
     edit_settings_accuracy_b_title = "Точность округления формы B"
     edit_settings_conditions_title = "Настройки условий выборки из crostab"
+    edit_settings_exp_filter_title = "Настройки фильтрации экспликаций"
     edit_settings_conditions_gr_by_cc = "Группировать по сельским советам"
     edit_settings_conditions_ctr_filter = "      Настройка выборки данных из crostab:"
     edit_settings_conditions_sv_exp_groupping = "\n      Настройка группировки сводной экспликации:"

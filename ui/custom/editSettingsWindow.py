@@ -50,6 +50,9 @@ class EditSettingsWindow(ModalWindow):
         elif edit_action_type == settingsActions.SHOW_CONDITIONS:
             init_params = (titleLocales.edit_settings_conditions_title, 300, 300)
             init_method = self.init_conditions_widgets
+        elif edit_action_type == settingsActions.SHOW_EXP_FILTER:
+            init_params = (titleLocales.edit_settings_exp_filter_title, 300, 300)
+            init_method = self.init_exp_filter_settings
         else:
             raise Exception('Unsupported params provided!')
         super(EditSettingsWindow, self).__init__(parent, *init_params)
@@ -196,8 +199,20 @@ class EditSettingsWindow(ModalWindow):
         self.add_widget(self.group_by_cc_activated, grid_y + 1, 1, 1, 5)
         self.add_widget(save_btn, grid_y + 3, 6, 1, 2)
 
+    def init_exp_filter_settings(self):
+        filter_settings = self.settings.filter
+        self.melio_filter_used = QRadioButton('Вкючить фильтр по полю MELIOCODE', self)
+        self.servtype_filter_used = QRadioButton('Вкючить фильтр по полю SERVTYPE', self)
+        self.melio_filter_used.setChecked(filter_settings.enable_melio)
+        self.servtype_filter_used.setChecked(not filter_settings.enable_melio)
+        save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
+        self.add_widget(self.melio_filter_used, 0, 0, 1, 2)
+        self.add_widget(self.servtype_filter_used, 1, 0, 1, 2)
+        self.add_widget(save_btn, 4, 3, 1, 1)
+
     def update_settings(self):
         upd_successfull = False
+        params = {'setts_type': self.setts_type}
         if self.setts_type == settingsActions.SHOW_XLS:
             upd_successfull = self._change_xls_setts()
         elif self.setts_type == settingsActions.SHOW_BALANCE:
@@ -206,8 +221,12 @@ class EditSettingsWindow(ModalWindow):
             upd_successfull = self._change_accuracy_setts()
         elif self.setts_type == settingsActions.SHOW_CONDITIONS:
             upd_successfull = self._change_conditions_setts()
+            params['active_condition_changed'] = upd_successfull and upd_successfull['active_condition_changed']
+        elif self.setts_type == settingsActions.SHOW_EXP_FILTER:
+            params['has_changes'] = self.__change_exp_filter_settings()
+            upd_successfull = True
         if upd_successfull:
-            self.emit_settings_updated(self.setts_type)
+            self.emit_settings_updated(params)
 
     def get_xls_templates(self):
         a_path = self.xl_a_src_widget.get_selected_file()
@@ -273,9 +292,11 @@ class EditSettingsWindow(ModalWindow):
         #     self.settings.conditions.groupping_by = u'np'
         else:
             self.settings.conditions.groupping_by = 'np'
+        return {'active_condition_changed': selected_condition != prev_condition}
+
+    def __change_exp_filter_settings(self):
+        filter_settings = self.settings.filter
+        is_melio_selected = bool(self.melio_filter_used.isChecked())
+        settings_changed = filter_settings.enable_melio != is_melio_selected
+        filter_settings.enable_melio = is_melio_selected
         return True
-        # TODO: check this logic active_condition_changed = selected_condition == prev_condition
-        # if self.exp_a_btn.isEnabled() and self.exp_a_thr and active_condition_changed and not self.__is_session:
-        #     self.reset_parameters()
-        #     self.control_btn.setEnabled(True)
-        #     self.convert_btn.setEnabled(True)

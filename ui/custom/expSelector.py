@@ -1,3 +1,6 @@
+from constants import settingsActions
+from ui.custom.editSettingsWindow import EditSettingsWindow
+
 __author__ = 'Alex Konkov'
 
 from PyQt5.QtWidgets import (
@@ -45,9 +48,9 @@ class GroupHeader(QFrame):
 
 
 class ExpFilter(QFrame):
-    def __init__(self, parent=None, filter_settings=None, on_changes=lambda x: x):
+    def __init__(self, parent=None, settings=None, on_changes=lambda x: x):
         QFrame.__init__(self, parent)
-        self.filter_settings = filter_settings
+        self.settings = settings
         self.on_changes = on_changes
         self.h_box = QHBoxLayout(self)
         self.filter_btn = PrimaryButton(self, title='...')
@@ -60,28 +63,21 @@ class ExpFilter(QFrame):
         self.filter_window = None
 
     def show_filter_setup(self):
-        filter_window = ModalWindow(self, 'Настройки фильтра', 300, 150)
-        melio_filter_used = QRadioButton('Вкючить фильтр по полю MELIOCODE', filter_window)
-        servtype_filter_used = QRadioButton('Вкючить фильтр по полю SERVTYPE', filter_window)
-        change_btn = PrimaryButton(filter_window, title='Применить фильтр')
-        change_btn.clicked.connect(self.on_settings_selected)
-        melio_filter_used.setChecked(self.filter_settings.enable_melio)
-        servtype_filter_used.setChecked(not self.filter_settings.enable_melio)
-        melio_filter_used.melio_filter_used = melio_filter_used
-        filter_window.add_widget(melio_filter_used, 0, 0, 1, 2)
-        filter_window.add_widget(servtype_filter_used, 1, 0, 1, 2)
-        filter_window.add_widget(change_btn, 4, 3, 1, 1)
-        self.filter_window = filter_window
+        self.filter_window = EditSettingsWindow(
+            self.settings,
+            None,
+            parent=self,
+            edit_action_type=settingsActions.SHOW_EXP_FILTER,
+            on_save=self.set_updated_settings
+        )
         self.filter_window.show()
 
-    def on_settings_selected(self):
-        if self.filter_window:
-            is_melio_selected = bool(self.filter_window.melio_filter_used.isChecked())
-            settings_changed = self.filter_settings.enable_melio != is_melio_selected
-            if settings_changed:
-                self.filter_settings.enable_melio = is_melio_selected
-            self.filter_window.close()
-            self.on_changes(settings_changed)
+    def set_updated_settings(self, result):
+        if not self.filter_window:
+            return
+        self.filter_window.close()
+        if result and result['has_changes']:
+            self.settings.save()
 
 
 not_groupped_key = 'not_groupped'
@@ -95,7 +91,7 @@ class ExpSelector(QWidget):
         self.reload_exp = reinit_exp_hook
         self.grid = QGridLayout(self)
         self.header = GroupHeader(self, on_cmb1_changes=self.handle_cmb1_click, on_cmb2_changes=self.handle_cmb2_click)
-        self.filter = ExpFilter(self, filter_settings=settings.filter, on_changes=self.handle_filter_changes)
+        self.filter = ExpFilter(self, settings=settings, on_changes=self.handle_filter_changes)
         self.handle_exp_click = handle_exp_click
         self.treeView = QTreeView()
         self.treeView.setAlternatingRowColors(True)
