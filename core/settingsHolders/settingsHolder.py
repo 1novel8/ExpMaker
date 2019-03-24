@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Aleksei Konkov'
 
+from os import path
+
 
 class DictAsObject(object):
     def __init__(self, dict_data):
@@ -36,6 +38,38 @@ class SettingsHolder(object):
                 self.set_default_settings()
         else:
             self.set_default_settings()
+
+    def check_xl_templates(self):
+        xls_s = self.xls
+
+        def check_template(template_path):
+            return path.isfile(template_path) and 'xls' in template_path
+
+        templates_meta = [
+            {'key_id': 'a_path', 'name': "A"},
+            {'key_id': 'a_sv_path', 'name': "A сводная"},
+            {'key_id': 'b_path', 'name': "Ф22 зем."},
+        ]
+        for meta in templates_meta:
+            t_key = meta['key_id']
+
+            meta['default_set'] = False
+            meta['default_set_incomplete'] = False
+
+            if not check_template(getattr(xls_s, t_key)):
+                default_a_path = xls_s.default_paths[t_key]
+                if check_template(default_a_path):
+                    meta['default_set'] = True
+                    setattr(xls_s, t_key, default_a_path)
+                else:
+                    meta['default_set_incomplete'] = True
+        set_to_default_templates = list(filter(lambda x: x['default_set'], templates_meta))
+        if len(set_to_default_templates):
+            self.save()
+        return {
+            'set_to_default_templates': set_to_default_templates,
+            'unresolved_templates': list(filter(lambda x: x['default_set_incomplete'], templates_meta)),
+        }
 
     @staticmethod
     def get_valid_settings_keys():
