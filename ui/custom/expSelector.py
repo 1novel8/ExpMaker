@@ -48,19 +48,24 @@ class GroupHeader(QFrame):
 
 
 class ExpFilter(QFrame):
-    def __init__(self, parent=None, settings=None, on_changes=lambda x: x):
+    def __init__(self, parent=None, settings=None):
         QFrame.__init__(self, parent)
         self.settings = settings
-        self.on_changes = on_changes
         self.h_box = QHBoxLayout(self)
         self.filter_btn = PrimaryButton(self, title='...')
         self.filter_btn.clicked.connect(self.show_filter_setup)
         self.activation_switcher = QCheckBox('Фильтр', self)
-        self.activation_switcher.setChecked(True)
-        self.activation_switcher.stateChanged.connect(on_changes)
+        self.activation_switcher.setChecked(self.settings.filter.enabled)
+        self.activation_switcher.stateChanged.connect(self.toggle)
         self.h_box.addWidget(self.activation_switcher)
         self.h_box.addWidget(self.filter_btn)
         self.filter_window = None
+
+    def toggle(self):
+        switcher_val = bool(self.activation_switcher.isChecked())
+        if self.settings.filter.enabled != switcher_val:
+            self.settings.filter.enabled = switcher_val
+            self.settings.save()
 
     def show_filter_setup(self):
         self.filter_window = EditSettingsWindow(
@@ -91,7 +96,8 @@ class ExpSelector(QWidget):
         self.reload_exp = reinit_exp_hook
         self.grid = QGridLayout(self)
         self.header = GroupHeader(self, on_cmb1_changes=self.handle_cmb1_click, on_cmb2_changes=self.handle_cmb2_click)
-        self.filter = ExpFilter(self, settings=settings, on_changes=self.handle_filter_changes)
+        self.filter = ExpFilter(self, settings=settings)
+        self.filter.activation_switcher.setChecked(self.settings.filter.enabled)
         self.handle_exp_click = handle_exp_click
         self.treeView = QTreeView()
         self.treeView.setAlternatingRowColors(True)
@@ -113,11 +119,6 @@ class ExpSelector(QWidget):
         self.cmb2_recovery = None
         self.groupped_soatos = None
         self.current_exps = None
-
-    def handle_filter_changes(self, settings_changed=False):
-        self.settings.filter.enabled = bool(self.filter.activation_switcher.isChecked())
-        if settings_changed:
-            self.settings.save()
 
     def enable(self, exp_valuables, exp_tree):
         self.show()
