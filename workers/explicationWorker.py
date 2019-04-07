@@ -32,8 +32,10 @@ class ExplicationWorker:
             balanceMaker.run_asv_balancer(counted_exp, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_provider.prepare_out_matrix(counted_exp, sprav_holder)
-        self.export_selected_to_xl(matrix, settings_holder.xls, out_exp_file,
-                                   f22_ind=exp_provider.full_obj_name, obj_name=exp_provider.obj_name)
+        self.export_selected_to_xl(
+            matrix, settings_holder.xls, out_exp_file,
+            f22_ind=exp_provider.full_obj_name,
+            obj_name=exp_provider.obj_name)
 
     def create_exp_a_sv(self, exp_maker=None, sprav_holder=None, settings_holder=None, out_exp_file=None):
         group_sv_by = settings_holder.conditions.groupping_by
@@ -63,7 +65,7 @@ class ExplicationWorker:
                 'start_f': xl_s.a_sv_l,
                 'start_r': xl_s.a_sv_n,
                 'sh_name': xl_s.a_sv_sh_name,
-                'should_start_when_ready': xl_s.is_xls_start
+                'is_xls_start': xl_s.is_xls_start
             }
             self.export_matr_to_xl(matrix,
                                    self.gen_xl_out_file('FA', out_exp_file),
@@ -106,7 +108,7 @@ class ExplicationWorker:
     def export_selected_to_xl(matrix, out_settings, out_db_file, f22_ind="", obj_name=""):
         try:
             out_dir = path.dirname(out_db_file) + '\\%s_xlsx_files' % path.basename(out_db_file)
-            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind.replace('/', '').replace('"', ''))
+            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind)
             exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)
         except XlsError as err:

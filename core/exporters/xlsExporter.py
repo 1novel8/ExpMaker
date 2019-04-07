@@ -9,7 +9,7 @@ from core.errors import XlsError
 class XlExporter:
     def __init__(self, out_filename=None, template_path=None):
         self.template_path = template_path
-        self.out_filename = out_filename
+        self.out_filename = out_filename.replace(' ', '_').replace('/', '').replace('"', '')
         if not os.path.exists(os.path.dirname(self.out_filename)):
             os.makedirs(os.path.dirname(self.out_filename))
 
@@ -22,6 +22,8 @@ class XlExporter:
         self.export_matrix_to_sheet(sheet, matrix, start_f, start_r)
         try:
             w_book.save(self.out_filename)
+            if kwargs['is_xls_start']:
+                self.start_excel()
         except IOError:
             raise XlsError('not_found', self.out_filename)
 
@@ -35,6 +37,8 @@ class XlExporter:
         self.export_matrix_to_sheet(sheet, fa_data, a_l, a_n)
         if not os.path.isfile(self.out_filename):
             w_book.save(filename=self.out_filename)
+            if kwargs['is_xls_start']:
+                self.start_excel()
         else:
             try:
                 os.remove(self.out_filename)
