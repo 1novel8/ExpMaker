@@ -9,3 +9,5 @@ tempDbase.mdb
 */log/*
 *.log
 */__pycache__/*
+build
+dist

@@ -5,7 +5,7 @@ base = None
 if sys.platform == 'win32':
     base = 'Win32GUI'
 
-executables = [Executable('Explication.py', base=base)]
+executables = [Executable('ExpMaker.py', base=base)]
 
 packages = [
     'sip', 'threads', 'uiWidgets', 'os', 'decimal', 'datetime',
@@ -26,7 +26,7 @@ options = {
 }
 
 setup(
-    name='Explication 2.0',
+    name='ExpMaker 2.0',
     options=options,
     version='2.0.0',
     description='Explication maker tool',
