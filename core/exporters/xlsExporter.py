@@ -22,8 +22,6 @@ class XlExporter:
         self.export_matrix_to_sheet(sheet, matrix, start_f, start_r)
         try:
             w_book.save(self.out_filename)
-            if kwargs['is_xls_start']:
-                self.start_excel()
         except IOError:
             raise XlsError('not_found', self.out_filename)
 
@@ -83,7 +81,7 @@ class XlExporter:
         if not os.path.isfile(l_path):
             raise XlsError('not_found', l_path)
         try:
-            return load_workbook(filename=l_path, data_only=True)
+            return load_workbook(filename=l_path, data_only=False)
         except IOError:
             raise XlsError('already_opened', l_path)
         except Exception:

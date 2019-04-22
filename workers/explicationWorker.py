@@ -94,7 +94,7 @@ class ExplicationWorker:
                 'start_f': xls.b_l,
                 'start_r': xls.b_n,
                 'sh_name': xls.b_sh_name,
-                'should_start_when_ready': xls.is_xls_start
+                'is_xls_start': xls.is_xls_start
             }
             self.export_matr_to_xl(matrix,
                                    self.gen_xl_out_file('F22', out_exp_file),
@@ -125,7 +125,7 @@ class ExplicationWorker:
         try:
             exporter = XlExporter(out_db_file, template_path)
             exporter.export_matrix(matrix, **out_settings)
-            if out_settings['should_start_when_ready']:
+            if out_settings['is_xls_start']:
                 exporter.start_excel()
         except XlsError as err:
             print(err)

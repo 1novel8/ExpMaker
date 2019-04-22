@@ -1,4 +1,11 @@
 .idea
 .idea/*
 tempDbase.mdb
+*.name
 *.pyc
+*.iml
+*/media/*
+.env
+*/log/*
+*.log
+*/__pycache__/*
