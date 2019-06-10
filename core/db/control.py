@@ -2,6 +2,7 @@
 import shutil
 from ..errors import DbError
 from .connector import DbConnector
+from core import log_error
 
 
 class DbControl(object):
@@ -65,7 +66,7 @@ class DbControl(object):
                 if bad_fields:
                     fails[tab] = tuple(bad_fields)
             except Exception as err:
-                print(err)
+                log_error(err)
         return fails
 
     def get_all_fields(self):

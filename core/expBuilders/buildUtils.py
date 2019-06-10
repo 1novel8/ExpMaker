@@ -1,3 +1,4 @@
+from core import log_error
 
 
 class ExpBuilder:
@@ -26,12 +27,15 @@ class ExpBuilder:
                 try:
                     for k in list(resultdict.keys()):
                         apply_changes(item, k)
-                except KeyError as err:
-                    print(err)
-                except Exception:
-                    raise
+                except KeyError as kerr:
+                    log_error(kerr)
+                    print(kerr)
+                except Exception as err:
+                    log_error(err)
+                    raise err
             return resultdict
         else:
+            log_error('Wrong basic parameter received')
             raise TypeError('Wrong basic parameter received')
 
     @staticmethod
@@ -57,9 +61,13 @@ class ExpBuilder:
             elif isinstance(data, (float, int)):
                 return rnd(data)
             else:
-                raise Exception('Передан неверный тип обрабатываемых данных')
+                err = Exception('Передан неверный тип обрабатываемых данных')
+                log_error(err)
+                raise err
         except TypeError as err:
-            raise Exception('Возникла ошибка при попытке округления %s.\n%s' % (str(data), err.message))
+            error = Exception('Возникла ошибка при попытке округления %s.\n%s' % (str(data), err.message))
+            log_error(error)
+            raise error
 
     @staticmethod
     def complex_round(amount, accuracy, small_accur):
@@ -70,7 +78,12 @@ class ExpBuilder:
             else:
                 return round(amount, accuracy)
         except TypeError as err:
-            raise Exception('Возникла ошибка при попытке округления %s.\n%s' % (str(amount), err.message))
+            error = Exception('Возникла ошибка при попытке округления %s.\n%s' % (str(amount), err.message))
+            log_error(error)
+            raise error
+        except Exception as e:
+            log_error(e)
+            raise e
 
     @staticmethod
     def round_and_modify(data_dict, settings):

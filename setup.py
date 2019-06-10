@@ -13,7 +13,6 @@ packages = [
 ]
 options = {
     'build_exe': {
-        # 'packages': packages,
         'include_msvcr': True,
         'optimize': 2,
         'excludes': ['tkinter'],

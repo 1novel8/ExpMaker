@@ -7,6 +7,7 @@ import os.path
 import shutil
 from ..errors import DbError
 from .db_decorators import try_make_conn, catch_db_exception
+from core import log_error
 
 
 class DbConnector(object):
@@ -40,7 +41,7 @@ class DbConnector(object):
             self.__dbc.close()
             self.__conn.close()
         except Exception as err:
-            print("Failed to close", err)
+            log_error(err, 'Failed to close database: ')
 
     def run_db(self):
         os.system("start %s" % self.db_f_path)
@@ -67,7 +68,9 @@ class DbConnector(object):
                 f_name_type[f_info[3]] = f_info[5]
             return f_name_type
         except TypeError:
-            raise Exception("Ошибка соединения с базой данных")
+            err = Exception("Ошибка соединения с базой данных")
+            log_error(err)
+            raise err
 
     def get_common_selection(self, table, fields, where_case=""):
         query = "select "
@@ -143,8 +146,11 @@ class DbConnector(object):
                 raise DbError("tmpl_empty", template)
 
     def run_db_process(self):
-        self.close_conn()
-        os.system("start %s" % self.db_f_path)
+        try:
+            self.close_conn()
+            os.system("start %s" % self.db_f_path)
+        except Exception as err:
+            log_error(err)
 
     def __del__(self):
         self.close_conn()

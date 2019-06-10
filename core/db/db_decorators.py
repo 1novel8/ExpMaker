@@ -2,7 +2,8 @@ __author__ = 'Alex Konkov'
 
 
 import pyodbc
-from ..errors import DbError
+from core.errors import DbError
+from core import log_error
 
 
 def catch_db_exception(func_runs_query):
@@ -14,9 +15,14 @@ def catch_db_exception(func_runs_query):
         try:
             return func_runs_query(self, *args, **kwargs)
         except pyodbc.ProgrammingError:
+            log_error(pyodbc.ProgrammingError)
             raise DbError('query_stack', args)
         except pyodbc.Error:
+            log_error(pyodbc.ProgrammingError)
             raise DbError('failed', args)
+        except Exception as err:
+            log_error(err)
+            raise err
 
     return wrapper
 
@@ -37,5 +43,7 @@ def try_make_conn(func_with_connect):
             self.make_connection()
             return wrapper(self, *args, **kwargs)
         else:
-            raise Exception('Database connection failed')
+            err = Exception('Database connection failed')
+            log_error(err)
+            raise err
     return wrapper
