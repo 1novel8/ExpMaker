@@ -40,11 +40,9 @@ class ExpBuilder:
 
     @staticmethod
     def round_row_data(data, accuracy=4, show_small=False, small_accur=3, **kwargs):
-        # TODO: Remake inputs without __dict__
         accuracy = int(accuracy)
 
         def rnd(digit):
-            # return round(digit/ExpBuilder.to_ga, accuracy)
             if show_small:
                 return ExpBuilder.complex_round(digit / ExpBuilder.to_ga, accuracy, small_accur)
             else:
@@ -70,11 +68,11 @@ class ExpBuilder:
             raise error
 
     @staticmethod
-    def complex_round(amount, accuracy, small_accur):
-        min_step = 10 ** -accuracy
+    def complex_round(amount, accuracy, secondary_accuracy):
+        min_valuable = 10 ** -accuracy
         try:
-            if amount < min_step:
-                return round(amount, accuracy + small_accur)
+            if amount < min_valuable:
+                return round(amount, accuracy + secondary_accuracy)
             else:
                 return round(amount, accuracy)
         except TypeError as err:

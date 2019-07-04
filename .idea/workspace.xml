@@ -2,29 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eda30c90-998a-4bae-a9b9-20aaae7fe5f6" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/other/KOcViewer/requirements.txt" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/Packages/Control.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Convert.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/DbStructures.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/DbTools.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/ExpA.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Exports/Balance.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Exports/ToMdb.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Exports/ToXL.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Exports/__init__.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/FormB.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Settings.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Sprav.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/ErrMessage.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/Events.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/LoadMessg.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/ToolTip.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/WidgNames.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/Titles/__init__.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Packages/__init__.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/Project.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/setup.py" afterPath="$PROJECT_DIR$/other/KOcViewer/setup.py" />
+      <change beforePath="$PROJECT_DIR$/ExpMaker.py" afterPath="$PROJECT_DIR$/ExpMaker.py" />
+      <change beforePath="$PROJECT_DIR$/Spr/DefaultSpr.pkl" afterPath="$PROJECT_DIR$/Spr/DefaultSpr.pkl" />
+      <change beforePath="$PROJECT_DIR$/core/expBuilders/buildUtils.py" afterPath="$PROJECT_DIR$/core/expBuilders/buildUtils.py" />
     </list>
     <ignored path="GitProject.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,7 +19,7 @@
     <SUITE FILE_PATH="coverage/explication$executor.coverage" NAME="executor Coverage Results" MODIFIED="1560888343983" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/other/KOcViewer" />
     <SUITE FILE_PATH="coverage/explication$Project.coverage" NAME="Project Coverage Results" MODIFIED="1538603567563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/GitProject$Project.coverage" NAME="Project Coverage Results" MODIFIED="1495576976963" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1562227483267" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/explication$Explication.coverage" NAME="Explication Coverage Results" MODIFIED="1562230532309" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -61,11 +41,105 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="ExpMaker.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ExpMaker.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ExpMaker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="633">
-              <caret line="438" column="0" lean-forward="false" selection-start-line="438" selection-start-column="0" selection-end-line="438" selection-end-column="0" />
+            <state relative-caret-position="308">
+              <caret line="364" column="32" lean-forward="false" selection-start-line="364" selection-start-column="17" selection-end-line="364" selection-end-column="32" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="convertTools.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/convertTools.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ctrRow.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/ctrRow.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-3128">
+              <caret line="24" column="35" lean-forward="false" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="35" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="initializer.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/initializer.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <marker date="1545564730697" expanded="true" signature="424:458" ph="select missi... missing_value" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="validator.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/extractors/validator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2772">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <marker date="1545564730697" expanded="true" signature="1003:1034" ph="delete from missing_value... " />
+                <marker date="1545564730697" expanded="true" signature="1592:1629" ph="update missing_value... " />
+                <marker date="1545564730697" expanded="true" signature="4637:4739" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="4892:4994" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="5147:5246" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="5889:5955" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="6421:6517" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="6668:6724" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="8385:8578" ph="SELECT c.mis... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="10453:10468" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="10615:10645" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="11349:11422" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="11625:11669" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="12017:12091" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="12231:12286" ph="select missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="12709:12821" ph="SELECT c.mis... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="12972:13027" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="13516:13666" ph="SELECT c.mis... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="13818:13874" ph="SELECT missi... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="14312:14463" ph="SELECT c.mis... missing_value" />
+                <marker date="1545564730697" expanded="true" signature="14827:14897" ph="SELECT missi... missing_value" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/constants/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="19" column="26" lean-forward="false" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="buildUtils.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/expBuilders/buildUtils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="882">
+              <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="controlsVariants.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/constants/controlsVariants.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="84">
+              <caret line="4" column="13" lean-forward="false" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -78,51 +152,6 @@
               <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sprav.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/db/structures/sprav.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="504">
-              <caret line="24" column="13" lean-forward="false" selection-start-line="24" selection-start-column="13" selection-end-line="24" selection-end-column="13" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="buildUtils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/expBuilders/buildUtils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1827">
-              <caret line="87" column="17" lean-forward="false" selection-start-line="87" selection-start-column="17" selection-end-line="87" selection-end-column="17" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="control.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/db/control.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1386">
-              <caret line="69" column="0" lean-forward="false" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
-              <folding>
-                <element signature="e#1#14#0" expanded="true" />
-                <marker date="1560205298684" expanded="true" signature="1147:1161" ph="select * fro... missing_value" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="connector.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/db/connector.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2457">
-              <caret line="122" column="37" lean-forward="false" selection-start-line="122" selection-start-column="37" selection-end-line="122" selection-end-column="37" />
-              <folding>
-                <element signature="e#74#87#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -239,11 +268,11 @@
         <option value="$PROJECT_DIR$/core/db/connector.py" />
         <option value="$PROJECT_DIR$/error.log" />
         <option value="$PROJECT_DIR$/core/db/structures/sprav.py" />
-        <option value="$PROJECT_DIR$/core/expBuilders/buildUtils.py" />
         <option value="$PROJECT_DIR$/core/db/control.py" />
         <option value="$PROJECT_DIR$/core/systemLogger.py" />
-        <option value="$PROJECT_DIR$/ExpMaker.py" />
         <option value="$PROJECT_DIR$/other/KOcViewer/setup.py" />
+        <option value="$PROJECT_DIR$/ExpMaker.py" />
+        <option value="$PROJECT_DIR$/core/expBuilders/buildUtils.py" />
       </list>
     </option>
   </component>
@@ -282,6 +311,17 @@
             <path>
               <item name="explication" type="b2602c69:ProjectViewProjectNode" />
               <item name="explication" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
+              <item name="explication" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="explication" type="b2602c69:ProjectViewProjectNode" />
+              <item name="explication" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="expBuilders" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -627,14 +667,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="3458" height="1408" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295325" sideWeight="0.49881727" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2811736" sideWeight="0.38202247" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295325" sideWeight="0.70408165" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3241714" sideWeight="0.910408" order="9" side_tool="false" content_ui="tabs" x="3" y="17" width="1914" height="995" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.46402586" sideWeight="0.4651094" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3581245" sideWeight="0.4651094" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2934519" sideWeight="0.4742756" order="10" side_tool="false" content_ui="tabs" x="918" y="490" width="166" height="50" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23477232" sideWeight="0.49717057" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23477232" sideWeight="0.49717057" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32998225" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -759,53 +800,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/ui/components/table.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2058">
-          <caret line="98" column="0" lean-forward="false" selection-start-line="98" selection-start-column="0" selection-end-line="98" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#11#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/expBuilders/expAMaker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7245">
-          <caret line="346" column="38" lean-forward="false" selection-start-line="346" selection-start-column="38" selection-end-line="346" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/threads/baseActivitiesThread.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="27" column="0" lean-forward="false" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/errors/spravError.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="124">
-          <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/extractors/convertTools.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/extractors/ctrRow.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-170">
-          <caret line="24" column="35" lean-forward="false" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ui/components/sourceWidget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="175">
@@ -824,13 +818,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="651">
           <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/extractors/converter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="945">
-          <caret line="47" column="0" lean-forward="false" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1060,14 +1047,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/expBuilders/buildUtils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1827">
-          <caret line="87" column="17" lean-forward="false" selection-start-line="87" selection-start-column="17" selection-end-line="87" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/db/connector.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2457">
@@ -1131,10 +1110,107 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/constants/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="19" column="26" lean-forward="false" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants/controlsVariants.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="84">
+          <caret line="4" column="13" lean-forward="false" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/convertTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/ctrRow.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3128">
+          <caret line="24" column="35" lean-forward="false" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/initializer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <marker date="1545564730697" expanded="true" signature="424:458" ph="select missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/validator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2772">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <marker date="1545564730697" expanded="true" signature="1003:1034" ph="delete from missing_value... " />
+            <marker date="1545564730697" expanded="true" signature="1592:1629" ph="update missing_value... " />
+            <marker date="1545564730697" expanded="true" signature="4637:4739" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="4892:4994" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="5147:5246" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="5889:5955" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="6421:6517" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="6668:6724" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="8385:8578" ph="SELECT c.mis... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="10453:10468" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="10615:10645" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="11349:11422" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="11625:11669" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="12017:12091" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="12231:12286" ph="select missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="12709:12821" ph="SELECT c.mis... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="12972:13027" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="13516:13666" ph="SELECT c.mis... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="13818:13874" ph="SELECT missi... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="14312:14463" ph="SELECT c.mis... missing_value" />
+            <marker date="1545564730697" expanded="true" signature="14827:14897" ph="SELECT missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/extractors/converter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2519">
+          <caret line="47" column="0" lean-forward="false" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+          <folding>
+            <marker date="1551469454811" expanded="true" signature="2152:2176" ph="ALTER TABLE missing_value... " />
+            <marker date="1551469454811" expanded="true" signature="2265:2287" ph="ALTER TABLE missing_value... " />
+            <marker date="1551469454811" expanded="true" signature="2781:2865" ph="update missing_value... " />
+            <marker date="1551469454811" expanded="true" signature="2904:2981" ph="update missing_value... " />
+            <marker date="1551469454811" expanded="true" signature="3858:3953" ph="UPDATE missing_value... " />
+            <marker date="1551469454811" expanded="true" signature="6917:6946" ph="select sum(m... missing_value" />
+            <marker date="1551469454811" expanded="true" signature="7668:7704" ph="select missi... missing_value" />
+            <marker date="1551469454811" expanded="true" signature="7810:7847" ph="select missi... missing_value" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/ExpMaker.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="633">
-          <caret line="438" column="0" lean-forward="false" selection-start-line="438" selection-start-column="0" selection-end-line="438" selection-end-column="0" />
+        <state relative-caret-position="308">
+          <caret line="364" column="32" lean-forward="false" selection-start-line="364" selection-start-column="17" selection-end-line="364" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/expBuilders/buildUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="882">
+          <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
           <folding />
         </state>
       </provider>
