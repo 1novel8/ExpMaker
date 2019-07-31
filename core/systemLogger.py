@@ -28,6 +28,7 @@ def get_logger(logger_id):
 
 def log_error(err, message='', is_critical=False, logger_id='main'):
     logger = get_logger(logger_id)
+    print(err)
     if is_critical:
         logger.critical('Critical Error: ' + err.__str__())
     else:

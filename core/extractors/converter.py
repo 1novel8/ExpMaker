@@ -14,6 +14,7 @@ class CtrConverter:
         query_structure = sprav_holder.attr_config['ctr_structure']
         select_ctr_all = CtrConverter._make_crtab_query(query_structure, n_max, select_condition['WhereCase'])
         try:
+            # Hint: Check Sprav fields when failes here.
             sel_result = ctr_conn.exec_sel_query(select_ctr_all)
         except Exception as err:
             raise Exception('Ошибка при загрузке данных из crostab: %s' % err)

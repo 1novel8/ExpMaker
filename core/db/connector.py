@@ -88,7 +88,8 @@ class DbConnector(object):
     @try_make_conn
     @catch_db_exception
     def exec_sel_query(self, query):
-        return [row for row in self.__dbc.execute(query).fetchall()]
+        results = self.__dbc.execute(query).fetchall()
+        return [row for row in results]
 
     @try_make_conn
     @catch_db_exception

@@ -6,19 +6,18 @@ from core.errors import DbError
 from core import log_error
 
 
-def catch_db_exception(func_runs_query):
+def catch_db_exception(wrapped_querying_func):
     """
-    Decorator for functions with connection to database
-    decorator is decorated to take parameter self
+    Decorator for methods responsible for database querying
     """
     def wrapper(self, *args, **kwargs):
         try:
-            return func_runs_query(self, *args, **kwargs)
-        except pyodbc.ProgrammingError:
-            log_error(pyodbc.ProgrammingError)
+            return wrapped_querying_func(self, *args, **kwargs)
+        except pyodbc.ProgrammingError as db_error:
+            log_error(db_error)
             raise DbError('query_stack', args)
-        except pyodbc.Error:
-            log_error(pyodbc.ProgrammingError)
+        except pyodbc.Error as db_error:
+            log_error(db_error)
             raise DbError('failed', args)
         except Exception as err:
             log_error(err)
@@ -27,19 +26,16 @@ def catch_db_exception(func_runs_query):
     return wrapper
 
 
-def try_make_conn(func_with_connect):
+def try_make_conn(decorated_func):
     """
-    Decorator for functions with connection to database
-    decorator is decorated to take parameter self
+    Decorator. Checks connection initialization
     """
-    conn_attempt = {1: True}
-
     def wrapper(self,  *args, **kwargs):
         if self.get_dbc:
-            conn_attempt[1] = True
-            return func_with_connect(self, *args, **kwargs)
-        elif conn_attempt[1]:
-            conn_attempt[1] = False
+            self.conn_attempt_available = True
+            return decorated_func(self, *args, **kwargs)
+        elif self.conn_attempt_available:
+            self.conn_attempt_available = False
             self.make_connection()
             return wrapper(self, *args, **kwargs)
         else:
