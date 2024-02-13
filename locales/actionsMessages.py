@@ -1,4 +1,5 @@
-from constants import baseActions, extractionActions, expActions, settingsActions
+from constants import (baseActions, expActions, extractionActions,
+                       settingsActions)
 
 
 class ActionMessages:
@@ -33,6 +34,7 @@ class ActionMessages:
         expActions.EXP_A_SINGLE: "Выборочная экспликация А успешно создана",
         expActions.EXP_A_SV: "Сводная экспликация успешно создана",
         expActions.EXP_B: "Экспликация F22 успешно создана",
+
     }
     error_logs = {
         baseActions.LOAD_DB: "Ошибка при загрузке базы данных",
@@ -48,6 +50,7 @@ class ActionMessages:
         expActions.EXP_A_SINGLE: "Ошибка при создании экспликации А",
         expActions.EXP_A_SV: "Ошибка при создании  сводной экспликации",
         expActions.EXP_B: "Ошибка при создании экспликации F22",
+
     }
     loading_messages = {
         baseActions.LOAD_DB: "База данных загружается",
@@ -69,10 +72,14 @@ class ActionMessages:
     }
 
     save_settings_messages = {
-        settingsActions.SHOW_XLS: "Установлены новые настройки выгрузки в Excel",
+        settingsActions.SHOW_XLS: "Установлены новые настройки экспорта в Excel",
         settingsActions.SHOW_BALANCE: "Установлены новые настройки запуска баланса",
         settingsActions.SHOW_ACCURACY: "Установлены новые настройки округления",
         settingsActions.SHOW_CONDITIONS: "Установлены новые настройки выборки и группировки данных",
+    }
+
+    balance_log_messages = {
+        expActions.EXP_B: "Уравнивание экспликации F22 не удалось. Необходимо выполнить увязку вручную",
     }
 
     def get_start_log(self, action_type):
@@ -89,6 +96,9 @@ class ActionMessages:
 
     def get_save_setts_msg(self, action_type):
         return ActionMessages.get_message_by_action(action_type, self.save_settings_messages)
+
+    def get_balance_log(self, action_type):
+        return ActionMessages.get_message_by_action(action_type, self.balance_log_messages)
 
     @staticmethod
     def get_message_by_action(action_type, available_messages):

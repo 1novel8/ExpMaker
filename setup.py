@@ -1,5 +1,6 @@
 import sys
-from cx_Freeze import setup, Executable
+
+from cx_Freeze import Executable, setup
 
 base = None
 if sys.platform == 'win32':
@@ -16,11 +17,6 @@ options = {
         'include_msvcr': True,
         'optimize': 2,
         'excludes': ['tkinter'],
-        # 'zip_include_packages': '*'
-        # 'include_files': [
-        #     (r'C:\Windows\System32\msvcr100.dll', 'msvcr100.dll'),
-        # ],
-        # 'exclude_dlls': ['MSVCP90.dll', 'CRYPT32.dll', 'COMDLG32.dll', 'IMM32.dll', 'ole32.dll', 'WINSPOOL.DRV', 'WINMM.dll', 'USER32.dll', 'SHELL32.dll', 'ODBC32.dll', 'ADVAPI32.dll', 'WS2_32.dll', 'GDI32.dll', 'KERNEL32.dll'],            'bundle_files': 1,
     },
 }
 

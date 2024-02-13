@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from core.db import ctrStructure, sprStructure
+
 from .initializer import CtrControl
 
 crs_tab = ctrStructure.crs_tab

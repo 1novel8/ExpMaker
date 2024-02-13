@@ -134,20 +134,56 @@ class ExpF22Maker:
         """
         f_orders = sprav_holder.str_orders['b_f']
         r_orders = sprav_holder.str_orders['b_r']
+        r_orders = r_orders[:34]#отсекаем строки с 25 по 41, они заполняются в экселе автоматически
         matr = []
+        print(f_orders)
+        print(r_orders)
 
+        def push_to_matr(remain):
+            row = []
+            row.extend(remain)
+            matr.append(row)
+        """
         def push_to_matr(first, second, remain):
             row = [first, second]
             row.extend(remain)
             matr.append(row)
-        push_to_matr('F22', 'description', f_orders)
+        """
+
+        print (matr)
+        push_to_matr(f_orders)#('F22', 'description', f_orders)
         for r_key in r_orders:
+            #print(r_key)
             digits = map(lambda x: b_dict[r_key][x]['val'], f_orders)
-            push_to_matr(r_key, sprav_holder.expb_r_str[r_key]['r_name'], digits)
+            push_to_matr(digits)#(r_key, sprav_holder.expb_r_str[r_key]['r_name'], digits)
+
+        #digits = map(lambda x: b_dict['by_SHAPE'][x]['val'], f_orders)
+        #push_to_matr( digits)#push_to_matr('Total', 'By_Shape', digits)
+        print('****')
+        print(matr)
+        return matr
+
+    @staticmethod
+    def prepare_matrix_total(b_dict, sprav_holder):
+        """
+        Caution! The first row contains field Names in order to export!
+        :return : tuple, matrix to export
+        """
+        f_orders = sprav_holder.str_orders['b_f']
+        r_orders = sprav_holder.str_orders['b_r']
+        matr_total = []
+        print(f_orders)
+
+        def push_to_matr_total(remain):
+            row = []
+            row.extend(remain)
+            matr_total.append(row)
+
 
         digits = map(lambda x: b_dict['by_SHAPE'][x]['val'], f_orders)
-        push_to_matr('Total', 'By_Shape', digits)
-        return matr
+        push_to_matr_total(digits)  # push_to_matr('Total', 'By_Shape', digits)
+        print(matr_total)
+        return matr_total
 
     @staticmethod
     def all_ready(e_dict, keys, ready_key='ready'):

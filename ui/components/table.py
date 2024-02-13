@@ -1,9 +1,13 @@
 import time
-from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QTextEdit
+
 from PyQt5.QtCore import Qt
-from .buttons import PrimaryButton
-from ui.styles import default_table, representation_table_label
+from PyQt5.QtWidgets import (QGridLayout, QTableWidget, QTableWidgetItem,
+                             QTextEdit, QWidget)
+
 from locales import protocolErrors
+from ui.styles import default_table, representation_table_label
+
+from .buttons import PrimaryButton
 
 
 class TableLabel(QTextEdit):

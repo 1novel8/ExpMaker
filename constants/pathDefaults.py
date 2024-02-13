@@ -1,4 +1,4 @@
-from os import path, getcwd
+from os import getcwd, path
 
 
 class CoreFilesPaths:

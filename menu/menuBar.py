@@ -1,7 +1,8 @@
-import string
 import random
-from PyQt5.QtWidgets import QAction
+import string
+
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction
 
 
 class MenuSection:

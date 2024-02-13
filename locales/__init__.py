@@ -1,9 +1,10 @@
 __author__ = 'Alex Konkov'
 
-from .componentTitlesLocales import TitleLocales
-from .toolTipsLocales import TooltipsLocales
-from .errorsLocales import AppErrorsLocales, CustomErrorsLocales, ProtocolErrors
 from .actionsMessages import ActionMessages
+from .componentTitlesLocales import TitleLocales
+from .errorsLocales import (AppErrorsLocales, CustomErrorsLocales,
+                            ProtocolErrors)
+from .toolTipsLocales import TooltipsLocales
 
 titleLocales = TitleLocales()
 tooltipsLocales = TooltipsLocales()

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QLabel
-from ui.styles import loading_label
+
 from threads.loadingThread import LoadingThread
+from ui.styles import loading_label
 
 
 class LoadingLabel(QLabel):

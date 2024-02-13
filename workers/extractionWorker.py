@@ -1,7 +1,6 @@
-from core.extractors import DataControl
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
-from core.extractors import CtrConverter
+from core.extractors import CtrConverter, DataControl
 
 
 class ExtractionWorker:

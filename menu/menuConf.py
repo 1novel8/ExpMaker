@@ -1,5 +1,7 @@
+from os import getcwd, path
+
 from locales import titleLocales
-from os import path, getcwd
+
 icons_dir = path.join(getcwd(), 'Images\\menu')
 
 

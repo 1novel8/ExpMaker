@@ -1,6 +1,7 @@
-from ui.components import TableWidget, TableLabel
-from locales import titleLocales
 import time
+
+from locales import titleLocales
+from ui.components import TableLabel, TableWidget
 
 
 class LogTable(TableWidget):

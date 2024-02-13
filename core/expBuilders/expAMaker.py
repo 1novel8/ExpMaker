@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from .expARowDataCombiner import RowDataCombiner as DataComb
 from .buildUtils import ExpBuilder
+from .expARowDataCombiner import RowDataCombiner as DataComb
 
 
 class ExpAMaker(object):

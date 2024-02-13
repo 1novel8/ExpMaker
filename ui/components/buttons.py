@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QPushButton, QGraphicsDropShadowEffect
+from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QPushButton
+
 from ui.styles import primary_button
 
 

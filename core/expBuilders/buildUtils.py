@@ -91,6 +91,7 @@ class ExpBuilder:
         :return: dict with modified structure. after round tails are saved
         """
         setts = settings if isinstance(settings, dict) else settings.__dict__
+
         modified = data_dict.copy()
         modified = ExpBuilder.round_row_data(modified, **setts)
         for key, val in modified.items():

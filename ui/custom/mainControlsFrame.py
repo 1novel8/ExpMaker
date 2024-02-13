@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QSizePolicy
+
+from constants import controlsStates, expActions, extractionActions
 from locales import titleLocales, tooltipsLocales
 from ui.components import PrimaryButton
 from ui.styles import title_label
-from constants import controlsStates, extractionActions, expActions
 
 
 class ControlsFrame(QFrame):

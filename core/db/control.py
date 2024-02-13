@@ -1,11 +1,12 @@
-
 import shutil
-from ..errors import DbError
-from .connector import DbConnector
+
 from core import log_error
 
+from ..errors import DbError
+from .connector import DbConnector
 
-class DbControl(object):
+
+class DbControl:
     def __init__(self, db_path, db_schema_pattern, temp_db_path=None):
         self.db_path = db_path
         self.db_schema = db_schema_pattern

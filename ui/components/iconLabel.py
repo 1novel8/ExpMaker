@@ -1,6 +1,8 @@
+from os import getcwd
+
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QLabel
-from os import getcwd
+
 base_dir = getcwd()
 
 

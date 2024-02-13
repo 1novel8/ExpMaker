@@ -1,10 +1,11 @@
 __author__ = 'Alex Konkov'
 
-from .actions import SprActions, SettingsActions, BaseActivityActions, ExplicationActions, ExtractionActions, ContolsActions
-from .pathDefaults import CoreFilesPaths
+from .actions import (BaseActivityActions, ContolsActions, ExplicationActions,
+                      ExtractionActions, SettingsActions, SprActions)
+from .controlsVariants import ControlsStates
 from .errors import DbErrors
 from .errorTypes import CustomErrorTypes, SpravErrorTypes
-from .controlsVariants import ControlsStates
+from .pathDefaults import CoreFilesPaths
 
 appKey = 'RXhwbGljYXRpb24gMi4wIEFwcA=='
 sprActions = SprActions()

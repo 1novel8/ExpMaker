@@ -1,8 +1,8 @@
 from PyQt5.QtCore import QThread, pyqtSignal
-from constants import baseActions
-from workers import BaseWorker
+
+from constants import baseActions, errTypes
 from core.errors import CustomError, SpravError
-from constants import errTypes
+from workers import BaseWorker
 
 
 class BaseActivityThread(QThread):

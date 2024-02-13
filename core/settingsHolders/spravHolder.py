@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from core.errors import SpravError
-from constants import coreFiles
-from core.extractors import SprControl
-from core.db import sprStructure
-from constants import spravErrTypes as errTypes
 import json
 import time
+
+from constants import coreFiles
+from constants import spravErrTypes as errTypes
+from core.db import sprStructure
+from core.errors import SpravError
+from core.extractors import SprControl
 
 
 def catch_ex_as_sprav_err(decor_method):
@@ -37,6 +38,7 @@ class SpravHolder(object):
         self.slnad_codes = None
         self.state_codes = None
         self.melio_codes = None
+
         self.select_conditions = None
         self.land_codes = None
         self.max_n = None
@@ -150,6 +152,7 @@ class SpravHolder(object):
         tab_name = sprStructure.mc
         data_dict['melio_codes'] = self.select_to_str('select %s from %s' %
                                                       (get_str(tab_name)['mc']['name'], tab_name))
+
         data_dict['select_conditions'] = self.get_select_conditions()
         data_dict['create_time'] = time.strftime(u"%H:%M__%d.%m.%Y")
         if close_conn:
@@ -174,6 +177,13 @@ class SpravHolder(object):
     def select_to_str(self, query):
         codes_list = self._s_conn.exec_sel_query(query)
         codes_list = map(lambda x: '\'%s\'' % x[0] if isinstance(x[0], str) else str(x[0]), codes_list)
+        codes_list = ', '.join(codes_list)
+        return codes_list
+
+    @catch_ex_as_sprav_err
+    def select_to_str_path(self, query):
+        codes_list = self._s_conn.exec_sel_query(query)
+        codes_list = map(lambda x: '%s' % x[0] if isinstance(x[0], str) else str(x[0]), codes_list)
         codes_list = ', '.join(codes_list)
         return codes_list
 

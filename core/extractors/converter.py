@@ -1,6 +1,7 @@
 from core.db import ctrStructure
-from .ctrRow import CtrRow
 from core.db.connector import DbConnector
+
+from .ctrRow import CtrRow
 
 
 class CtrConverter:
@@ -183,12 +184,12 @@ class CtrConverter:
         soato_group = {}
         ate_soato = []
         for s in s_kods:
-            ate_key = s_kods[:-3]
-            if not s_kods[-3:] == '000':
+            ate_key = s[:-3]
+            if not s[-3:] == '000':
                 try:
-                    soato_group[ate_key].append(s_kods)
+                    soato_group[ate_key].append(s)
                 except KeyError:
-                    soato_group[ate_key] = [s_kods]
+                    soato_group[ate_key] = [s]
             else:
                 ate_soato.append(ate_key)
             for soato in ate_soato:

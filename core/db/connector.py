@@ -1,16 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-__author__ = "Alex Konkov"
-
-import pyodbc
 import os.path
 import shutil
-from ..errors import DbError
-from .db_decorators import try_make_conn, catch_db_exception
+
+import pyodbc
+
 from core import log_error
 
+from ..errors import DbError
+from .db_decorators import catch_db_exception, try_make_conn
 
-class DbConnector(object):
+
+class DbConnector:
     def __init__(self, db_path, do_conn=True):
         self.db_f_path = db_path
         self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path

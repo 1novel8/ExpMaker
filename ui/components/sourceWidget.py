@@ -1,9 +1,14 @@
 from os import getcwd, path
-from PyQt5.QtWidgets import (QFrame, QVBoxLayout, QLabel, QHBoxLayout, QFileDialog)
-from PyQt5.QtCore import Qt, QSize
-from ui.styles import SourceWidgetStyles as Styles
-from .buttons import PrimaryButton
+
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import (QFileDialog, QFrame, QHBoxLayout, QLabel,
+                             QVBoxLayout)
+
 from locales import titleLocales
+from ui.styles import SourceWidgetStyles as Styles
+
+from .buttons import PrimaryButton
+
 base_dir = getcwd()
 
 
@@ -38,7 +43,7 @@ class SrcFrame(QFrame):
         self.h_box.addWidget(self.src_btn)
         if title:
             title_lbl = QLabel(title)
-            title_lbl.setFixedHeight(20)
+            title_lbl.setFixedHeight(25) # ширина укажите путь
             title_lbl.setStyleSheet(Styles.title_lbl)
             self.grid.addWidget(title_lbl)
         self.grid.addItem(self.h_box)
@@ -87,9 +92,9 @@ class SrcFrame(QFrame):
         self.set_src_text(src_text=self.placeholder)
         self.setHidden(hide)
 
-    def set_src_text(self, src_text=None, collapse_len=40):
+    def set_src_text(self, src_text=None, collapse_len=50):
         """
-        В строке text делается перенос относительно \ если длина превышает 40 символов
+        В строке text делается перенос относительно \ если длина превышает 50 символов
         :param src_text: new source text
         :param collapse_len: len to split text
         :return:

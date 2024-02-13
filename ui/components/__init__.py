@@ -1,9 +1,9 @@
 __author__ = 'Alex Konkov'
 
-from .loadingLabel import LoadingLabel
-from .dropdown import Dropdown
-from .table import TableWidget, TableLabel
-from .sourceWidget import SrcFrame
 from .buttons import PrimaryButton
-from .modalWindow import ModalWindow
+from .dropdown import Dropdown
 from .iconLabel import IconLabel
+from .loadingLabel import LoadingLabel
+from .modalWindow import ModalWindow
+from .sourceWidget import SrcFrame
+from .table import TableLabel, TableWidget

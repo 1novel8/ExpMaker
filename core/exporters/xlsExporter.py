@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+
 from openpyxl import load_workbook, utils
+
 from core.errors import XlsError
 
 
@@ -20,6 +22,19 @@ class XlExporter:
         w_book = self.try_load_wb(self.template_path)
         sheet = self.get_sheet_by_name(w_book, sh_name)
         self.export_matrix_to_sheet(sheet, matrix, start_f, start_r)
+        try:
+            w_book.save(self.out_filename)
+        except IOError:
+            raise XlsError('not_found', self.out_filename)
+
+    def export_matrix_F22(self, matrix,matrix_total, start_f, start_r,start_r_total, sh_name=None, **kwargs):
+        """
+        You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
+        """
+        w_book = self.try_load_wb(self.template_path)
+        sheet = self.get_sheet_by_name(w_book, sh_name)
+        self.export_matrix_to_sheet(sheet, matrix, start_f, start_r)
+        self.export_matrix_to_sheet(sheet, matrix_total, start_f, start_r_total)
         try:
             w_book.save(self.out_filename)
         except IOError:

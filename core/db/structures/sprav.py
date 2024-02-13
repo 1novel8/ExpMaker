@@ -14,6 +14,7 @@ class SpravStructure:
     slnad = "S_SlNad"
     ustype = "S_Usertype"
     select_conditions = "Select_Conditions"
+
     tabs_enum = [
         lc, r_alias, a_r_str, a_f_str, b_r_str, b_f_str, b2e_1, b2e_2,
         soato, state, f22, mc, slnad, ustype, select_conditions
@@ -162,7 +163,7 @@ class SpravStructure:
                 # "id":    {"name": "OBJECTID",
                 #                  "type": "COUNTER"},
                 "state_code": {"name": "StateCode",
-                               "type": "SMALLINT"},
+                               "type": "SMALLINT"}
             },
             "S_Forma22": {
                 # "id":   {"name": "OBJECTID",
@@ -176,13 +177,13 @@ class SpravStructure:
                 # "id":   {"name": "OBJECTID",
                 #          "type": "COUNTER"},
                 "mc": {"name": "MelioCode",
-                       "type": "SMALLINT"},
+                       "type": "SMALLINT"}
             },
             "S_SlNad": {
                 # "id":  {"name": "OBJECTID",
                 #          "type": "COUNTER"},
                 "sl_nad_code": {"name": "SLNADCode",
-                                "type": "BYTE"},
+                                "type": "BYTE"}
             },
             "S_Usertype": {
                 # "id":   {"name": "OBJECTID",

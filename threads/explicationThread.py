@@ -1,8 +1,8 @@
 from PyQt5.QtCore import QThread, pyqtSignal
-from constants import expActions
-from workers import ExplicationWorker
+
+from constants import errTypes, expActions
 from core.errors import CustomError
-from constants import errTypes
+from workers import ExplicationWorker
 
 
 class ExplicationThread(QThread):

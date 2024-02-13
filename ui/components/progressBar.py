@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QProgressBar
+
 from ui.styles import progress_bar
 
 

@@ -1,6 +1,6 @@
 __author__ = 'Alex Konkov'
 
-from PyQt5.QtWidgets import (QMainWindow, QFrame, QGridLayout)
+from PyQt5.QtWidgets import QFrame, QGridLayout, QMainWindow
 
 
 class ModalWindow(QMainWindow):

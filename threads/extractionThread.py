@@ -1,9 +1,9 @@
 from PyQt5.QtCore import QThread, pyqtSignal
-from constants import extractionActions
-from workers import ExtractionWorker
+
+from constants import errTypes, extractionActions
 from core.errors import CustomError
-from constants import errTypes
 from locales import customErrors
+from workers import ExtractionWorker
 
 
 class ExtractionThread(QThread):

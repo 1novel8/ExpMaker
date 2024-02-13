@@ -1,10 +1,12 @@
-from PyQt5.QtWidgets import (QFrame, QVBoxLayout, QLabel, QLineEdit, QCheckBox, QMessageBox, QRadioButton)
-from constants import settingsActions
-from locales import titleLocales
-from ui.components import ModalWindow, Dropdown, TableWidget, PrimaryButton, SrcFrame
-from constants import coreFiles
+from PyQt5.QtWidgets import (QCheckBox, QFrame, QLabel, QLineEdit, QMessageBox,
+                             QRadioButton, QVBoxLayout)
 
-from ui.styles import title_label, xls_table as xls_table_styles, representation_xls_table_label
+from constants import coreFiles, settingsActions
+from locales import titleLocales
+from ui.components import (Dropdown, ModalWindow, PrimaryButton, SrcFrame,
+                           TableWidget)
+from ui.styles import representation_xls_table_label, title_label
+from ui.styles import xls_table as xls_table_styles
 
 
 def prepare_xl_letters(initial_val):
@@ -112,15 +114,15 @@ class EditSettingsWindow(ModalWindow):
         sources_box.add_widget(self.xl_b_src_widget)
 
         self.edit_xls_start = QCheckBox(titleLocales.edit_xls_run_mode_title)
-        self.edit_mdb_start = QCheckBox(titleLocales.edit_mdb_run_mode_title)
+        #self.edit_mdb_start = QCheckBox(titleLocales.edit_mdb_run_mode_title)
         self.edit_xls_start.setChecked(settings.is_xls_start)
-        self.edit_mdb_start.setChecked(settings.is_mdb_start)
+        #self.edit_mdb_start.setChecked(settings.is_mdb_start)
 
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
         self.add_widget(tables_box, 0, 0, 12, 7)
         self.add_widget(sources_box, 0, 7, 7, 5)
         self.add_widget(self.edit_xls_start, 9, 8, 1, 3)
-        self.add_widget(self.edit_mdb_start, 10, 8, 1, 3)
+        #self.add_widget(self.edit_mdb_start, 10, 8, 1, 3)
         self.add_widget(save_btn, 11, 9, 1, 1)
 
     def init_balance_widgets(self):
@@ -201,8 +203,8 @@ class EditSettingsWindow(ModalWindow):
 
     def init_exp_filter_settings(self):
         filter_settings = self.settings.filter
-        self.melio_filter_used = QRadioButton('Вкючить фильтр по полю MELIOCODE', self)
-        self.servtype_filter_used = QRadioButton('Вкючить фильтр по полю SERVTYPE', self)
+        self.melio_filter_used = QRadioButton('Выбрать МЕЛИОРИРУЕМЫЕ земли', self)
+        self.servtype_filter_used = QRadioButton('Выбрать земли ЗАГРЯЗНЕННЫЕ РАДИОНУКЛИДАМИ', self)
         self.melio_filter_used.setChecked(filter_settings.enable_melio)
         self.servtype_filter_used.setChecked(not filter_settings.enable_melio)
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
@@ -219,6 +221,7 @@ class EditSettingsWindow(ModalWindow):
             upd_successfull = self._change_balance_setts()
         elif self.setts_type == settingsActions.SHOW_ACCURACY:
             upd_successfull = self._change_accuracy_setts()
+            QMessageBox.information(self, titleLocales.error_modal_warning, "После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ", QMessageBox.Ok)
         elif self.setts_type == settingsActions.SHOW_CONDITIONS:
             upd_successfull = self._change_conditions_setts()
             params['active_condition_changed'] = upd_successfull and upd_successfull['active_condition_changed']
@@ -259,7 +262,7 @@ class EditSettingsWindow(ModalWindow):
         xls_setts.a_sv_n = int(self.cmb_num_ea_sv.currentText())
         xls_setts.b_n = int(self.cmb_num_eb.currentText())
         xls_setts.is_xls_start = bool(self.edit_xls_start.isChecked())
-        xls_setts.is_mdb_start = bool(self.edit_mdb_start.isChecked())
+        #xls_setts.is_mdb_start = bool(self.edit_mdb_start.isChecked())
         return True
 
     def _change_balance_setts(self):
@@ -274,6 +277,7 @@ class EditSettingsWindow(ModalWindow):
         accuracy_settings.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
         accuracy_settings.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
         accuracy_settings.b_accuracy = int(self.edit_b_accuracy.get_current_item())
+        #self.show_modal("После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ", modal_type='information')
         return True
 
     def _change_conditions_setts(self):
@@ -294,9 +298,9 @@ class EditSettingsWindow(ModalWindow):
             self.settings.conditions.groupping_by = 'np'
         return {'active_condition_changed': selected_condition != prev_condition}
 
-    def __change_exp_filter_settings(self):
+    def __change_exp_filter_settings(self,):
         filter_settings = self.settings.filter
         is_melio_selected = bool(self.melio_filter_used.isChecked())
-        settings_changed = filter_settings.enable_melio != is_melio_selected
+        #settings_changed = filter_settings.enable_melio != is_melio_selected
         filter_settings.enable_melio = is_melio_selected
         return True

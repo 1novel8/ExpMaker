@@ -1,9 +1,7 @@
-__author__ = 'Alex Konkov'
-
-
 import pyodbc
-from core.errors import DbError
+
 from core import log_error
+from core.errors import DbError
 
 
 def catch_db_exception(wrapped_querying_func):
