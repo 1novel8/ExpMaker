@@ -22,172 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="eda30c90-998a-4bae-a9b9-20aaae7fe5f6" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/GitProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/GitProject.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ExpMaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/ExpMaker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/DefaultSpr.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/Spr/DefaultSpr.pkl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/SprRB2UrAND_TKP610.mdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/SpravochnikRB2.mdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/SpravochnikRB2Ur.mdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/SpravochnikRB2Ur_1112.mdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/tempDbase.ldb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/xls_forms/FA.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spr/xls_forms/FA.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/xls_forms/FA_svod.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/xls_forms/FB.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/xls_forms/F__A.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spr/xls_forms/__FA_svod.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Style/ss.css" beforeDir="false" afterPath="$PROJECT_DIR$/Style/ss.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/actions.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/actions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/controlsVariants.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/controlsVariants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/errorTypes.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/errorTypes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/errors.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/errors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/pathDefaults.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants/pathDefaults.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/connector.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/connector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/control.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/control.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/db_decorators.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/db_decorators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/structures/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/structures/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/structures/ctr.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/structures/ctr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/db/structures/sprav.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/db/structures/sprav.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/errors/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/errors/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/errors/customError.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/errors/customError.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/errors/dberror.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/errors/dberror.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/errors/spravError.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/errors/spravError.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/errors/xlsError.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/errors/xlsError.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/buildUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/buildUtils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/expAMaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/expAMaker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/expARowDataCombiner.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/expARowDataCombiner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/expBMaker.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/expBMaker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/expBuilders/expBalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/expBuilders/expBalancer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/exporters/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/exporters/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/exporters/mdbExporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/exporters/mdbExporter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/exporters/xlsExporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/exporters/xlsExporter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extractors/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extractors/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extractors/converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extractors/converter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extractors/ctrRow.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extractors/ctrRow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extractors/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extractors/initializer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extractors/validator.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extractors/validator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/settingsHolders/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/settingsHolders/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/settingsHolders/settingsHolder.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/settingsHolders/settingsHolder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/settingsHolders/spravHolder.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/settingsHolders/spravHolder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/systemLogger.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/systemLogger.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locales/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/locales/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locales/actionsMessages.py" beforeDir="false" afterPath="$PROJECT_DIR$/locales/actionsMessages.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locales/componentTitlesLocales.py" beforeDir="false" afterPath="$PROJECT_DIR$/locales/componentTitlesLocales.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locales/errorsLocales.py" beforeDir="false" afterPath="$PROJECT_DIR$/locales/errorsLocales.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locales/toolTipsLocales.py" beforeDir="false" afterPath="$PROJECT_DIR$/locales/toolTipsLocales.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/menu/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/menu/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/menu/menuBar.py" beforeDir="false" afterPath="$PROJECT_DIR$/menu/menuBar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/menu/menuConf.py" beforeDir="false" afterPath="$PROJECT_DIR$/menu/menuConf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/.idea/KOcViewer.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/Inf.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/KO.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/KO.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/access.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/add.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/check.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/db.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/e.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/excel.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/exclamation.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/exp.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/koc.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/kokoc.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/m.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/map.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/mdb.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/refresh.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/stop1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/tools.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Images/xls.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/Style/ss.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/conf/settingsProvider.mdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/conf/template.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/executor.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/DbDataLoader.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/DbTools.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/OptionsProvider.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/OutHardcodeSettings.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T10NormUrozh_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T11NormZatrat_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T12NormSeb_1C_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T13PK_k_oc_bal_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T14NormChDoh_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T15DifDoh_k_P_U_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T16Obsh_Ball_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T17PochEkolBonit_EL.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T18TehnSvoist_EL.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T19ObobOcen_EL.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T1Poch_Pokr_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T20OcenMestUdal.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T21PK_k_NV_i_RT_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T22Itog_VidZem.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T2Pochv_MSOK_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T3KultTehnSost_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T4Poch_IshBall_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T5Poch_OcenBall_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T6TehnSvoistMest_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T7Inx_NormZatUbRab_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T8Inx_NormZatOptUsl_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/T9Inx_TrZatOptUsl_OB.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/TableConfigData/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/Threads.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/XLExporter.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/packages/titles.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/KOcViewer/setup.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/Structure.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/Style/ss.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/executor.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/packages/DbTools.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/packages/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/packages/collector.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/packages/dbMerger.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/packages/titles.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other/MdbCollector/setup.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/threads/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/threads/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/threads/baseActivitiesThread.py" beforeDir="false" afterPath="$PROJECT_DIR$/threads/baseActivitiesThread.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/threads/explicationThread.py" beforeDir="false" afterPath="$PROJECT_DIR$/threads/explicationThread.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/threads/extractionThread.py" beforeDir="false" afterPath="$PROJECT_DIR$/threads/extractionThread.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/threads/loadingThread.py" beforeDir="false" afterPath="$PROJECT_DIR$/threads/loadingThread.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/buttons.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/buttons.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/dropdown.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/dropdown.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/iconLabel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/iconLabel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/loadingLabel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/loadingLabel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/modalWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/modalWindow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/progressBar.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/progressBar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/sourceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/sourceWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/table.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/table.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/editSettingsWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/editSettingsWindow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/expSelector.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/expSelector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/logTable.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/logTable.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/logoFrame.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/logoFrame.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/custom/mainControlsFrame.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/custom/mainControlsFrame.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/styles.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/styles.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/theme.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/theme.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/workers/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/workers/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/workers/baseActivitiesWorker.py" beforeDir="false" afterPath="$PROJECT_DIR$/workers/baseActivitiesWorker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/workers/explicationWorker.py" beforeDir="false" afterPath="$PROJECT_DIR$/workers/explicationWorker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/workers/extractionWorker.py" beforeDir="false" afterPath="$PROJECT_DIR$/workers/extractionWorker.py" afterDir="false" />
-    </list>
+    <list default="true" id="eda30c90-998a-4bae-a9b9-20aaae7fe5f6" name="Default" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -203,7 +38,7 @@
     <option name="PATCH_PATH" value="" />
   </component>
   <component name="DarkyenusTimeTracker">
-    <option name="totalTimeSeconds" value="3404" />
+    <option name="totalTimeSeconds" value="3745" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -227,30 +62,30 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="1dlPTpi40D72Jy3iNkNitLLKoQm" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.ExpMaker.executor": "Run",
-    "Python.setup.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "D:/projects/Expmaker",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.ExpMaker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.setup.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/projects/Expmaker&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings module-name="GitProject" is-module-sdk="true">
@@ -480,7 +315,7 @@
       <option name="presentableId" value="Default" />
       <updated>1495576084337</updated>
       <workItem from="1564641126673" duration="1105000" />
-      <workItem from="1707815313351" duration="3986000" />
+      <workItem from="1707815313351" duration="4326000" />
     </task>
     <servers />
   </component>
