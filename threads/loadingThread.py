@@ -4,12 +4,12 @@ from PyQt5.QtCore import QThread, pyqtSignal
 class LoadingThread(QThread):
     tick_signal = pyqtSignal('PyQt_PyObject')
 
-    def __init__(self, parent=None, tick_handler=lambda x:x):
+    def __init__(self, parent=None, tick_handler=lambda x: x):
         super(LoadingThread, self).__init__(parent)
         self.tick_signal.connect(tick_handler)
 
     def run(self):
-        dots = [" ",]*4
+        dots = [" ", ] * 4
         count = 0
         is_dot = True
         while True:

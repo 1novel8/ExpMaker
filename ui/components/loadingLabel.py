@@ -27,4 +27,3 @@ class LoadingLabel(QLabel):
     def stop_loading(self):
         self.load_thr.terminate()
         self.setHidden(True)
-

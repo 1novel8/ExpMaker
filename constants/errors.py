@@ -1,4 +1,3 @@
-
 class DbErrors:
     connection_failed = 'Ошибка соединения с базой данных %s'
     query_stack = 'Не удалось выполнить запрос %s'
@@ -6,4 +5,3 @@ class DbErrors:
     failed_to_create_file = 'Ошибка при попытке создания файла %s'
     shutil_copy_err = 'Ошибка при попытке скопировать файл %s. \nВозможное решение: измените права доступа к файлу.'
     failed_to_create_table = 'Не удалось создать таблицу %s'
-

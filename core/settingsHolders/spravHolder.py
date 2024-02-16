@@ -19,6 +19,7 @@ def catch_ex_as_sprav_err(decor_method):
             raise
         except Exception as err:
             raise SpravError(errTypes.unexpected, err)
+
     return wrapper
 
 
@@ -68,7 +69,6 @@ class SpravHolder(object):
         if bad_fields:
             raise SpravError(errTypes.empty_spr_fields, bad_fields.items())
         else:
-            # TODO: call exp structure control here. {f_num : not Null; Expa_f_str.f_num : LandCodes.NumberGRAF WHERE f_num is NUll
             self._s_conn = s_controller.conn
             return True
 
@@ -114,12 +114,7 @@ class SpravHolder(object):
         data = self.current_sprav_data
         if not data:
             return ""
-        return """
-Создан:
-        %s
-Загружен из:
-        %s
-        """ % (data["create_time"], data["path_info"])
+        return """Создан:\n\t%s\nЗагружен из:\n\t%s\n""" % (data["create_time"], data["path_info"])
 
     @catch_ex_as_sprav_err
     def get_data_from_db(self, close_conn=True):
@@ -166,7 +161,6 @@ class SpravHolder(object):
                 attr_conf[k] = v['f_index']
         return attr_conf
 
-
     def select_sprav(self, query):
         try:
             return self._s_conn.get_tab_list(query)
@@ -202,16 +196,17 @@ class SpravHolder(object):
         Important:
         ctr_structure hold fields in order like the crostab_razv row structure will be(it's going to be nested)
         """
-        check_aliases = ['lc', 'mc', 'area', 'usertype', 'usern_sad', 'id', 'f22', 'state', 'part', 'slnad', 'usern', 'nptype']
-        #check_aliases are resolved key-names, they got info about Field_Names (their indexes)
+        check_aliases = ['lc', 'mc', 'area', 'usertype', 'usern_sad', 'id', 'f22', 'state', 'part', 'slnad', 'usern',
+                         'nptype']
+        # check_aliases are resolved key-names, they got info about Field_Names (their indexes)
         tab_name = sprStructure.r_alias
         tab_str = sprStructure.get_tab_str(tab_name)
 
         format_d = {
             't': tab_name,
-            'alias':    tab_str['alias']['name'],
-            'match_f':  tab_str['match_f']['name'],
-            'f_type' :  tab_str['f_type']['name']
+            'alias': tab_str['alias']['name'],
+            'match_f': tab_str['match_f']['name'],
+            'f_type': tab_str['f_type']['name']
         }
         query = 'select %(alias)s, %(match_f)s, %(f_type)s from %(t)s' % format_d
         try:
@@ -227,12 +222,12 @@ class SpravHolder(object):
             if r_attr == 'usertype':
                 f_ctr = 'UserType_*'
                 f_type = 'int'
-            if ' ' in f_ctr: # Небольшая подстраховка  :)
+            if ' ' in f_ctr:  # Небольшая подстраховка  :)
                 raise SpravError(3, tab_name, f_ctr, 'Названия полей не должны содержать пробелов!')
             ctr_attr_structure.append(f_ctr)
             attr_config[r_attr] = {
-                'f_type' :  f_type,
-                'f_index':    ctr_attr_structure.index(f_ctr)
+                'f_type': f_type,
+                'f_index': ctr_attr_structure.index(f_ctr)
             }
         attr_config['ctr_structure'] = tuple(ctr_attr_structure)
         all_aliases = list(attr_config.keys())
@@ -244,7 +239,11 @@ class SpravHolder(object):
             for alias in check_aliases:
                 if alias not in attr_config:
                     failed_aliases.append(alias)
-            raise SpravError(0, 'В таблице %s не заданы используемые в программе соответствия %s' % (tab_name, str(failed_aliases)))
+            raise SpravError(
+                0,
+                'В таблице %s не заданы используемые в программе соответствия %s' % (
+                    tab_name, str(failed_aliases))
+            )
 
     def make_orders(self):
         order = self.__sorted_keys
@@ -253,7 +252,8 @@ class SpravHolder(object):
         for r_key in order['a_r']:
             if r_key != 'total':
                 if r_key in sv_order:
-                    raise SpravError(0, 'Названия строк и полей (за исключением "total") не должны совпадать: %s' % r_key)
+                    raise SpravError(0,
+                                     'Названия строк и полей (за исключением "total") не должны совпадать: %s' % r_key)
                 sv_order.append(r_key)
         order['sv_f'] = sv_order
         return order
@@ -263,24 +263,25 @@ class SpravHolder(object):
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
-            'f_num':  tab_str['f_num']['name'],
-            'f_name':   tab_str['f_name']['name'],
-            'sum_fields':  tab_str['sum_fields']['name'],
+            'f_num': tab_str['f_num']['name'],
+            'f_name': tab_str['f_name']['name'],
+            'sum_fields': tab_str['sum_fields']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        f_str = self._s_conn.get_tab_dict('select %(f_num)s, %(f_name)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
+        f_str = self._s_conn.get_tab_dict(
+            'select %(f_num)s, %(f_name)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
         f_str_d = {}
         for f_num in sorted(f_str):
             f_props = f_str[f_num]
             f_name = f_props[0]
             if not f_name:
-                raise SpravError(3, tab_name , f_num, 'В строке не задано имя')
+                raise SpravError(3, tab_name, f_num, 'В строке не задано имя')
             self.__sorted_keys['a_f'].append(f_name)
             sum_f = self.split_str_change_type(f_props[1], ',', 'int', tab_name, f_num)
             # Заполняем sum_f значениями имеющихся ключей вместо их id
             sum_f = tuple([f_str[f_n][0] for f_n in sum_f])
-            f_str_d[f_name] = {'sum_f':sum_f}
+            f_str_d[f_name] = {'sum_f': sum_f}
             try:
                 f_str_d[f_name]['codes'] = l_codes[f_num]
             except KeyError:
@@ -320,10 +321,10 @@ class SpravHolder(object):
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
-            'row_id':  tab_str['row_id']['name'],
-            'codes':   tab_str['codes']['name'],
-            'row_name':  tab_str['row_name']['name'],
-            'group_field':tab_str['group_field']['name'],
+            'row_id': tab_str['row_id']['name'],
+            'codes': tab_str['codes']['name'],
+            'row_name': tab_str['row_name']['name'],
+            'group_field': tab_str['group_field']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name'],
         }
@@ -334,7 +335,7 @@ class SpravHolder(object):
             r_name = params[r_key][0]
             if not r_name:
                 raise SpravError(3, tab_name, r_key, 'В строке не задано имя')
-            self.__sorted_keys['a_r'].append(r_name) # Создание порядка следования строк для финальной выгрузки
+            self.__sorted_keys['a_r'].append(r_name)  # Создание порядка следования строк для финальной выгрузки
 
             if r_name == 'total':
                 r_props[r_name] = {}
@@ -342,7 +343,8 @@ class SpravHolder(object):
                 alias = params[r_key][2]
                 if alias not in valid_aliases:
                     self.raise_strct_err(tab_name, r_key)
-                cods = self.split_str_change_type(params[r_key][1], ',', valid_aliases[alias]['f_type'], tab_name, r_key)
+                cods = self.split_str_change_type(params[r_key][1], ',', valid_aliases[alias]['f_type'], tab_name,
+                                                  r_key)
                 if cods:
                     r_props[r_name] = {'codes': cods, 'sort_alias': alias}
                 else:
@@ -355,14 +357,15 @@ class SpravHolder(object):
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
-            'f_num':  tab_str['f_num']['name'],
-            'f_name':tab_str['f_name']['name'],
-            'alias_codes':  tab_str['alias_codes']['name'],
-            'sum_fields':tab_str['sum_fields']['name'],
+            'f_num': tab_str['f_num']['name'],
+            'f_name': tab_str['f_name']['name'],
+            'alias_codes': tab_str['alias_codes']['name'],
+            'sum_fields': tab_str['sum_fields']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
         }
-        f_structure = self._s_conn.get_tab_dict('select  %(f_num)s, %(f_name)s, %(alias_codes)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
+        f_structure = self._s_conn.get_tab_dict(
+            'select  %(f_num)s, %(f_name)s, %(alias_codes)s, %(sum_fields)s, %(balance_lvl)s, %(balance_by)s from %(t)s' % format_d)
         # r_codes = self._s_conn.get_tab_dict('select RowName, Code, SortIndex from ExpA_r_Structure')
         f_order = []
         f_props = {}
@@ -398,12 +401,10 @@ class SpravHolder(object):
                         self.raise_strct_err(tab_name, f_num)
                     aliases_codes[als] = tuple(tmp_cods)
                 f_props[f_name]['alias_codes'] = aliases_codes
-        #Строим список ключей упорядоченных в соответствии с порядковыми номерами
+        # Строим список ключей упорядоченных в соответствии с порядковыми номерами
         self.__sorted_keys['b_f'] = tuple(f_order)
-        self._add_balance_props(f_structure.values(), 0, 3,4, f_props, tab_name)
+        self._add_balance_props(f_structure.values(), 0, 3, 4, f_props, tab_name)
         return f_props
-
-
 
     def get_l_codes(self):
         tab = sprStructure.lc
@@ -419,7 +420,7 @@ class SpravHolder(object):
             try:
                 lc_d[key].append(kod)
             except KeyError:
-                lc_d[key] = [kod,]
+                lc_d[key] = [kod, ]
         for k, v in lc_d.items():
             lc_d[k] = tuple(v)
         return lc_d
@@ -429,10 +430,10 @@ class SpravHolder(object):
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
-            'row_id':   tab_str['row_id']['name'],
-            'row_key':  tab_str['row_key']['name'],
+            'row_id': tab_str['row_id']['name'],
+            'row_key': tab_str['row_key']['name'],
             'f22_value': tab_str['f22_value']['name'],
-            'sort_filter':  tab_str['sort_filter']['name'],
+            'sort_filter': tab_str['sort_filter']['name'],
             'sum_conditions': tab_str['sum_conditions']['name'],
             'balance_lvl': tab_str['balance_lvl']['name'],
             'balance_by': tab_str['balance_by']['name']
@@ -447,7 +448,7 @@ class SpravHolder(object):
             r_props[r_key] = {}
         for row in r_selected.values():
             r_key = row[0]
-            r_props[r_key] = {'r_name': row[1]}  #work with val_f22
+            r_props[r_key] = {'r_name': row[1]}  # work with val_f22
             try:
                 r_props[r_key]['sort_filter'] = SpravHolder.parse_filter_data(row[2], valid_aliases)
             except Exception as err:
@@ -465,7 +466,7 @@ class SpravHolder(object):
                         self.raise_strct_err(tab_name, r_key)
                     if cond_op in '+-':
                         add_rows = self.split_line(cond, ',')
-                        if not self.is_include(r_props.keys(), add_rows):  #check is include, add included
+                        if not self.is_include(r_props.keys(), add_rows):  # check is include, add included
                             self.raise_strct_err(tab_name, r_key)
                         key_name = 'add' if cond_op == '+' else 'sub'
                         r_props[r_key]['conds'][key_name] = add_rows
@@ -487,12 +488,13 @@ class SpravHolder(object):
                             # parse parameters and check their validation
                             if eq[0] in b_f_names:
                                 eq_di['upd_f'] = eq[0]
-                                eq_right = self.split_line(eq[1],':')
+                                eq_right = self.split_line(eq[1], ':')
                                 if len(eq_right) == 2:
                                     if eq_right[0] in r_props and eq_right[1] in b_f_names:
                                         eq_di['take_f'] = eq_right[1]
                                         eq_di['take_r'] = eq_right[0]
-                                    else: continue
+                                    else:
+                                        continue
                                 elif len(eq_right) == 1:
                                     if eq_right[0] in b_f_names:
                                         eq_di['take_f'] = eq_right[0]
@@ -501,24 +503,24 @@ class SpravHolder(object):
                                         self.raise_strct_err(tab_name, r_key)
                                 else:
                                     self.raise_strct_err(tab_name, r_key)
-                                #add eq_di key to r_params[key] in case that all clear
+                                # add eq_di key to r_params[key] in case that all clear
                                 try:
                                     r_props[r_key]['conds']['eq_f'].append(eq_di)
                                 except KeyError:
-                                    r_props[r_key]['conds']['eq_f'] = [eq_di,]
+                                    r_props[r_key]['conds']['eq_f'] = [eq_di, ]
                             else:
                                 self.raise_strct_err(tab_name, r_key)
                         else:
                             self.raise_strct_err(tab_name, r_key)
         self._add_balance_props(r_selected.values(), 0, 4, 5, r_props, tab_name)
-        return  r_props
+        return r_props
 
     @staticmethod
     def parse_filter_data(data, fields_validation):
         parsed_data = {}
         if data:
             parsed_data = json.loads(data)
-            for k,v in parsed_data.items():
+            for k, v in parsed_data.items():
                 if k not in fields_validation:
                     raise Exception('Failed to parse filter data. Key name is not valid')
         return parsed_data
@@ -526,14 +528,14 @@ class SpravHolder(object):
     @staticmethod
     def split_str_change_type(string, splitter, result_type, tab, row):
         type_func = {
-            'int':  lambda x: int(x),
-            'str':  lambda x: str(x),
-            'float':lambda x: float(x)
-            }
+            'int': lambda x: int(x),
+            'str': lambda x: str(x),
+            'float': lambda x: float(x)
+        }
         try:
             if string:
                 res = string.split(splitter)
-                res = map(type_func[result_type], res)  #changing result type
+                res = map(type_func[result_type], res)  # changing result type
                 return tuple(res)
             else:
                 return ()
@@ -548,7 +550,7 @@ class SpravHolder(object):
         :return: without spaces, without elements which returns False
         """
         if isinstance(line, str):
-            split_l = line.replace(' ','').split(symbol)
+            split_l = line.replace(' ', '').split(symbol)
             for l in split_l:
                 if not l:
                     split_l.remove(l)
@@ -577,13 +579,13 @@ class SpravHolder(object):
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
             't': tab_name,
-            'zn_1':     tab_str['zn_1']['name'],
-            'zn_2':     tab_str['zn_2']['name'],
+            'zn_1': tab_str['zn_1']['name'],
+            'zn_2': tab_str['zn_2']['name'],
             'zn_57min': tab_str['zn_57min']['name'],
             'zn_57max': tab_str['zn_57max']['name'],
-            'zn_810min':tab_str['zn_810min']['name'],
-            'zn_810max':tab_str['zn_810max']['name'],
-            'type_np':  tab_str['type_np']['name']
+            'zn_810min': tab_str['zn_810min']['name'],
+            'zn_810max': tab_str['zn_810max']['name'],
+            'type_np': tab_str['type_np']['name']
         }
         query = 'select %(zn_1)s, %(zn_2)s, %(zn_57min)s, %(zn_57max)s, %(zn_810min)s, %(zn_810max)s, %(type_np)s from %(t)s' % format_d
         return self._s_conn.exec_sel_query(query)
@@ -604,14 +606,14 @@ class SpravHolder(object):
         tab_name = sprStructure.b2e_1
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
-            't':        tab_name,
-            'f22':      tab_str['f22']['name'],
-            'u_type':   tab_str['u_type']['name'],
-            'np_type':  tab_str['np_type']['name'],
-            'state':    tab_str['state']['name'],
-            'sl_nad':   tab_str['sl_nad']['name'],
-            'new_us_name':  tab_str['new_us_name']['name'],
-            'dop_us_name':  tab_str['dop_us_name']['name']
+            't': tab_name,
+            'f22': tab_str['f22']['name'],
+            'u_type': tab_str['u_type']['name'],
+            'np_type': tab_str['np_type']['name'],
+            'state': tab_str['state']['name'],
+            'sl_nad': tab_str['sl_nad']['name'],
+            'new_us_name': tab_str['new_us_name']['name'],
+            'dop_us_name': tab_str['dop_us_name']['name']
         }
         selectbgd1 = 'select %(f22)s, %(u_type)s, %(np_type)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
         newbgd = []
@@ -624,25 +626,25 @@ class SpravHolder(object):
                 for state in stateli:
                     for utype in utypelist:
                         for npt in nptypeliremaked:
-                            newbgd.append((row[0], utype, state, int(row[4]), npt[0], npt[1],  row[5],row[6]))
+                            newbgd.append((row[0], utype, state, int(row[4]), npt[0], npt[1], row[5], row[6]))
         return newbgd
 
     def remake_bgd2(self):
         tab_name = sprStructure.b2e_2
         tab_str = sprStructure.get_tab_str(tab_name)
         format_d = {
-            't':        tab_name,
-            'f22':      tab_str['f22']['name'],
-            'new_f22':  tab_str['new_f22']['name'],
-            'u_type':   tab_str['u_type']['name'],
-            'np_type':  tab_str['np_type']['name'],
-            'lc_min':   tab_str['lc_min']['name'],
-            'lc_max':   tab_str['lc_max']['name'],
-            'new_lc':   tab_str['new_lc']['name'],
-            'state':    tab_str['state']['name'],
-            'sl_nad':       tab_str['sl_nad']['name'],
-            'new_us_name':  tab_str['new_us_name']['name'],
-            'dop_us_name':  tab_str['dop_us_name']['name']
+            't': tab_name,
+            'f22': tab_str['f22']['name'],
+            'new_f22': tab_str['new_f22']['name'],
+            'u_type': tab_str['u_type']['name'],
+            'np_type': tab_str['np_type']['name'],
+            'lc_min': tab_str['lc_min']['name'],
+            'lc_max': tab_str['lc_max']['name'],
+            'new_lc': tab_str['new_lc']['name'],
+            'state': tab_str['state']['name'],
+            'sl_nad': tab_str['sl_nad']['name'],
+            'new_us_name': tab_str['new_us_name']['name'],
+            'dop_us_name': tab_str['dop_us_name']['name']
         }
         selectbgd2 = 'select %(f22)s, %(new_f22)s, %(u_type)s, %(np_type)s, %(lc_min)s, %(lc_max)s, %(new_lc)s, %(state)s, %(sl_nad)s, %(new_us_name)s, %(dop_us_name)s from %(t)s' % format_d
         bgd2 = []
@@ -656,7 +658,8 @@ class SpravHolder(object):
                 for state in stateli:
                     for utype in utypelist:
                         for npt in nptypeliremaked:
-                            bgd2.append((row[0], utype, state, int(row[8]), row[1],  npt[0], npt[1], row[4], row[5], nlc, row[9], row[10]))
+                            bgd2.append((row[0], utype, state, int(row[8]), row[1], npt[0], npt[1], row[4], row[5], nlc,
+                                         row[9], row[10]))
                             # bgd_row: F22, UTYPE, State, SLNAD, newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
             bgd2 = (self.remake_bgd1(), bgd2)
         return bgd2
@@ -718,18 +721,17 @@ class SpravHolder(object):
             elif i < inext:
                 continue
             try:
-                icheck = li[i+1]
+                icheck = li[i + 1]
             except:
-                maxli.append(li[lilen-1])
+                maxli.append(li[lilen - 1])
                 break
             w = 1
-            while i+w < lilen:
-                if li[i+w] - li[i+w-1] == 1:
+            while i + w < lilen:
+                if li[i + w] - li[i + w - 1] == 1:
                     w += 1
                 else:
                     inext = i + w
-                    maxli.append(li[i+w-1])
-                    minli.append(li[i+w])
+                    maxli.append(li[i + w - 1])
+                    minli.append(li[i + w])
                     break
         return list(zip(minli, maxli))
-

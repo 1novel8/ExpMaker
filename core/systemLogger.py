@@ -33,4 +33,3 @@ def log_error(err, message='', is_critical=False, logger_id='main'):
         logger.critical('Critical Error: ' + err.__str__())
     else:
         logger.error('Error: ' + message + err.__str__())
-
