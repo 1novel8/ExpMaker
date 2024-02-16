@@ -1,6 +1,3 @@
-__author__ = 'Alex Konkov'
-
-
 class ContolsActions:
     CONTROL = 'control'
     CONVERTATION = 'convertation'

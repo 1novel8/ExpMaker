@@ -1,5 +1,5 @@
-from constants import appKey, coreFiles, errTypes, spravErrTypes
-from core.errors import CustomError, SpravError
+from constants import coreFiles, errTypes
+from core.errors import CustomError
 from core.extractors import CtrConverter, DataControl
 
 

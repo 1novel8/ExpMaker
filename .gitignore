@@ -13,3 +13,4 @@ build
 dist
 .venv32
 .venv
+venv

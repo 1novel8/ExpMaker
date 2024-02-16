@@ -1,5 +1,3 @@
-__author__ = 'Alex Konkov'
-
 from PyQt5.QtWidgets import QFrame, QGridLayout, QMainWindow
 
 

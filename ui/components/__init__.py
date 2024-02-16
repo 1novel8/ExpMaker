@@ -1,5 +1,3 @@
-__author__ = 'Alex Konkov'
-
 from .buttons import PrimaryButton
 from .dropdown import Dropdown
 from .iconLabel import IconLabel

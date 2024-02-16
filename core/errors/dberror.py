@@ -1,5 +1,3 @@
-__author__ = 'Alex Konkov'
-
 from constants import dbErrors
 
 err_messages = {

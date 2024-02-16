@@ -1,18 +1,14 @@
-from constants import errTypes, settingsActions
-from core.errors import CustomError
-from core.extractors.ctrRow import CtrRow
-from ui.custom.editSettingsWindow import EditSettingsWindow
-
-__author__ = 'Alex Konkov'
-
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QGridLayout,
-                             QHBoxLayout, QLabel, QMessageBox, QRadioButton,
-                             QTreeView, QWidget)
+                             QHBoxLayout, QLabel, QMessageBox, QTreeView,
+                             QWidget)
 
-from locales import customErrors, titleLocales
-from ui.components import Dropdown, IconLabel, ModalWindow, PrimaryButton
+from constants import settingsActions
+from core.extractors.ctrRow import CtrRow
+from locales import titleLocales
+from ui.components import Dropdown, PrimaryButton
+from ui.custom.editSettingsWindow import EditSettingsWindow
 from ui.styles import ExpSelectorStyles as styles
 
 

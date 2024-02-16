@@ -1,5 +1,3 @@
-__author__ = 'Alex Konkov'
-
 from .actions import (BaseActivityActions, ContolsActions, ExplicationActions,
                       ExtractionActions, SettingsActions, SprActions)
 from .controlsVariants import ControlsStates

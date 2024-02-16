@@ -1,5 +1,3 @@
-# from constants import appKey, coreFiles, errTypes, spravErrTypes
-# from locales import customErrors
 import time
 from os import path
 
@@ -55,11 +53,10 @@ class ExplicationWorker:
 
         if exp_maker.errors_occured:
             for key in exp_maker.errors_occured:
-                #msg = ErrMessage.expa_errors[key] % errs_occured[key]
-                # TODO:  handle error
+                # msg = ErrMessage.expa_errors[key] % errs_occured[key]
                 msg = 'not yet implemented'
                 self.__emit_process_changes(expActions.EXP_ERROR, msg)
-            #raise Exception(expActions.EXP_ERROR)
+            # raise Exception(expActions.EXP_ERROR)
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(sv_data, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
@@ -75,18 +72,25 @@ class ExplicationWorker:
                 'sh_name': xl_s.a_sv_sh_name,
                 'is_xls_start': xl_s.is_xls_start
             }
-            print (out_settings)
-            #TODO myedit
-            self.export_matr_to_xl(matrix,
-                                   self.gen_xl_out_file('FV_svod', out_exp_file),
-                                   xl_s.a_sv_path,
-                                   out_settings)
+            print(out_settings)
+            self.export_matr_to_xl(
+                matrix,
+                self.gen_xl_out_file('FV_svod', out_exp_file),
+                xl_s.a_sv_path,
+                out_settings
+            )
         else:
             save_as_table = 'ExpA_%s' % time.strftime('%d\%m\%Y_%H:%M')
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     # формирование матрицы В
-    def create_exp_b(self,rows_data, sprav_holder=None, settings_holder=None, out_exp_file=None):####(self, rows_data, sprav_holder=None, settings_holder=None, out_exp_file=None):
+    def create_exp_b(
+            self,
+            rows_data,
+            sprav_holder=None,
+            settings_holder=None,
+            out_exp_file=None
+    ):  # (self, rows_data, sprav_holder=None, settings_holder=None, out_exp_file=None):
         with_balance = settings_holder.balance.include_b_balance
         is_xls_mode = True
         exp_maker = ExpF22Maker(rows_data, sprav_holder)
@@ -102,23 +106,26 @@ class ExplicationWorker:
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_matrix(exp_dict, sprav_holder)
         matrix_total = exp_maker.prepare_matrix_total(exp_dict, sprav_holder)
-        print("\n ---------------------матрица данных --------------------")
-        print (matrix)
-        print("\n ------ матрица итогов   --------")
-        print (matrix_total)
+        print("\n---------------------матрица данных --------------------")
+        print(matrix)
+        print("\n------ матрица итогов   --------")
+        print(matrix_total)
         if is_xls_mode:
             xls = settings_holder.xls
             out_settings = {
                 'start_f': xls.b_l,
                 'start_r': xls.b_n,
-                'start_r_total': xls.b_n+42,
+                'start_r_total': xls.b_n + 42,
                 'sh_name': xls.b_sh_name,
-                'is_xls_start': xls.is_xls_start
+                'is_xls_start': xls.is_xls_start,
             }
-            self.export_matr_to_xl_F22(matrix,matrix_total,
-                                   self.gen_xl_out_file('F22_I_', out_exp_file),
-                                   xls.b_path,
-                                   out_settings)
+            self.export_matr_to_xl_F22(
+                matrix,
+                matrix_total,
+                self.gen_xl_out_file('F22_I_', out_exp_file),
+                xls.b_path,
+                out_settings
+            )
 
         else:
             save_as_table = 'ExpF22_%s' % time.strftime('%d\%m\%Y_%H:%M')
@@ -173,4 +180,3 @@ class ExplicationWorker:
         export_db.run_export(save_as_table, matrix[1:], fields)
         if start_when_ready:
             export_db.run_db()
-
