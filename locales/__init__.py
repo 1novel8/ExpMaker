@@ -10,4 +10,3 @@ appErrors = AppErrorsLocales()
 customErrors = CustomErrorsLocales()
 protocolErrors = ProtocolErrors()
 actionLocales = ActionMessages()
-

@@ -27,7 +27,16 @@ class XlExporter:
         except IOError:
             raise XlsError('not_found', self.out_filename)
 
-    def export_matrix_F22(self, matrix,matrix_total, start_f, start_r,start_r_total, sh_name=None, **kwargs):
+    def export_matrix_F22(
+            self,
+            matrix,
+            matrix_total,
+            start_f,
+            start_r,
+            start_r_total,
+            sh_name=None,
+            **kwargs
+    ):
         """
         You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
         """
@@ -74,11 +83,11 @@ class XlExporter:
         except (SyntaxError, AttributeError, TypeError):
             add_cols = 1
         if isinstance(row_len, int):
-            final_len = row_len+add_cols
-            l1 = chr(final_len % 26+65)
-            l2 = final_len/26
+            final_len = row_len + add_cols
+            l1 = chr(final_len % 26 + 65)
+            l2 = final_len / 26
             if l2:
-                return "%s%s" % (chr(int(l2+64)), l1)
+                return "%s%s" % (chr(int(l2 + 64)), l1)
             else:
                 return l1
         else:
@@ -104,7 +113,7 @@ class XlExporter:
 
     def export_matrix_to_sheet(self, xl_sheet, matrix, start_f, start_r):
         max_letter = self.get_xl_letter(len(matrix[0]), start_f)
-        cells_tmp = tuple(xl_sheet['%s%d:%s%d' % (start_f, start_r, max_letter, len(matrix)+start_r)])
+        cells_tmp = tuple(xl_sheet['%s%d:%s%d' % (start_f, start_r, max_letter, len(matrix) + start_r)])
         self.add_values_cells(matrix, cells_tmp)
 
     @staticmethod

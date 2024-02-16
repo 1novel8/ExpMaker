@@ -114,24 +114,24 @@ class EditSettingsWindow(ModalWindow):
         sources_box.add_widget(self.xl_b_src_widget)
 
         self.edit_xls_start = QCheckBox(titleLocales.edit_xls_run_mode_title)
-        #self.edit_mdb_start = QCheckBox(titleLocales.edit_mdb_run_mode_title)
+        # self.edit_mdb_start = QCheckBox(titleLocales.edit_mdb_run_mode_title)
         self.edit_xls_start.setChecked(settings.is_xls_start)
-        #self.edit_mdb_start.setChecked(settings.is_mdb_start)
+        # self.edit_mdb_start.setChecked(settings.is_mdb_start)
 
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
         self.add_widget(tables_box, 0, 0, 12, 7)
         self.add_widget(sources_box, 0, 7, 7, 5)
         self.add_widget(self.edit_xls_start, 9, 8, 1, 3)
-        #self.add_widget(self.edit_mdb_start, 10, 8, 1, 3)
+        # self.add_widget(self.edit_mdb_start, 10, 8, 1, 3)
         self.add_widget(save_btn, 11, 9, 1, 1)
 
     def init_balance_widgets(self):
         balance_settings = self.settings.balance
         self.edit_b_balance = QCheckBox(titleLocales.edit_settings_enable_b_balance_title)
         self.edit_b_balance.setChecked(balance_settings.include_b_balance)
-        # self.edit_a_balance = QtGui.QCheckBox('Включить баланс в расчет одиночной экспликации А (Not yet implemented)')
-        # self.edit_a_balance.setChecked(balance_settings.include_a_balance)
-        # self.edit_a_sv_balance = QtGui.QCheckBox('Включить баланс в расчет сводной экспликации А (Not yet implemented)')
+        # self.edit_a_balance = QtGui.QCheckBox('Включить баланс в расчет одиночной экспликации А (Not yet
+        # implemented)') self.edit_a_balance.setChecked(balance_settings.include_a_balance) self.edit_a_sv_balance =
+        # QtGui.QCheckBox('Включить баланс в расчет сводной экспликации А (Not yet implemented)')
         # self.edit_a_sv_balance.setChecked(balance_settings.include_a_sv_balance)
         save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
         self.add_widget(self.edit_b_balance, 1, 0, 3, 3)
@@ -221,7 +221,12 @@ class EditSettingsWindow(ModalWindow):
             upd_successfull = self._change_balance_setts()
         elif self.setts_type == settingsActions.SHOW_ACCURACY:
             upd_successfull = self._change_accuracy_setts()
-            QMessageBox.information(self, titleLocales.error_modal_warning, "После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ", QMessageBox.Ok)
+            QMessageBox.information(
+                self,
+                titleLocales.error_modal_warning,
+                "После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ",
+                QMessageBox.Ok
+            )
         elif self.setts_type == settingsActions.SHOW_CONDITIONS:
             upd_successfull = self._change_conditions_setts()
             params['active_condition_changed'] = upd_successfull and upd_successfull['active_condition_changed']
@@ -262,7 +267,7 @@ class EditSettingsWindow(ModalWindow):
         xls_setts.a_sv_n = int(self.cmb_num_ea_sv.currentText())
         xls_setts.b_n = int(self.cmb_num_eb.currentText())
         xls_setts.is_xls_start = bool(self.edit_xls_start.isChecked())
-        #xls_setts.is_mdb_start = bool(self.edit_mdb_start.isChecked())
+        # xls_setts.is_mdb_start = bool(self.edit_mdb_start.isChecked())
         return True
 
     def _change_balance_setts(self):
@@ -277,7 +282,7 @@ class EditSettingsWindow(ModalWindow):
         accuracy_settings.a_s_accuracy = int(self.edit_a_accuracy.get_current_item())
         accuracy_settings.a_sv_accuracy = int(self.edit_a_sv_accuracy.get_current_item())
         accuracy_settings.b_accuracy = int(self.edit_b_accuracy.get_current_item())
-        #self.show_modal("После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ", modal_type='information')
+        # self.show_modal("После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ", modal_type='information')
         return True
 
     def _change_conditions_setts(self):

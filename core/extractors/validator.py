@@ -74,7 +74,7 @@ class DataControl(CtrControl):
         check_flds = []
         for field in self.sprav_holder.attr_config['ctr_structure']:
             if '*' in field:
-                multi_flds = map(lambda x: field.replace('*', str(x)), range(1, self.max_n+1))
+                multi_flds = map(lambda x: field.replace('*', str(x)), range(1, self.max_n + 1))
                 check_flds.extend(multi_flds)
             else:
                 check_flds.append(field)
@@ -106,34 +106,38 @@ class DataControl(CtrControl):
     def contr_us_f22_part(self):
         def format_d(x):
             return {
-                'cr_tab':   crs_tab,
-                'o_id':     crs_tab_str['id']['name'],
-                'f22_n':    crs_tab_str['f22']['part_name'] + str(x),
-                'part_n':   crs_tab_str['part_n']['part_name'] + str(x),
-                'user_n':   crs_tab_str['user_n']['part_name'] + str(x),
+                'cr_tab': crs_tab,
+                'o_id': crs_tab_str['id']['name'],
+                'f22_n': crs_tab_str['f22']['part_name'] + str(x),
+                'part_n': crs_tab_str['part_n']['part_name'] + str(x),
+                'user_n': crs_tab_str['user_n']['part_name'] + str(x),
             }
-        for n in range(2, self.max_n+1):
+
+        for n in range(2, self.max_n + 1):
             protocol_tip = '%(f22_n)s, %(user_n)s или %(part_n)s' % format_d(n)
             search_err = self.select_errors(
-                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(user_n)s is NOT Null and (%(f22_n)s is Null or %(part_n)s = 0)' % format_d(n))
+                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(user_n)s is NOT Null and (%(f22_n)s is Null or %(part_n)s = 0)' % format_d(
+                    n))
             self.add_to_protocol(crs_tab, protocol_tip, search_err, 6, n)
             search_err = self.select_errors(
-                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(f22_n)s is NOT Null and (%(user_n)s is Null or %(part_n)s = 0)' % format_d(n))
+                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(f22_n)s is NOT Null and (%(user_n)s is Null or %(part_n)s = 0)' % format_d(
+                    n))
             self.add_to_protocol(crs_tab, protocol_tip, search_err, 6, n)
             search_err = self.select_errors(
-                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(part_n)s <> 0 and (%(user_n)s is Null or %(f22_n)s is Null)' % format_d(n))
+                'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(part_n)s <> 0 and (%(user_n)s is Null or %(f22_n)s is Null)' % format_d(
+                    n))
             self.add_to_protocol(crs_tab, protocol_tip, search_err, 6, n)
 
     def contr_part_sum(self):
         format_d = {
-                'cr_tab':   crs_tab,
-                'o_id':     crs_tab_str['id']['name'],
-                'part1':    crs_tab_str['part_n']['name'],
-                'part':     crs_tab_str['part_n']['part_name'],
-                'max_n':    self.max_n
-                }
+            'cr_tab': crs_tab,
+            'o_id': crs_tab_str['id']['name'],
+            'part1': crs_tab_str['part_n']['name'],
+            'part': crs_tab_str['part_n']['part_name'],
+            'max_n': self.max_n
+        }
         part_sum = format_d['part1']
-        for n in range(2, self.max_n+1):
+        for n in range(2, self.max_n + 1):
             part_sum += '+' + format_d['part'] + str(n)
         format_d['part_sum'] = part_sum
         search_err = self.select_errors(
@@ -141,22 +145,25 @@ class DataControl(CtrControl):
         self.add_to_protocol(crs_tab, '%(part1)s..%(part)s%(max_n)s' % format_d, search_err, 8)
 
     def contr_part_n(self):
+
         def format_d(x):
             return {
-                'cr_tab':   crs_tab,
-                'o_id':     crs_tab_str['id']['name'],
-                'part_n':   crs_tab_str['part_n']['part_name']+ str(x),
+                'cr_tab': crs_tab,
+                'o_id': crs_tab_str['id']['name'],
+                'part_n': crs_tab_str['part_n']['part_name'] + str(x),
             }
-        for n in range(2, self.max_n+1):
+
+        for n in range(2, self.max_n + 1):
             search_err = self.select_errors(
-                'SELECT %(o_id)s FROM %(cr_tab)s WHERE not %(part_n)s between 0 and 99.9999 or %(part_n)s is Null' % format_d(n))
+                'SELECT %(o_id)s FROM %(cr_tab)s WHERE not %(part_n)s between 0 and 99.9999 or %(part_n)s is Null' % format_d(
+                    n))
             self.add_to_protocol(crs_tab, 'Part_%d' % n, search_err, 7)
             search_err = self.select_errors(
                 'SELECT %(o_id)s FROM %(cr_tab)s WHERE %(part_n)s is Null' % format_d(n))
             self.add_to_protocol(crs_tab, 'Part_%d' % n, search_err, 3)
 
     def contr_f22_n(self):
-        for n in range(2, self.max_n+1):
+        for n in range(2, self.max_n + 1):
             f_name = crs_tab_str['f22']['part_name'] + str(n)
             self.contr_field(crs_tab, f_name, self.f22_string, sprStructure.f22, crs_tab_str['id']['name'], True)
 
@@ -170,6 +177,7 @@ class DataControl(CtrControl):
 
         def raise_err(msg):
             raise Exception('Проверьте наличие полей %s' % str(msg))
+
         max_n = 1
         crtab_fields = list(self.get_crtab_fields())
         col_fields = len(crtab_fields)
@@ -179,23 +187,24 @@ class DataControl(CtrControl):
                 max_n += 1
             elif max_n == 1:
                 raise_err(part_fields(1))
-            elif len(f_set)-col_fields == 3:
+            elif len(f_set) - col_fields == 3:
                 break
             else:
                 raise_err(', '.join(part_fields(max_n)))
-        return max_n-1
+        return max_n - 1
 
     def contr_user_n(self):
         def format_d(x):
             return {
-                'cr_tab':   crs_tab,
-                'o_id':     crs_tab_str['id']['name'],
-                'us_tab':   users_tab,
-                'c_us_n':   crs_tab_str['user_n']['part_name'] + str(x),
-                'u_us_n':   users_tab_str['user_n']['name'],
-                'us_sad':   crs_tab_str['user_n_sad']['name']
+                'cr_tab': crs_tab,
+                'o_id': crs_tab_str['id']['name'],
+                'us_tab': users_tab,
+                'c_us_n': crs_tab_str['user_n']['part_name'] + str(x),
+                'u_us_n': users_tab_str['user_n']['name'],
+                'us_sad': crs_tab_str['user_n_sad']['name']
             }
-        for n in range(2, self.max_n+1):
+
+        for n in range(2, self.max_n + 1):
             query = 'SELECT c.%(o_id)s FROM %(cr_tab)s c LEFT JOIN %(us_tab)s u ON c.%(c_us_n)s = u.%(u_us_n)s ' \
                     'WHERE u.%(u_us_n)s Is Null and c.%(c_us_n)s is not Null and %(us_sad)s is Null' % format_d(n)
             search_err = self.select_errors(query)
@@ -262,7 +271,7 @@ class DataControl(CtrControl):
             search_err = self.select_errors(query)
             self.add_to_protocol(table, field, search_err, 9)
 
-    def contr_field(self, table, field, check_codes, spr_table, search_id, null_granted = False,):
+    def contr_field(self, table, field, check_codes, spr_table, search_id, null_granted=False, ):
         """
         Makes dictionary with OBJECTID rows with errors
         :type null_granted: bool
@@ -272,7 +281,7 @@ class DataControl(CtrControl):
         :param search_id:
         :param field: control field name, str
         """
-        format_d = {'t':table, 'f': field, 'id':search_id, 'c': check_codes}
+        format_d = {'t': table, 'f': field, 'id': search_id, 'c': check_codes}
         query = 'SELECT %(id)s FROM %(t)s where %(f)s not in (%(c)s) and %(f)s is not Null' % format_d
         search_err = self.select_errors(query)
         self.add_to_protocol(table, field, search_err, 1, spr_table)
@@ -282,10 +291,10 @@ class DataControl(CtrControl):
 
     def contr_part_1(self):
         format_d = {
-                'cr_tab':   crs_tab,
-                'o_id':     crs_tab_str['id']['name'],
-                'part1':    crs_tab_str['part_n']['name']
-                }
+            'cr_tab': crs_tab,
+            'o_id': crs_tab_str['id']['name'],
+            'part1': crs_tab_str['part_n']['name']
+        }
         search_err = self.select_errors(
             'SELECT %(o_id)s FROM %(cr_tab)s WHERE not %(part1)s between 0.0001 and 100' % format_d)
         self.add_to_protocol(crs_tab, format_d['part1'], search_err, 5)
@@ -295,11 +304,11 @@ class DataControl(CtrControl):
 
     def contr_soato_crtab(self):
         format_d = {
-            'cr_tab':   crs_tab,
-            'o_id':     crs_tab_str['id']['name'],
-            's_tab':    soato_tab,
-            'c_kod':    crs_tab_str['soato']['name'],
-            's_kod':    soato_tab_str['code']['name']
+            'cr_tab': crs_tab,
+            'o_id': crs_tab_str['id']['name'],
+            's_tab': soato_tab,
+            'c_kod': crs_tab_str['soato']['name'],
+            's_kod': soato_tab_str['code']['name']
         }
         search_err = self.select_errors(
             'SELECT c.%(o_id)s FROM %(cr_tab)s c LEFT JOIN %(s_tab)s s ON c.%(c_kod)s = s.%(s_kod)s WHERE s.%(s_kod)s Is Null' % format_d)
@@ -310,12 +319,12 @@ class DataControl(CtrControl):
 
     def contr_user_1(self):
         format_d = {
-            'cr_tab':   crs_tab,
-            'o_id':     crs_tab_str['id']['name'],
-            'u_tab':    users_tab,
-            'c_us_1':   crs_tab_str['user_n']['name'],
-            'c_sad':   crs_tab_str['user_n_sad']['name'],
-            'u_us':     users_tab_str['user_n']['name'],
+            'cr_tab': crs_tab,
+            'o_id': crs_tab_str['id']['name'],
+            'u_tab': users_tab,
+            'c_us_1': crs_tab_str['user_n']['name'],
+            'c_sad': crs_tab_str['user_n_sad']['name'],
+            'u_us': users_tab_str['user_n']['name'],
         }
         search_err = self.select_errors(
             'SELECT c.%(o_id)s FROM %(cr_tab)s c left join %(u_tab)s u ON c.%(c_us_1)s = u.%(u_us)s'
@@ -327,11 +336,11 @@ class DataControl(CtrControl):
 
     def contr_usern_sad(self):
         format_d = {
-            'cr_tab':   crs_tab,
-            'o_id':     crs_tab_str['id']['name'],
-            'u_tab':    users_tab,
-            'c_sad':   crs_tab_str['user_n_sad']['name'],
-            'u_us':     users_tab_str['user_n']['name'],
+            'cr_tab': crs_tab,
+            'o_id': crs_tab_str['id']['name'],
+            'u_tab': users_tab,
+            'c_sad': crs_tab_str['user_n_sad']['name'],
+            'u_us': users_tab_str['user_n']['name'],
         }
         search_err = self.select_errors(
             'SELECT c.%(o_id)s FROM %(cr_tab)s c left join %(u_tab)s u on c.%(c_sad)s = u.%(u_us)s '
@@ -341,9 +350,9 @@ class DataControl(CtrControl):
     def contr_kods_soato(self):
         format_d = {
             's_tab': soato_tab,
-            'id':    soato_tab_str['id']['name'],
-            'kod':   soato_tab_str['code']['name'],
-            'name':  soato_tab_str['name']['name'],
+            'id': soato_tab_str['id']['name'],
+            'kod': soato_tab_str['code']['name'],
+            'name': soato_tab_str['name']['name'],
         }
         query = 'SELECT %(id)s FROM %(s_tab)s WHERE %(kod)s Is Null or %(name)s is Null' % format_d
         search_err = self.select_errors(query)

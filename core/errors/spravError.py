@@ -22,9 +22,11 @@ class SpravError(Exception):
             errTypes.failed_to_save: lambda: customErrors.failed_to_save_sprav,
 
             1: lambda: err_head + 'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных'
-                       % str(args[0]) if len(args)>=1 else args_err,
-            #errors[2] used when error occured in row, so [args] must contain table_name and row_name as first 2 parameters
-            2: lambda: err_head + 'Проверьте строку %s в таблице %s. ' % (args[1], args[0]) if len(args) >= 2 else args_err,
+                       % str(args[0]) if len(args) >= 1 else args_err,
+            # errors[2] used when error occured in row, so [args] must contain table_name and row_name as first 2
+            # parameters
+            2: lambda: err_head + 'Проверьте строку %s в таблице %s. ' % (args[1], args[0]) if len(
+                args) >= 2 else args_err,
             3: lambda: errors[2]() + args[2] if len(args) >= 3 else args_err,
             4: lambda: errors[2]() + 'Отсутствует соответствующее значение %s, на которое произведена ссылка.'
                        % args[2] if len(args) >= 3 else args_err,

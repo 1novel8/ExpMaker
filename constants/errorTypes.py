@@ -1,4 +1,3 @@
-
 class CustomErrorTypes:
     unexpected = 'unexpected'
     control_failed = 'control failed'
