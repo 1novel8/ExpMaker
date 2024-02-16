@@ -43,7 +43,7 @@ class SrcFrame(QFrame):
         self.h_box.addWidget(self.src_btn)
         if title:
             title_lbl = QLabel(title)
-            title_lbl.setFixedHeight(25) # ширина укажите путь
+            title_lbl.setFixedHeight(25)  # ширина укажите путь
             title_lbl.setStyleSheet(Styles.title_lbl)
             self.grid.addWidget(title_lbl)
         self.grid.addItem(self.h_box)
@@ -55,13 +55,13 @@ class SrcFrame(QFrame):
 
     def __open_src_dialog(self):
         if not self.is_dir_required:
-            src = QFileDialog(self)\
+            src = QFileDialog(self) \
                 .getOpenFileName(self, self.title, self.default_dir,
                                  'Valid media files (%s);; All files (*)' % self.valid_files,
                                  options=QFileDialog.DontUseNativeDialog)
             src = str(src[0]).replace('/', '\\')
         else:
-            src = QFileDialog(self)\
+            src = QFileDialog(self) \
                 .getExistingDirectory(self, self.title, self.default_dir,
                                       options=QFileDialog.DontUseNativeDialog)
             src = str(src).replace('/', '\\')

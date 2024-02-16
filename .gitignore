@@ -11,3 +11,5 @@ tempDbase.mdb
 */__pycache__/*
 build
 dist
+.venv32
+.venv
