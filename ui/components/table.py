@@ -112,4 +112,3 @@ class TableWidget(QWidget):
                     add_warning = ' '
                 self.add_row([part, 'OBJECTID in %s' % str(errors), add_warning + protocolErrors.convert_fails[err_type]])
         self.show()
-

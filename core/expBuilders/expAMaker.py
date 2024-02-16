@@ -296,7 +296,7 @@ class ExpAMaker(object):
                 self.__push_to_sv_matrix('%s.%d' % (f22_key, n), row_name, digits, skip_num=False, for_xls=for_xls)
                 n += 1
             digits = map(lambda x: sv_dict[f22_key]['total'][x]['val'], f_orders)
-            self.__push_to_sv_matrix(f22_key+'*', 'Итого:', digits, skip_num=False, for_xls=for_xls)
+            self.__push_to_sv_matrix(f22_key + '*', 'Итого:', digits, skip_num=False, for_xls=for_xls)
 
         if 'total' in sv_dict:
             # добавление итоговой строки total

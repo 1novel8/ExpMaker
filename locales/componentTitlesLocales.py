@@ -59,7 +59,7 @@ class TitleLocales:
     edit_xls_b_src_title = "Путь к шаблону Отчета – Форма 22-зем (I)"
     edit_xls_src_warning = "Выберите корректный путь к шаблону файла для сохранения экспликаций"
     edit_xls_run_mode_title = "Запуск .xls файлов по завершению расчетов"
-    #edit_mdb_run_mode_title = "Запуск .mdb файлов по завершению расчетов"
+    # edit_mdb_run_mode_title = "Запуск .mdb файлов по завершению расчетов"
 
     edit_settings_balance_title = "Настройки увязки Формы 22-зем"
     edit_settings_enable_b_balance_title = "Включить увязку площадей Формы 22-зем (I)"
@@ -75,4 +75,3 @@ class TitleLocales:
     edit_settings_conditions_sv_exp_groupping = "\n      Настройка группировки сводной экспликации:"
 
     save_edited_settings = "Сохранить изменения"
-

@@ -15,4 +15,3 @@ class LogTable(TableWidget):
         super(LogTable, self).add_representation_row(time_label, with_span=False)
         row_count = super(LogTable, self).get_row_count()
         self.table.setCellWidget(row_count - 1, 1, TableLabel(log_msg))
-

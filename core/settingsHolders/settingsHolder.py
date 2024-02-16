@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-__author__ = 'Aleksei Konkov'
-
 from os import path
 
 
@@ -23,7 +19,6 @@ class SettingsHolder(object):
         self.should_save_as = store_source
         self.set_default_settings()
         self.on_save = on_save
-        # super(SettingsHolder, self).__init__(settings_data)
 
     def save(self):
         self.on_save(self.should_save_as, self.get_settings_dict())

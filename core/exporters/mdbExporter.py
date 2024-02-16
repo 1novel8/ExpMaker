@@ -1,5 +1,3 @@
-__author__ = 'Aleksei'
-
 from constants import coreFiles
 from core.db import DbConnector
 

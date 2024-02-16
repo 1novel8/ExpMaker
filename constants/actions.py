@@ -1,6 +1,3 @@
-__author__ = 'Alex Konkov'
-
-
 class ContolsActions:
     CONTROL = 'control'
     CONVERTATION = 'convertation'
@@ -49,4 +46,3 @@ class ExplicationActions:
     EXPORT_EXP = 'export exp'
     EXP_ERROR = 'exp error'
     enum = [EXP_A_SINGLE, EXP_A_SV, EXP_B, INIT_A_MAKER, EXPORT_EXP, RELOAD_A_MAKER, MAKE_BALANCE, EXP_ERROR]
-

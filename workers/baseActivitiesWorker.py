@@ -62,15 +62,10 @@ class BaseWorker:
         if wrong_pref_ids:
             err_message = customErrors.warning_wrong_pref % wrong_pref_ids
             raise CustomError(errTypes.control_warning, err_message)
-            #self.emit_process_event(
-            #    CustomError(errTypes.control_warning, err_message))
         wrong_pref_ids_sez = contr.is_wrong_f_pref_sez()
         if wrong_pref_ids_sez:
             err_message = customErrors.warning_wrong_pref_sez % wrong_pref_ids_sez
             raise CustomError(errTypes.control_warning, err_message)
-            # self.emit_process_event(
-            #    CustomError(errTypes.control_warning, err_message))
-
         return "Ok"
 
     @staticmethod

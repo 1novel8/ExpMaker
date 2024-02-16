@@ -1,6 +1,6 @@
 from os import getcwd, path
 
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtWidgets import (QFileDialog, QFrame, QHBoxLayout, QLabel,
                              QVBoxLayout)
 
@@ -13,14 +13,19 @@ base_dir = getcwd()
 
 
 class SrcFrame(QFrame):
-    def __init__(self, parent=None,
-                 title="...",
-                 on_select=None,
-                 get_dir=False,
-                 update_self_after_select=False,
-                 placeholder="",
-                 valid_files="*.mdb *.pkl",
-                 default_dir=base_dir):
+    path_selected_signal = pyqtSignal(str)
+
+    def __init__(
+            self,
+            parent=None,
+            title="...",
+            on_select=None,
+            get_dir=False,
+            update_self_after_select=False,
+            placeholder="",
+            valid_files="*.mdb *.pkl",
+            default_dir=base_dir,
+    ):
         QFrame.__init__(self, parent)
         self.title = title
         self.placeholder = placeholder
@@ -55,15 +60,21 @@ class SrcFrame(QFrame):
 
     def __open_src_dialog(self):
         if not self.is_dir_required:
-            src = QFileDialog(self) \
-                .getOpenFileName(self, self.title, self.default_dir,
-                                 'Valid media files (%s);; All files (*)' % self.valid_files,
-                                 options=QFileDialog.DontUseNativeDialog)
+            src = QFileDialog(self).getOpenFileName(
+                self,
+                self.title,
+                self.default_dir,
+                'Valid media files (%s);; All files (*)' % self.valid_files,
+                options=QFileDialog.DontUseNativeDialog
+            )
             src = str(src[0]).replace('/', '\\')
         else:
-            src = QFileDialog(self) \
-                .getExistingDirectory(self, self.title, self.default_dir,
-                                      options=QFileDialog.DontUseNativeDialog)
+            src = QFileDialog(self).getExistingDirectory(
+                self,
+                self.title,
+                self.default_dir,
+                options=QFileDialog.DontUseNativeDialog,
+            )
             src = str(src).replace('/', '\\')
         if src:
             self.selected_file = src
@@ -87,18 +98,23 @@ class SrcFrame(QFrame):
             self.selected_file = new_src
             self.set_src_text()
 
-    def clear(self, hide=False):
-        self.selected_file = ''
-        self.set_src_text(src_text=self.placeholder)
+    def hide(self, hide=False):
         self.setHidden(hide)
 
     def set_src_text(self, src_text=None, collapse_len=50):
         """
-        В строке text делается перенос относительно \ если длина превышает 50 символов
+        В строке text делается перенос относительно \\ если длина превышает 50 символов
         :param src_text: new source text
         :param collapse_len: len to split text
         :return:
         """
+        ind = 0
+        for i, ch in enumerate(self.selected_file):
+            if ch == '\\' or ch == '/':
+                ind = i
+        root_path = self.selected_file[:ind]
+        print(root_path)
+        self.path_selected_signal.emit(root_path)
         if not src_text:
             src_text = str(self.selected_file)
         path_parts = src_text.split('\\')

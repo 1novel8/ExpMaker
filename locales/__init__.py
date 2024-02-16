@@ -1,5 +1,3 @@
-__author__ = 'Alex Konkov'
-
 from .actionsMessages import ActionMessages
 from .componentTitlesLocales import TitleLocales
 from .errorsLocales import (AppErrorsLocales, CustomErrorsLocales,
@@ -12,4 +10,3 @@ appErrors = AppErrorsLocales()
 customErrors = CustomErrorsLocales()
 protocolErrors = ProtocolErrors()
 actionLocales = ActionMessages()
-

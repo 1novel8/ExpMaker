@@ -6,7 +6,7 @@ base = None
 if sys.platform == 'win32':
     base = 'Win32GUI'
 
-executables = [Executable('ExpMaker.py', base='Win32GUI')]
+executables = [Executable('ExpMaker.py', base=base)]
 
 packages = [
     'sip', 'threads', 'uiWidgets', 'os', 'decimal', 'datetime',
