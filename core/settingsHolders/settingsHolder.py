@@ -35,7 +35,7 @@ class SettingsHolder(object):
             self.set_default_settings()
 
     def check_xl_templates(self):
-        xls_s = self.xls
+        xls_s = self.xls_templates_dir  # WARNING бфло просто self.xls
 
         def check_template(template_path):
             return path.isfile(template_path) and 'xls' in template_path

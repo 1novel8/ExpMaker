@@ -7,6 +7,9 @@ from core.exporters import DbExporter, XlExporter, XlsError
 
 
 class ExplicationWorker:
+    """
+    Отвечает за генерацию отчетов
+    """
     def __init__(self, process_event_handler=lambda action_meta: action_meta):
         self.__emit_process_event = process_event_handler
 
@@ -34,7 +37,8 @@ class ExplicationWorker:
         self.export_selected_to_xl(
             matrix, settings_holder.xls, out_exp_file,
             f22_ind=exp_provider.full_obj_name,
-            obj_name=exp_provider.obj_name)
+            obj_name=exp_provider.obj_name
+        )
 
     def create_exp_a_sv(self, exp_maker=None, sprav_holder=None, settings_holder=None, out_exp_file=None):
         group_sv_by = settings_holder.conditions.groupping_by
@@ -42,8 +46,6 @@ class ExplicationWorker:
         is_xls_mode = True
         if group_sv_by == 'cc':
             sv_data = exp_maker.calc_all_exps_by_ss(settings_holder.rnd)
-        # elif group_sv_by == 'np':
-        #     sv_data = self.expsA.calc_all_exps_by_np(self.rnd_settings)
         else:
             try:
                 sv_data = exp_maker.calc_all_exps_by_np(settings_holder.rnd)
@@ -53,10 +55,8 @@ class ExplicationWorker:
 
         if exp_maker.errors_occured:
             for key in exp_maker.errors_occured:
-                # msg = ErrMessage.expa_errors[key] % errs_occured[key]
                 msg = 'not yet implemented'
                 self.__emit_process_changes(expActions.EXP_ERROR, msg)
-            # raise Exception(expActions.EXP_ERROR)
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(sv_data, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
@@ -90,7 +90,7 @@ class ExplicationWorker:
             sprav_holder=None,
             settings_holder=None,
             out_exp_file=None
-    ):  # (self, rows_data, sprav_holder=None, settings_holder=None, out_exp_file=None):
+    ):
         with_balance = settings_holder.balance.include_b_balance
         is_xls_mode = True
         exp_maker = ExpF22Maker(rows_data, sprav_holder)

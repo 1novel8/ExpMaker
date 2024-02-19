@@ -306,6 +306,6 @@ class EditSettingsWindow(ModalWindow):
     def __change_exp_filter_settings(self,):
         filter_settings = self.settings.filter
         is_melio_selected = bool(self.melio_filter_used.isChecked())
-        #settings_changed = filter_settings.enable_melio != is_melio_selected
+        #  settings_changed = filter_settings.enable_melio != is_melio_selected
         filter_settings.enable_melio = is_melio_selected
         return True
