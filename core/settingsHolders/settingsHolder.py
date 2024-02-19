@@ -1,7 +1,7 @@
 from os import path
 
 
-class DictAsObject(object):
+class DictAsObject:
     def __init__(self, dict_data):
         if isinstance(dict_data, dict):
             self.__dict__.update(dict_data)
@@ -13,7 +13,7 @@ class DictAsObject(object):
         return self.__dict__.copy()
 
 
-class SettingsHolder(object):
+class SettingsHolder:
     def __init__(self, xls_templates_dir, store_source, on_save=lambda x, y: x):
         self.xls_templates_dir = xls_templates_dir
         self.should_save_as = store_source
@@ -88,11 +88,6 @@ class SettingsHolder(object):
                     ok = False
         else:
             ok = False
-        # if ok:
-        #     try:
-        #         ok = os.path.isfile(settings_dict['xls']['a_sv_path'])
-        #     except:
-        #         ok = False
         return ok
 
     def set_default_active_cond(self, select_conditions):

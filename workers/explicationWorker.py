@@ -4,11 +4,12 @@ from os import path
 from constants import expActions
 from core.expBuilders import ExpAMaker, ExpF22Maker, balanceMaker
 from core.exporters import DbExporter, XlExporter, XlsError
+from core.settingsHolders import SettingsHolder
 
 
 class ExplicationWorker:
     """
-    Отвечает за генерацию отчетов
+    Сущность отвечает за генерацию отчетов
     """
     def __init__(self, process_event_handler=lambda action_meta: action_meta):
         self.__emit_process_event = process_event_handler
@@ -40,7 +41,13 @@ class ExplicationWorker:
             obj_name=exp_provider.obj_name
         )
 
-    def create_exp_a_sv(self, exp_maker=None, sprav_holder=None, settings_holder=None, out_exp_file=None):
+    def create_exp_a_sv(
+            self,
+            exp_maker=None,
+            sprav_holder=None,
+            settings_holder: SettingsHolder = None,
+            out_exp_file=None,
+    ):
         group_sv_by = settings_holder.conditions.groupping_by
         with_balance = settings_holder.balance.include_a_sv_balance
         is_xls_mode = True

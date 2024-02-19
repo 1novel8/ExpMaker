@@ -6,6 +6,10 @@ from workers import ExplicationWorker
 
 
 class ExplicationThread(QThread):
+    """
+    Поток для выполнения создания отчета
+    """
+
     success_signal = pyqtSignal('PyQt_PyObject')
     progress_signal = pyqtSignal('PyQt_PyObject')
     error_signal = pyqtSignal('PyQt_PyObject')
@@ -20,10 +24,13 @@ class ExplicationThread(QThread):
             error_handler=lambda x: x
     ):
         super(ExplicationThread, self).__init__(parent)
+        # сигнали для демонстрации показа состояния потока
         self.success_signal.connect(success_handler)
         self.progress_signal.connect(progress_handler)
         self.error_signal.connect(error_handler)
+        # класс который фактически выполняет действие
         self.worker = ExplicationWorker(process_event_handler=self.emit_progress)
+        # словарь {"действие пользователя": "ответ со стороны программ"}
         self.activities = {
             expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
             expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
@@ -33,6 +40,7 @@ class ExplicationThread(QThread):
         }
 
     def start(self, action, **kwargs):
+        """ Запуск процесса, который вызывает метод run"""
         self.current_action = action
         self.current_params = kwargs
         super(ExplicationThread, self).start()

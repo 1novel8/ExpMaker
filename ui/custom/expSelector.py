@@ -13,21 +13,33 @@ from ui.styles import ExpSelectorStyles as styles
 
 
 class GroupHeader(QFrame):
-    def __init__(self, parent=None, on_cmb1_changes=lambda x: x, on_cmb2_changes=lambda x: x):
+    def __init__(
+            self,
+            parent=None,
+            on_cmb1_changes=lambda x: x,
+            on_cmb2_changes=lambda x: x,
+    ):
+        """
+        Комбо-бокс (шапка), для выбора района/ города для Расчета сводной экспликации - форма В
+        """
         QFrame.__init__(self, parent)
         self.setMaximumHeight(33)
         self.setStyleSheet(styles.root)
-        self.h_box = QHBoxLayout(self)
-        self.first_cmb = Dropdown(self, width=180)
-        self.second_cmb = Dropdown(self, width=180)
-        self.first_cmb.activated.connect(on_cmb1_changes)
-        self.second_cmb.activated.connect(on_cmb2_changes)
-        self.second_cmb.hide()
+        # "Группировка данных"
         self.lbl = QLabel(titleLocales.group_box_title, self)
-        self.second_cmb.setStyleSheet(styles.dropdown)
-        self.first_cmb.setStyleSheet(styles.dropdown)
         self.lbl.setStyleSheet(styles.title)
         self.lbl.setAlignment(Qt.AlignCenter)
+        # Комбо-бокс Район
+        self.first_cmb = Dropdown(self, width=180)
+        self.first_cmb.activated.connect(on_cmb1_changes)
+        self.first_cmb.setStyleSheet(styles.dropdown)
+        # Комбо-бокс населенный пункт
+        self.second_cmb = Dropdown(self, width=180)
+        self.second_cmb.activated.connect(on_cmb2_changes)
+        self.second_cmb.setStyleSheet(styles.dropdown)
+        self.second_cmb.hide()
+        # форматирование
+        self.h_box = QHBoxLayout(self)
         self.h_box.addWidget(self.lbl)
         self.h_box.addWidget(self.first_cmb)
         self.h_box.addWidget(self.second_cmb)
@@ -46,6 +58,9 @@ class GroupHeader(QFrame):
 
 
 class ExpFilter(QFrame):
+    """
+    ... NOT IMPLEMENTED ...
+    """
     def __init__(self, parent=None, settings=None):
         QFrame.__init__(self, parent)
         self.settings = settings
@@ -53,22 +68,16 @@ class ExpFilter(QFrame):
         self.filter_btn = PrimaryButton(self, title='...')
         self.filter_btn.clicked.connect(self.show_filter_setup)
         self.activation_switcher = QCheckBox('Фильтр', self)
-        # self.activation_switcher.setChecked()
         self.activation_switcher.stateChanged.connect(self.toggle)
         self.h_box.addWidget(self.activation_switcher)
         self.h_box.addWidget(self.filter_btn)
         self.filter_window = None
-
-        # self.current_exp_data = current_exp_data
 
     def toggle(self):
         switcher_val = bool(self.activation_switcher.isChecked())
         if self.settings.filter.enabled != switcher_val:
             self.settings.filter.enabled = switcher_val
             self.settings.save()
-        # self.apply_exp_data_filter()
-        # if switcher_val:
-        # ExpSelector.filter_click(self)
 
     def show_filter_setup(self):
         self.filter_window = EditSettingsWindow(
@@ -100,27 +109,34 @@ class ExpSelector(QWidget):
             reinit_exp_hook=lambda x: x,
             handle_exp_click=lambda x: x
     ):
+        """
+        WARNING продолжить разбирать эту таблицу для формы 22
+        """
         QWidget.__init__(self, parent)
         self.settings = settings
         self.sprav_holder = sprav
         self.reload_exp = reinit_exp_hook
-        self.grid = QGridLayout(self)
+        self.handle_exp_click = handle_exp_click
+        # комбо-бокс шапка для выбора района/ населенного пункта
         self.header = GroupHeader(
             self,
             on_cmb1_changes=self.handle_cmb1_click,
             on_cmb2_changes=self.handle_cmb2_click,
         )
-        self.handle_exp_click = handle_exp_click
+        # форматирование таблицы в виде иерархии
         self.treeView = QTreeView()
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.activated.connect(self.on_tree_cell_click)
-        self.tree_index_dict = {}
+
+        self.grid = QGridLayout(self)
         self.grid.addWidget(self.header, 0, 0, 1, 15)
         self.grid.addWidget(self.treeView, 1, 0, 21, 21)
         self.grid.setSpacing(1)
+
+        self.tree_index_dict = {}
         self.current_exp_rows = []
         self.soato_titles = None
         self._exp_valuables_link = None
@@ -149,7 +165,7 @@ class ExpSelector(QWidget):
         self.cmb2_recovery = None
         self.groupped_soatos = None
 
-    # первый комбобокс группировки данных с\с
+    # первый комбобокс группировки данных с\с чего???
     def show_first_combo(self):
         group_soatos = self.make_soato_groups()
         ate_expl_data = dict.fromkeys(list(group_soatos.keys()), None)
@@ -184,9 +200,9 @@ class ExpSelector(QWidget):
     # второй косбобокс группировки данных по нп
     def show_second_combo(self, ate_soato):
         expl_data = {}
-        ''''
+        """
         Далее заполняем словарь expl_data(keys: SOATO codes) экземплярами класса CtrRow
-        '''
+        """
         for expl in self.current_exp_rows:
             try:
                 expl_data[expl.soato].append(expl)
