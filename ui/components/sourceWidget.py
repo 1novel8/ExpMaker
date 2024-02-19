@@ -113,7 +113,6 @@ class SrcFrame(QFrame):
             if ch == '\\' or ch == '/':
                 ind = i
         root_path = self.selected_file[:ind]
-        print(root_path)
         self.path_selected_signal.emit(root_path)
         if not src_text:
             src_text = str(self.selected_file)

@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QGridLayout,
                              QWidget)
 
 from constants import settingsActions
-from core.extractors.ctrRow import CtrRow
+from core.settingsHolders import SettingsHolder, SpravHolder
 from locales import titleLocales
 from ui.components import Dropdown, PrimaryButton
 from ui.custom.editSettingsWindow import EditSettingsWindow
@@ -13,21 +13,33 @@ from ui.styles import ExpSelectorStyles as styles
 
 
 class GroupHeader(QFrame):
-    def __init__(self, parent=None, on_cmb1_changes=lambda x: x, on_cmb2_changes=lambda x: x):
+    def __init__(
+            self,
+            parent=None,
+            on_cmb1_changes=lambda x: x,
+            on_cmb2_changes=lambda x: x,
+    ):
+        """
+        Комбо-бокс (шапка), для выбора района/ города для Расчета сводной экспликации - форма В
+        """
         QFrame.__init__(self, parent)
         self.setMaximumHeight(33)
         self.setStyleSheet(styles.root)
-        self.h_box = QHBoxLayout(self)
-        self.first_cmb = Dropdown(self, width=180)
-        self.second_cmb = Dropdown(self, width=180)
-        self.first_cmb.activated.connect(on_cmb1_changes)
-        self.second_cmb.activated.connect(on_cmb2_changes)
-        self.second_cmb.hide()
+        # "Группировка данных"
         self.lbl = QLabel(titleLocales.group_box_title, self)
-        self.second_cmb.setStyleSheet(styles.dropdown)
-        self.first_cmb.setStyleSheet(styles.dropdown)
         self.lbl.setStyleSheet(styles.title)
         self.lbl.setAlignment(Qt.AlignCenter)
+        # Комбо-бокс Район
+        self.first_cmb = Dropdown(self, width=180)
+        self.first_cmb.activated.connect(on_cmb1_changes)
+        self.first_cmb.setStyleSheet(styles.dropdown)
+        # Комбо-бокс населенный пункт
+        self.second_cmb = Dropdown(self, width=180)
+        self.second_cmb.activated.connect(on_cmb2_changes)
+        self.second_cmb.setStyleSheet(styles.dropdown)
+        self.second_cmb.hide()
+        # форматирование
+        self.h_box = QHBoxLayout(self)
         self.h_box.addWidget(self.lbl)
         self.h_box.addWidget(self.first_cmb)
         self.h_box.addWidget(self.second_cmb)
@@ -46,6 +58,9 @@ class GroupHeader(QFrame):
 
 
 class ExpFilter(QFrame):
+    """
+    ... NOT IMPLEMENTED ...
+    """
     def __init__(self, parent=None, settings=None):
         QFrame.__init__(self, parent)
         self.settings = settings
@@ -53,22 +68,16 @@ class ExpFilter(QFrame):
         self.filter_btn = PrimaryButton(self, title='...')
         self.filter_btn.clicked.connect(self.show_filter_setup)
         self.activation_switcher = QCheckBox('Фильтр', self)
-        # self.activation_switcher.setChecked()
         self.activation_switcher.stateChanged.connect(self.toggle)
         self.h_box.addWidget(self.activation_switcher)
         self.h_box.addWidget(self.filter_btn)
         self.filter_window = None
-
-        # self.current_exp_data = current_exp_data
 
     def toggle(self):
         switcher_val = bool(self.activation_switcher.isChecked())
         if self.settings.filter.enabled != switcher_val:
             self.settings.filter.enabled = switcher_val
             self.settings.save()
-        # self.apply_exp_data_filter()
-        # if switcher_val:
-        # ExpSelector.filter_click(self)
 
     def show_filter_setup(self):
         self.filter_window = EditSettingsWindow(
@@ -92,29 +101,42 @@ not_groupped_key = 'not_groupped'
 
 
 class ExpSelector(QWidget):
-    def __init__(self, parent=None, settings=None, sprav=None, reinit_exp_hook=lambda x: x,
-                 handle_exp_click=lambda x: x):
+    def __init__(
+            self,
+            parent=None,
+            settings: SettingsHolder = None,
+            sprav: SpravHolder = None,
+            reinit_exp_hook=lambda x: x,
+            handle_exp_click=lambda x: x
+    ):
+        """
+        WARNING продолжить разбирать эту таблицу для формы 22
+        """
         QWidget.__init__(self, parent)
         self.settings = settings
         self.sprav_holder = sprav
         self.reload_exp = reinit_exp_hook
-        self.grid = QGridLayout(self)
-        self.header = GroupHeader(self, on_cmb1_changes=self.handle_cmb1_click, on_cmb2_changes=self.handle_cmb2_click)
-        # self.filter = ExpFilter(self, settings=settings)
-        # self.filter.activation_switcher.setChecked(self.settings.filter.enabled)
-        # self.filter_activation.stateChanged.connect(self.filter.toggle())
         self.handle_exp_click = handle_exp_click
+        # комбо-бокс шапка для выбора района/ населенного пункта
+        self.header = GroupHeader(
+            self,
+            on_cmb1_changes=self.handle_cmb1_click,
+            on_cmb2_changes=self.handle_cmb2_click,
+        )
+        # форматирование таблицы в виде иерархии
         self.treeView = QTreeView()
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.activated.connect(self.on_tree_cell_click)
-        self.tree_index_dict = {}
+
+        self.grid = QGridLayout(self)
         self.grid.addWidget(self.header, 0, 0, 1, 15)
-        # self.grid.addWidget(self.filter, 0, 16, 1, 5)
         self.grid.addWidget(self.treeView, 1, 0, 21, 21)
         self.grid.setSpacing(1)
+
+        self.tree_index_dict = {}
         self.current_exp_rows = []
         self.soato_titles = None
         self._exp_valuables_link = None
@@ -143,7 +165,7 @@ class ExpSelector(QWidget):
         self.cmb2_recovery = None
         self.groupped_soatos = None
 
-    # первый комбобокс группировки данных с\с
+    # первый комбобокс группировки данных с\с чего???
     def show_first_combo(self):
         group_soatos = self.make_soato_groups()
         ate_expl_data = dict.fromkeys(list(group_soatos.keys()), None)
@@ -167,7 +189,6 @@ class ExpSelector(QWidget):
         self.exp_data_by_ate = defined_ate_data
         names = []
         for key in group_soatos:
-            # TODO: my edit soato
             if key == "not_groupped":
                 names.append((self.soato_titles[key], key))
             else:
@@ -179,9 +200,9 @@ class ExpSelector(QWidget):
     # второй косбобокс группировки данных по нп
     def show_second_combo(self, ate_soato):
         expl_data = {}
-        ''''
+        """
         Далее заполняем словарь expl_data(keys: SOATO codes) экземплярами класса CtrRow
-        '''
+        """
         for expl in self.current_exp_rows:
             try:
                 expl_data[expl.soato].append(expl)
@@ -223,29 +244,6 @@ class ExpSelector(QWidget):
             else:
                 self.current_exp_rows = self.exp_data_by_soato[curr_soato]
             self.reload_exp(self.current_exp_rows)
-
-    def filter_click(self):
-        if self.settings.filter.enable_melio:
-            param = CtrRow.get_el_by_fkey('mc')
-        else:
-            param = CtrRow.get_el_by_fkey('srvtype')
-
-        if param != 0:
-            curr_soato = self.cmb2_recovery[curr_ind]
-            if curr_ind == 0:
-                self.current_exp_rows = self.exp_data_by_ate[curr_soato]
-            else:
-                self.current_exp_rows = self.exp_data_by_soato[curr_soato]
-            self.reload_exp(self.current_exp_rows)
-
-    def filter_item(self, item):
-        if self.settings.filter.enable_melio:
-            param = item.get_el_by_fkey('mc')
-        else:
-            param = item.get_el_by_fkey('srvtype')
-        if param:
-            return True
-        return False
 
     def set_shape_sum_enabled(self, val):
         if "options" in self._exp_valuables_link:
@@ -322,31 +320,6 @@ class ExpSelector(QWidget):
             QMessageBox.critical(self, titleLocales.error_modal_title, message, QMessageBox.Ok)
 
         return soato_group
-
-    # def make_soato_groups(self):
-    #     s_kods = self.soato_titles.keys()
-    #     soato_group = {}
-    #     for s in s_kods:
-    #         ate_key = s[:-3]
-    #         if s[-3:] == u'000':
-    #             soato_group[ate_key] = []
-    #     nongrouped_soatos = []
-    #     for s in s_kods:
-    #         ate_key = s[:-3]
-    #         try:
-    #             soato_group[ate_key].append(s)
-    #         except KeyError:
-    #             nongrouped_soatos.append(s)
-    #     if nongrouped_soatos:
-    #         # self.show_error(u'WARNING! \nДанные коды не возможно сгруппировать  %s\nУчастки с такими кодами будут
-    #         # размещены в NonGrouped'% unicode(nongrouped_soatos))
-    #         print((u'WARNING! \nДанные коды не возможно сгруппировать  %s\nУчастки с такими кодами будут размещены в '
-    #                u'NonGrouped'% (nongrouped_soatos)))
-    #         global nongrouped
-    #         nongrouped = u'not_groupped'
-    #         soato_group[nongrouped] = nongrouped_soatos
-    #         self.soato_titles['not_groupped' ]= u'Не сгруппированы!'
-    #     return soato_group
 
     @staticmethod
     def _count_cmb_data_recovery(names, first_combo_row='Весь район', ate_kod=None):
