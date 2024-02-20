@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import math
 import sys
 import traceback
@@ -508,8 +506,8 @@ class ExpBalancer:
         if is_positive:
             for f_key in fields_fs:
                 if not self.current_exp[r_key][f_key]['fixed']:
-                    if (self.current_exp[r_key][f_key]['val'] + self.current_exp[r_key][f_key][
-                        'bonus']) >= 1 * 10 ** -self.accuracy:
+                    if (self.current_exp[r_key][f_key]['val'] +
+                        self.current_exp[r_key][f_key]['bonus']) >= 1 * 10 ** -self.accuracy:
                         if self.current_exp[r_key][f_key]['tail'] < 0:
                             if not self.current_exp[r_key][f_key]['minus']:
                                 winner_tail_cells.append(self.current_exp[r_key][f_key])
@@ -596,7 +594,7 @@ class ExpBalancer:
                     matr[row][field]['tail'] = round(matr[row][field]['tail'], (accuracy + 2))
                 except KeyError:
                     raise Exception('Get wrong cell data during balancing!')
-                except Exception as e:
+                except Exception:
                     print('Ошибка:\n', traceback.format_exc())
 
     @staticmethod
@@ -719,7 +717,7 @@ class ExpBalancer:
 
                                 self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True)
 
-                except Exception as e:
+                except Exception:
                     print('Ошибка:\n', traceback.format_exc())
 
     # поиск ячейки в строке, в которую записать невязку
@@ -850,7 +848,7 @@ class ExpBalancer:
                                     print('Уравнивание не удалось')
                                     return 1
                                 self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True)
-                except Exception as e:
+                except Exception:
                     print('Ошибка:\n', traceback.format_exc())
                     print('Fail on balancing each row')
 
@@ -1079,7 +1077,7 @@ class ExpBalancer:
                     if balance_field == 1:
                         check_balance = False
                         break'''
-            except Exception as e:
+            except Exception:
                 print('Ошибка:\n', traceback.format_exc())
                 print('Fail on balancing by each field')
             '''for r_key in depend_rs:

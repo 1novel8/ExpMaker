@@ -10,7 +10,7 @@ class CtrControl(DbControl):
         all_soato = self.conn.select_single_f(
             'select %s from %s where %s is Null' % (
                 soato_tab_str['code']['name'],
-                self.db_schema.soato_tab, soato_tab_str['pref']['name']
+                self.db_schema.soato_tab, soato_tab_str['pref']['name'],
             )
         )
 
@@ -30,7 +30,7 @@ class CtrControl(DbControl):
         all_soato = self.conn.select_single_f(
             'select %s from %s ' % (
                 soato_tab_str['code']['name'],
-                self.db_schema.soato_tab)
+                self.db_schema.soato_tab),
         )
         failed_obj = []
         for i in all_soato:
@@ -51,7 +51,7 @@ class CtrControl(DbControl):
         all_soato = self.conn.select_single_f(
             'select %s from %s where %s is not Null ' % (
                 soato_tab_str['code']['name'],
-                self.db_schema.soato_tab, soato_tab_str['pref']['name']
+                self.db_schema.soato_tab, soato_tab_str['pref']['name'],
             )
         )
 

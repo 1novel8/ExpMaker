@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from core.db import ctrStructure, sprStructure
 
 from .initializer import CtrControl
@@ -21,7 +18,6 @@ class DataControl(CtrControl):
         self.all_tabs_columns = self.get_all_fields()
         self.f22_string = self.get_f22_string()
         self.max_n = self.get_n_max()
-        # sprav_holder.crtab_columns = self.all_tabs_columns[crs_tab]
         sprav_holder.max_n = self.max_n
         self.update_str_to_null()
         self.drop_empty_f_pref()

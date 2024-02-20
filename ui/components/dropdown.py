@@ -6,7 +6,6 @@ class Dropdown(QComboBox):
         QComboBox.__init__(self, parent)
         self.data = data
         self.change_data(data)
-        # self.setStyleSheet(u'font-size: 12px')
         self.set_min_width(width)
         self.setMaxVisibleItems(30)
 

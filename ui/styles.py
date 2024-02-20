@@ -12,16 +12,16 @@ primary_button = apply_theme("""
         color: {color.secondary_light};
         margin: 14px 20px;
         margin-right: 0;
-        padding: 8px; 
+        padding: 8px;
         background-color: {color.primary_green};
         border: 1px solid {color.light_gray};
         border-radius: 5%;
         font-size: 13px;
         font-weight: bold;
     }
-    QToolTip { 
+    QToolTip {
        background-color: {color.primary_light};
-       color: {color.dark_gray}; 
+       color: {color.dark_gray};
        border: 1px solid {color.primary_green};
    }
 """)
@@ -32,15 +32,15 @@ default_table = apply_theme("""
         color: {color.primary_light};
         padding: 2px;
         margin: 1px;
-        border-radius: 2px; 
+        border-radius: 2px;
         font-size: 14px;
         font-weight: bold;
     }
     alternate-background-color: {color.secondary_light};
     background-color: {color.background_light};
-    border-radius: 3px; 
+    border-radius: 3px;
     border: 1px solid {color.dark_gray};
-    color: #1E54B1; 
+    color: #1E54B1;
     font-size: 12px
 """)
 
@@ -50,7 +50,7 @@ xls_table = apply_theme("""
         color: {color.primary_light};
         padding: 2px;
         margin: 1px;
-        border-radius: 2px; 
+        border-radius: 2px;
         font-size: 14px;
         font-weight: bold;
     }
@@ -60,13 +60,13 @@ xls_table = apply_theme("""
 """)
 
 representation_table_label = """
-    color: #D3D3D3; 
+    color: #D3D3D3;
     background-color: #323C3D;
-    font-size: 14px; 
+    font-size: 14px;
     padding: 0 15px;
 """
 representation_xls_table_label = """
-    color: white; 
+    color: white;
     background-color: #38a863;
     border-radius: 2px;
     font-size: 16px;
@@ -84,7 +84,7 @@ splitter = """
     }
 """
 
-progress_bar = """    
+progress_bar = """
     QProgressBar {
         color: white;
         width: 100px;
@@ -102,7 +102,7 @@ progress_bar = """
             stop: 0.4999 #40cc61,
             stop: 0.5 #22d04b,
             stop: 0.75 #06d036,
-            stop: 1 #09a92f 
+            stop: 1 #09a92f
         );
     }
 """
@@ -128,15 +128,15 @@ class ExpSelectorStyles:
         color: {color.primary_light};
         padding: 0;
         margin: 0;
-        border-radius: 4px; 
+        border-radius: 4px;
         font-size: 14px;
         font-weight: bold;
     """)
     dropdown = apply_theme("""
         border-radius: 2px;
-        font-size: 12px; 
+        font-size: 12px;
         padding: 0 2px;
-        color: white; 
+        color: white;
         min-height: 14px;
         border: 1px solid #C3FFF1;
     """)
@@ -149,10 +149,10 @@ class ExpSelectorStyles:
 
 class SourceWidgetStyles:
     src_lbl = """
-        color: white; 
-        margin: 0; 
-        padding: 4px; 
-        background-color: #115f50; 
+        color: white;
+        margin: 0;
+        padding: 4px;
+        background-color: #115f50;
         border-top-left-radius: 8%;
         border-bottom-left-radius: 8%;
         border: 1px solid #00BA4A
@@ -164,7 +164,7 @@ class SourceWidgetStyles:
         font-weight: bold;
     """
     src_btn = """
-        background-color: #00BA4A; 
+        background-color: #00BA4A;
         color: white;
         padding: 5px;
         font-size: 15px;

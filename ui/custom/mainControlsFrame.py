@@ -7,26 +7,43 @@ from ui.styles import title_label
 
 
 class ControlsFrame(QFrame):
+    """
+    Фрейм отвечает за кнопки вслева экрана, для работы с базой
+    1. Контроль
+    2. Конвертация
+    3. Расчет сводной экспликации - форма В
+    4. Отчет о наличии и распределении земель(Раздел I)
+    """
+
     def __init__(self, parent=None, on_click=lambda x: x):
         QFrame.__init__(self, parent)
         self.previous_state = None
         self.current_state = None
         self.exp_tree_initialized = False
         self.mainSizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        # кнопки слева
         self.controls_box = QGridLayout(parent)
+        # 1. Контроль
         self.control_lbl = QLabel(titleLocales.control_lbl, self)
-        self.convert_lbl = QLabel(titleLocales.convert_lbl, self)
-        self.exp_a_lbl = QLabel(titleLocales.exp_a_lbl, self)
-        self.exp_b_lbl = QLabel(titleLocales.exp_b_lbl, self)
         self.control_btn = PrimaryButton(self, titleLocales.run_btn)
-        self.convert_btn = PrimaryButton(self, titleLocales.run_btn)
-        self.exp_sv_btn = PrimaryButton(self, titleLocales.exp_sv_btn)
-        self.exp_b_btn = PrimaryButton(self, titleLocales.calc_btn)
         self.control_btn.clicked.connect(lambda x: on_click(extractionActions.CONTROL))
+        # 3. Конрвертация
+        self.convert_lbl = QLabel(titleLocales.convert_lbl, self)
+        self.convert_btn = PrimaryButton(self, titleLocales.run_btn)
         self.convert_btn.clicked.connect(lambda x: on_click(extractionActions.CONVERTATION))
+        # 3. Расчет сводной экспликации - форма В
+        # Форма В это рассчет А(кто это придумал?)
+        self.exp_a_lbl = QLabel(titleLocales.exp_a_lbl, self)
+        self.exp_sv_btn = PrimaryButton(self, titleLocales.exp_sv_btn)
         self.exp_sv_btn.clicked.connect(lambda x: on_click(expActions.EXP_A_SV))
+        # 4. Отчет о наличии и распределении земель (Раздел I)
+        # это отчет по форме 22
+        self.exp_b_lbl = QLabel(titleLocales.exp_b_lbl, self)
+        self.exp_b_btn = PrimaryButton(self, titleLocales.calc_btn)
         self.exp_b_btn.clicked.connect(lambda x: on_click(expActions.EXP_B))
-        self._set_tooltips()
+
+        self._set_tooltips()  # подсказки при наведении
         self._set_styles()
         self.controls_box = QGridLayout(self)
         self._locate_components()
@@ -38,7 +55,7 @@ class ControlsFrame(QFrame):
         self.controls_box.addWidget(self.exp_b_lbl, 6, 0, 1, 1)
         self.controls_box.addWidget(self.control_btn, 0, 1, 1, 1)
         self.controls_box.addWidget(self.convert_btn, 2, 1, 1, 1)
-        self.controls_box.addWidget(self.exp_sv_btn,  4, 1, 1, 1)
+        self.controls_box.addWidget(self.exp_sv_btn, 4, 1, 1, 1)
         self.controls_box.addWidget(self.exp_b_btn, 6, 1, 1, 1)
 
     def _set_tooltips(self):

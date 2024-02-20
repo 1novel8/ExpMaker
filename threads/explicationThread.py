@@ -6,25 +6,43 @@ from workers import ExplicationWorker
 
 
 class ExplicationThread(QThread):
+    """
+    Поток для выполнения создания отчета
+    """
+
     success_signal = pyqtSignal('PyQt_PyObject')
     progress_signal = pyqtSignal('PyQt_PyObject')
     error_signal = pyqtSignal('PyQt_PyObject')
     current_action = None
     current_params = None
 
-    def __init__(self, parent=None,
-                 success_handler=lambda x: x,
-                 progress_handler=lambda x: x,
-                 error_handler=lambda x: x):
+    def __init__(
+            self,
+            parent=None,
+            success_handler=lambda x: x,
+            progress_handler=lambda x: x,
+            error_handler=lambda x: x
+    ):
         super(ExplicationThread, self).__init__(parent)
+        # сигнали для демонстрации показа состояния потока
         self.success_signal.connect(success_handler)
         self.progress_signal.connect(progress_handler)
         self.error_signal.connect(error_handler)
+        # класс который фактически выполняет действие
         self.worker = ExplicationWorker(process_event_handler=self.emit_progress)
+        # словарь {"действие пользователя": "ответ со стороны программ"}
+        self.activities = {
+            expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
+            expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
+            expActions.EXP_A_SINGLE: self.worker.create_exp_a,
+            expActions.EXP_A_SV: self.worker.create_exp_a_sv,
+            expActions.EXP_B: self.worker.create_exp_b,
+        }
 
-    def start(self, action, **kvargs):
+    def start(self, action, **kwargs):
+        """ Запуск процесса, который вызывает метод run"""
         self.current_action = action
-        self.current_params = kvargs
+        self.current_params = kwargs
         super(ExplicationThread, self).start()
 
     def emit_progress(self, progress_meta):
@@ -37,14 +55,7 @@ class ExplicationThread(QThread):
         self.error_signal.emit(error)
 
     def run_activity(self):
-        activities = {
-            expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
-            expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
-            expActions.EXP_A_SINGLE: self.worker.create_exp_a,
-            expActions.EXP_A_SV: self.worker.create_exp_a_sv,
-            expActions.EXP_B: self.worker.create_exp_b,
-        }
-        return activities[self.current_action](**self.current_params)
+        return self.activities[self.current_action](**self.current_params)
 
     def run(self):
         try:
