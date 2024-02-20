@@ -32,272 +32,209 @@ class SpravStructure:
             "S_LandCodes": {
                 "lc": {
                     "name": "LandCode",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "f_num": {
                     "name": "field_Num",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 }
             },
             "Alias_F_Config": {
                 "alias": {
                     "name": "alias",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "match_f": {
                     "name": "match_field",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "f_type": {
                     "name": "field_type",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
             },
             "ExpA_R_Structure": {
                 "row_id": {
                     "name": "row_id",
-                    "type": "INTEGER"
+                    "type": "INTEGER",
                 },
                 "codes": {
                     "name": "codes",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "row_name": {
                     "name": "row_name",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "group_field": {
                     "name": "group_field",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "balance_lvl": {
                     "name": "balance_level",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "balance_by": {
                     "name": "balance_by",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 }
             },
             "ExpA_F_Structure": {
                 "f_num": {
                     "name": "f_num",
-                    "type": "INTEGER"
+                    "type": "INTEGER",
                 },
                 "f_name": {
                     "name": "f_name",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "sum_fields": {
                     "name": "sum_fields",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "balance_lvl": {
                     "name": "balance_level",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "balance_by": {
                     "name": "balance_by",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 }
             },
             "ExpB_R_Structure": {
                 "row_id": {
-
                     "name": "row_id",
-                    "type": "INTEGER"
+                    "type": "INTEGER",
 
                 },
                 "row_key": {
-
                     "name": "row_key",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "f22_value": {
-
                     "name": "f22_value",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "sort_filter": {
-
                     "name": "sort_filter",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "sum_conditions": {
-
                     "name": "sum_conditions",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "balance_lvl": {
-
                     "name": "balance_level",
-
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "balance_by": {
-
                     "name": "balance_by",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 }
             },
             "ExpB_F_Structure": {
                 "f_num": {
-
                     "name": "f_num",
-                    "type": "INTEGER"
-
+                    "type": "INTEGER",
                 },
                 "f_name": {
-
                     "name": "f_name",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "alias_codes": {
-
                     "name": "alias_codes",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "sum_fields": {
-
                     "name": "sum_fields",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "balance_lvl": {
-
                     "name": "balance_level",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "balance_by": {
-
                     "name": "balance_by",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 }
             },
             "BGDToEkp1": {
                 "f22": {
-
                     "name": "F22",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "u_type": {
-
                     "name": "UTYPE",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "np_type": {
-
                     "name": "NPTYPE",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "state": {
-
                     "name": "STATE",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "sl_nad": {
-
                     "name": "SLNAD",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "new_us_name": {
-
                     "name": "NEWUSNAME",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "dop_us_name": {
-
                     "name": "DOPUSNAME",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 }
             },
             "BGDToEkp2": {
                 "f22": {
-
                     "name": "F22",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "new_f22": {
-
                     "name": "NEWF22",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "u_type": {
-
                     "name": "UTYPE",
                     "type": "VARCHAR"},
                 "np_type": {
-
                     "name": "NPTYPE",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "lc_min": {
-
                     "name": "LCODE_MIN",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "lc_max": {
-
                     "name": "LCODE_MAX",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "new_lc": {
-
                     "name": "NewLCODE",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "state": {
-
                     "name": "STATE",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "new_state": {
-
                     "name": "NewSTATE",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "sl_nad": {
-
                     "name": "SLNAD",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 },
                 "new_us_name": {
-
                     "name": "NEWUSNAME",
-                    "type": "SMALLINT"
-
+                    "type": "SMALLINT",
                 },
                 "dop_us_name": {
-
                     "name": "DOPUSNAME",
-                    "type": "VARCHAR"
-
+                    "type": "VARCHAR",
                 }
             },
             "S_SOATO": {
@@ -305,31 +242,31 @@ class SpravStructure:
                 #          "type": "COUNTER"},
                 "zn_1": {
                     "name": "znak1",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "zn_2": {
                     "name": "znak2",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "zn_57min": {
                     "name": "znak57min",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "zn_57max": {
                     "name": "znak57max",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "zn_810max": {
                     "name": "znak810max",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "zn_810min": {
                     "name": "znak810min",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 },
                 "type_np": {
                     "name": "TypeNP",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 }
             },
             "S_State": {
@@ -337,7 +274,7 @@ class SpravStructure:
                 #                  "type": "COUNTER"},
                 "state_code": {
                     "name": "StateCode",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
                 }
             },
             "S_Forma22": {
@@ -345,13 +282,12 @@ class SpravStructure:
                 #          "type": "COUNTER"},
                 "f22_code": {
                     "name": "F22Code",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 },
                 "f22_name": {
                     "name": "F22Name",
-                    "type": "VARCHAR"
+                    "type": "VARCHAR",
                 }
-
             },
             "S_MelioCode": {
                 # "id":
@@ -360,7 +296,7 @@ class SpravStructure:
                 #          "type": "COUNTER"},
                 "mc": {
                     "name": "MelioCode",
-                    "type": "SMALLINT"
+                    "type": "SMALLINT",
 
                 }
             },
@@ -369,7 +305,7 @@ class SpravStructure:
                 #          "type": "COUNTER"},
                 "sl_nad_code": {
                     "name": "SLNADCode",
-                    "type": "BYTE"
+                    "type": "BYTE",
 
                 }
             },
@@ -378,21 +314,21 @@ class SpravStructure:
                 #          "type": "COUNTER"},
                 "user_type": {
                     "name": "UsertypeCode",
-                    "type": "BYTE"
+                    "type": "BYTE",
                 }
             },
             "Select_Conditions": {
                 "id": {
                     "name": "Id",
-                    "type": ["INTEGER", "SMALLINT", "COUNTER"]
+                    "type": ["INTEGER", "SMALLINT", "COUNTER"],
                 },
                 "title": {
                     "name": "Title",
-                    "type": ["VARCHAR"]
+                    "type": ["VARCHAR"],
                 },
                 "where_case": {
                     "name": "WhereCase",
-                    "type": ["VARCHAR"]
+                    "type": ["VARCHAR"],
                 }
             }
         }

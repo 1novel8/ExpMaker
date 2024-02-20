@@ -100,6 +100,7 @@ class SpravHolder(object):
             return False
 
     def set_changes(self, change_data, sprav_path):
+        # тут написан какой-то бред
         if self.set_parameters(change_data):
             self.current_sprav_data = change_data
             self.current_sprav_data['path_info'] = 'Default' if sprav_path == coreFiles.spr_default_path else sprav_path
