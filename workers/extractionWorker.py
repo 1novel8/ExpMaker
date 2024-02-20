@@ -4,6 +4,9 @@ from core.extractors import CtrConverter, DataControl
 
 
 class ExtractionWorker:
+    """
+    запускается при нажатии Контроль / конвертация
+    """
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
 

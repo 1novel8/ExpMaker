@@ -13,19 +13,26 @@ class ExtractionThread(QThread):
     current_action = None
     current_params = None
 
-    def __init__(self, parent=None,
-                 success_handler=lambda x: x,
-                 warnings_handler=lambda x: x,
-                 error_handler=lambda x: x):
+    def __init__(
+            self,
+            parent=None,
+            success_handler=lambda x: x,
+            warnings_handler=lambda x: x,
+            error_handler=lambda x: x
+    ):
         super(ExtractionThread, self).__init__(parent)
         self.success_signal.connect(success_handler)
         self.warnings_signal.connect(warnings_handler)
         self.error_signal.connect(error_handler)
         self.worker = ExtractionWorker(self.emit_error)
+        self.activities = {
+            extractionActions.CONTROL: self.worker.run_contol,
+            extractionActions.CONVERTATION: self.worker.run_convertation,
+        }
 
-    def start(self, action, **kvargs):
+    def start(self, action, **kwargs):
         self.current_action = action
-        self.current_params = kvargs
+        self.current_params = kwargs
         super(ExtractionThread, self).start()
 
     def emit_error(self, error):
@@ -35,11 +42,7 @@ class ExtractionThread(QThread):
         self.error_signal.emit(error)
 
     def run_activity(self):
-        activities = {
-            extractionActions.CONTROL: self.worker.run_contol,
-            extractionActions.CONVERTATION: self.worker.run_convertation,
-        }
-        return activities[self.current_action](**self.current_params)
+        return self.activities[self.current_action](**self.current_params)
 
     def run(self):
         try:

@@ -24,82 +24,82 @@ class CtrStructure:
                 },
                 "soato": {
                     "name": "SOATO",
-                    "type": ["VARCHAR", ]
+                    "type": ["VARCHAR", ],
                 },
                 "part_n": {
                     "name": "Part_1",
                     "type": ["DOUBLE", ],
-                    "part_name": "Part_"
+                    "part_name": "Part_",
                 },
                 "user_n": {
                     "name": "UserN_1",
                     "type": ["INTEGER", "SMALLINT"],
-                    "part_name": "UserN_"
+                    "part_name": "UserN_",
                 },
                 "f22": {
                     "name": "Forma22_1",
                     "type": ["VARCHAR", ],
-                    "part_name": "Forma22_"
+                    "part_name": "Forma22_",
                 },
                 "srv_type": {
                     "name": "ServType08",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "sl_nad": {
                     "name": "SLNAD",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "state": {
                     "name": "State",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "lc": {
                     "name": "LANDCODE",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "mc": {
                     "name": "MELIOCODE",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "user_n_sad": {
                     "name": "UserN_Sad",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 }
             },
             "SOATO": {
                 "name": {
                     "name": "NAME",
-                    "type": ["VARCHAR", ]
+                    "type": ["VARCHAR", ],
                 },
                 "id": {
                     "name": "OBJECTID",
-                    "type": ["COUNTER"]
+                    "type": ["COUNTER"],
                 },
                 "pref": {
                     "name": "PREF",
-                    "type": ["VARCHAR", ]
+                    "type": ["VARCHAR", ],
                 },
                 "code": {
                     "name": "KOD",
-                    "type": ["VARCHAR", ]
+                    "type": ["VARCHAR", ],
                 }
             },
             "Users": {
                 "id": {
                     "name": "OBJECTID",
-                    "type": ["COUNTER"]
+                    "type": ["COUNTER"],
                 },
                 "user_type": {
                     "name": "UserType",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 },
                 "us_name": {
                     "name": "UsName",
-                    "type": ["VARCHAR", ]
+                    "type": ["VARCHAR", ],
                 },
                 "user_n": {
                     "name": "UserN",
-                    "type": ["INTEGER", "SMALLINT"]
+                    "type": ["INTEGER", "SMALLINT"],
                 }
             }
         }
