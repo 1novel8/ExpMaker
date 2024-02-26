@@ -1,3 +1,5 @@
+from pyodbc import Row
+
 
 def catch_wrong_fkey(f_to_decor):
     def wrapper(self, *args, **kwargs):
@@ -5,51 +7,56 @@ def catch_wrong_fkey(f_to_decor):
             return f_to_decor(self, *args, **kwargs)
         except KeyError:
             raise Exception(u'Прервана попытка получить элемент по несуществующему ключу %s' % args[0])
+
     return wrapper
 
 
-class CtrRow(object):
-    def __init__(self, spr_holder, r_args, n):
+class CtrRow:
+    """
+    Класс строки из базы
+    """
+    def __init__(self, spr_holder, row_args: list, n_survived: int) -> None:
         """
         land_code is always on index 0, slnad on index 1
 
-        :param r_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, Forma22_*,
+        :param row_args: OBJECTID, SOATO, SlNad, State_1, LANDCODE, MELIOCODE, ServType08, Forma22_*,
                 UserN_*,Usertype_*, Area_*, *dop_params
         # :param n_dop_args: len of dop params array in the end of r_args
-        :param n: max number of parts in crostab table
+        :param n_survived: max number of parts in crostab table
         :param spr_holder: SpravHolder instance
         """
         self.row_ready = False
-        self.has_err = False                # отанется False - контроль пройден,
+        self.has_err = False  # отанется False - контроль пройден,
         self.err_in_part = None
-        self.structure = spr_holder.attr_config
-        self.n = n
-        self.__r_args = r_args
+        self.structure: dict = spr_holder.attr_config
+        self.n = n_survived
+        self.__r_args = row_args
         self.soato = self.get_el_by_fkey('nptype')
         self.object_id = self.get_el_by_fkey('id')
-        np_type = CtrRow.make_nptype(self.soato, spr_holder.soato_npt)
+        np_type = CtrRow.make_nptype(soato_code=self.soato, npt_sprav=spr_holder.soato_npt)
         if np_type is None:
             self.has_err = 4
             self.err_in_part = 1
             return
         self.__r_args[self.structure['nptype']] = np_type
         self.new_lc = None
-        self.dopname = [None]*self.n
-        self.nusname = [None]*self.n
-        self.run_bgd_control(spr_holder)
+        self.dopname = [None] * self.n
+        self.nusname = [None] * self.n
+        self.run_bgd_control(spr_holder)  # не понимаю!!!!!!!!!
         if not self.has_err:
             self.remake_area()
             self.remake_usern()
             self.block_r_args()
 
     @staticmethod
-    def make_nptype(kod, npt_sprav):
+    def make_nptype(soato_code: str, npt_sprav: list[Row]) -> int:
+        """ Вычисление TypeNP через таблицу S_SOATO"""
         for row in npt_sprav:
-            if int(kod[0]) == 5:
+            if int(soato_code[0]) == 5:
                 return row[6]
-            elif int(kod[1]) == row[1]:
-                if row[3] is None or row[2] <= int(kod[4:7]) <= row[3]:
-                    if row[4] is None or row[4] <= int(kod[7:10]) <= row[5]:
+            elif int(soato_code[1]) == row[1]:
+                if row[3] is None or row[2] <= int(soato_code[4:7]) <= row[3]:
+                    if row[4] is None or row[4] <= int(soato_code[7:10]) <= row[5]:
                         return row[6]
 
     def simplify_to_d(self, n, need_keys):
@@ -92,7 +99,7 @@ class CtrRow(object):
             self.__r_args[self.structure[f_key]] = val
 
     @catch_wrong_fkey
-    def set_el_by_fkey_n(self, f_key, n,  val):
+    def set_el_by_fkey_n(self, f_key, n, val):
         if not self.row_ready:
             self.__r_args[self.structure[f_key]][n] = val
 
@@ -101,7 +108,7 @@ class CtrRow(object):
             areas = []
             shape_area = self.get_el_by_fkey(u'area')
             for part in self.get_el_by_fkey(u'part'):
-                areas.append(shape_area*part/100)
+                areas.append(shape_area * part / 100)
             self.set_el_by_fkey(u'area', areas)
         else:
             self.set_el_by_fkey(u'area', self.get_el_by_fkey(u'area'))
@@ -114,6 +121,7 @@ class CtrRow(object):
     def block_r_args(self, fix=True):
         def change_type(item):
             return tuple(item) if fix else list(item)
+
         r_args = self.__r_args
         for i in range(len(r_args)):
             if isinstance(r_args[i], (tuple, list)):
@@ -145,11 +153,11 @@ class CtrRow(object):
                 return False
         return True
 
-    def run_bgd_control(self, s_h):
+    def run_bgd_control(self, sprav_holder):
         if self.n == 1:
-            if self.bgd1_control(s_h, 0):
+            if self.bgd1_control(sprav_holder, 0):
                 pass
-            elif self.bgd2_control(s_h, 0):
+            elif self.bgd2_control(sprav_holder, 0):
                 if self.new_lc:
                     self.set_el_by_fkey('lc', self.new_lc)
             else:
@@ -157,19 +165,23 @@ class CtrRow(object):
                 self.err_in_part = 1
         else:
             for n in range(self.n):
-                if self.bgd1_control(s_h, n):
+                if self.bgd1_control(sprav_holder, n):
                     continue
-                elif self.bgd2_control(s_h, n):
+                elif self.bgd2_control(sprav_holder, n):
                     if self.new_lc:
                         self.set_el_by_fkey('lc', self.new_lc)
                 else:
                     self.has_err = 2
-                    self.err_in_part = n+1
+                    self.err_in_part = n + 1
                     break
 
-    def bgd1_control(self, spr, n):
+    def bgd1_control(self, sprav_holder, n):
         try:
-            bgd_li = spr.bgd2ekp_1[self.get_el_by_fkey('f22')[n]][self.get_el_by_fkey('usertype')[n]][self.get_el_by_fkey('state')][self.get_el_by_fkey('slnad')]
+            bgd_li = sprav_holder.bgd2ekp_1[
+                self.get_el_by_fkey('f22')[n]][
+                self.get_el_by_fkey('usertype')[n]][
+                self.get_el_by_fkey('state')][
+                self.get_el_by_fkey('slnad')]
             for b_row in bgd_li:  # bgd_row:
                 #  f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME,
                 if b_row[0] <= self.get_el_by_fkey('nptype') <= b_row[1]:
@@ -188,7 +200,7 @@ class CtrRow(object):
         try:
             bgd_li = spr.bgd2ekp_2[f22][utype][state][slnad]
             # newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
-            for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1),
+            for b_row in bgd_li:  # bgd_row: newF22(0), NPTYPE_min (1),
                 # NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5), NEWUSNAME(6), DOPUSNAME(7)
                 if b_row[1] <= self.get_el_by_fkey('nptype') <= b_row[2] \
                         and b_row[3] <= self.get_el_by_fkey('lc') <= b_row[4]:

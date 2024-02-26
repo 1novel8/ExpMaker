@@ -3,6 +3,7 @@ import pickle
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
 from core.extractors import CtrControl
+from core.settingsHolders import SettingsHolder, SpravHolder
 from locales import customErrors
 
 
@@ -83,7 +84,14 @@ class BaseWorker:
                 sprav_holder.close_db_connection()
 
     @staticmethod
-    def load_pkl_sprav(sprav_holder=None, settings_holder=None, sprav_path=coreFiles.spr_default_path):
+    def load_pkl_sprav(
+            sprav_holder: SpravHolder = None,
+            settings_holder: SettingsHolder = None,
+            sprav_path: str = coreFiles.spr_default_path,
+    ) -> None:
+        """
+        Загрузка справочника и настроек из .pkl
+        """
         is_default = sprav_path == coreFiles.spr_default_path
         try:
             with open(sprav_path, "rb") as inp:

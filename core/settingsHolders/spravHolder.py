@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import json
 import time
 
@@ -99,7 +96,7 @@ class SpravHolder(object):
         except KeyError:
             return False
 
-    def set_changes(self, change_data, sprav_path):
+    def set_changes(self, change_data, sprav_path: str):
         # тут написан какой-то бред
         if self.set_parameters(change_data):
             self.current_sprav_data = change_data

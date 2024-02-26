@@ -5,12 +5,14 @@ from core.extractors import CtrConverter, DataControl
 
 class ExtractionWorker:
     """
-    запускается при нажатии Контроль / конвертация
+    Запускается при нажатии Контроль / конвертация
     """
     def __init__(self, process_event_handler=lambda x: x):
         self.emit_process_event = process_event_handler
 
     def run_contol(self, sprav_holder=None, db_file=None):
+        """ Нажатие на кнопку Контроль """
+
         contr = DataControl(sprav_holder, db_file, coreFiles.tempDB_path)
         try:
             errors = contr.run_field_control()
@@ -22,6 +24,8 @@ class ExtractionWorker:
             return errors
 
     def run_convertation(self, sprav_holder=None, settings_holder=None):
+        """ Нажатие на кнопку Конвертация """
+
         select_condition = {}
         if isinstance(sprav_holder.select_conditions, list):
             for select_op in sprav_holder.select_conditions:

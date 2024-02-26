@@ -1,3 +1,5 @@
+from pyodbc import Row
+
 from core.db import ctrStructure
 from core.db.connector import DbConnector
 
@@ -5,22 +7,23 @@ from .ctrRow import CtrRow
 
 
 class CtrConverter:
+    """ Испольщуется при конвертации """
     @staticmethod
-    def convert(sprav_holder, temp_db_path, select_condition):
+    def convert(sprav_holder, temp_db_path: str, select_condition: dict):
         n_max = sprav_holder.max_n
-        ctr_conn = DbConnector(temp_db_path)
-        CtrConverter.add_nasp_name_to_soato(ctr_conn)
-        CtrConverter.add_utype_to_crtab(ctr_conn, n_max)
-        users_d, soato_d = CtrConverter.data_users_soato(ctr_conn)
-        query_structure = sprav_holder.attr_config['ctr_structure']
-        select_ctr_all = CtrConverter._make_crtab_query(query_structure, n_max, select_condition['WhereCase'])
+        ctr_conn = DbConnector(db_path=temp_db_path)
+
+        CtrConverter.add_nasp_name_to_soato(ctr_conn)  # добавляем NameNasp (д. Чучевичи, Брестский р-н) в SOATO
+        CtrConverter.add_utype_to_crtab(ctr_conn, n_max)  # добавляем UserType в crosstab_razv
+        users_d, soato_d = CtrConverter.data_users_soato(ctr_conn)  # достаем  Users(UserN, UsName) + Soato(Code, NameNasp)
+        query_structure: tuple = sprav_holder.attr_config['ctr_structure']  # все атрибуты
+        select_ctr_all = CtrConverter._make_crtab_query(fields=query_structure, n_max=n_max, where_case=select_condition['WhereCase'])
         try:
             # Hint: Check Sprav fields when failes here.
             sel_result = ctr_conn.exec_sel_query(select_ctr_all)
         except Exception as err:
             raise Exception('Ошибка при загрузке данных из crostab: %s' % err)
-        shape_area_sum = CtrConverter.get_shape_area_sum(ctr_conn)
-        # ctr_conn.close_conn()
+        shape_area_sum = CtrConverter.get_shape_area_sum(ctr_conn)  # Сумма всей прощади
 
         rows_ok = []
         whats_err = {1: {}, 2: {}, 3: {}, 4: {}}
@@ -28,7 +31,7 @@ class CtrConverter:
         if not sel_result:
             raise Exception('Данные по установленным параметрам выборки не найдены.')
         for row in sel_result:
-            modified_r = CtrConverter.collapse_row(row, query_structure, n_max)
+            modified_r = CtrConverter.collapse_row(row=row, structure=query_structure, n_max=n_max)  # Удаление пустых значений и None
             new_row = CtrRow(sprav_holder, *modified_r)
             if new_row.has_err:
                 err_part = 'Part_%d' % new_row.err_in_part
@@ -50,15 +53,21 @@ class CtrConverter:
             return save_info
 
     @staticmethod
-    def add_column(connection, tabname, colname, coltype='int Null'):
+    def add_column(connection: DbConnector, table_name: str, column_name: str, column_type: str = 'int Null'):
+        """ Добавляет столбец (удаляет если он уже существует) """
         try:
-            connection.exec_query('ALTER TABLE %s DROP "%s";' % (tabname, colname))
+            connection.exec_query('ALTER TABLE %s DROP "%s";' % (table_name, column_name))
         except:
             pass
-        connection.exec_query('ALTER TABLE %s ADD %s %s;' % (tabname, colname, coltype))
+        connection.exec_query('ALTER TABLE %s ADD %s %s;' % (table_name, column_name, column_type))
 
     @staticmethod
-    def add_nasp_name_to_soato(connection):
+    def add_nasp_name_to_soato(connection: DbConnector) -> None:
+        """
+        Добавляем столбец NameNasp в таблицу SOATO, а в него записываем префикс + название района.
+        Пример: д. Чучевичи / Лунинецкий р-н.
+        """
+
         tab_name = ctrStructure.soato_tab
         format_d = {
             'nasp': 'NameNasp',
@@ -73,48 +82,33 @@ class CtrConverter:
         connection.exec_query(updnamenasp2)
 
     @staticmethod
-    def add_utype_to_crtab(connection, max_n=None):
+    def add_utype_to_crtab(connection: DbConnector, max_n: int = None) -> None:
+        """
+        Создаем несколько столбцов UserType_{n} n=max_n в тaблицу Users
+        """
+
         us_tab = ctrStructure.users_tab
         cr_tab = ctrStructure.crs_tab
         format_d = {
             'us_t': us_tab,
             'cr_t': cr_tab,
-            'u_utype': ctrStructure.get_tab_str(us_tab)['user_type']['name'],
-            'u_usern': ctrStructure.get_tab_str(us_tab)['user_n']['name']
+            'u_utype': ctrStructure.get_tab_str(us_tab)['user_type']['name'],  # UserType
+            'u_usern': ctrStructure.get_tab_str(us_tab)['user_n']['name']  # UserN
         }
         for n in range(1, max_n + 1):
             # ---------------------------UserType_n----------------------------------------------
-            format_d['c_utype'] = 'UserType_' + str(n)
-            format_d['c_usern'] = ctrStructure.get_tab_str(cr_tab)['user_n']['part_name'] + str(n)
-            CtrConverter.add_column(connection, cr_tab, format_d['c_utype'])
+            format_d['c_utype'] = 'UserType_' + str(n)  # UserType_{n}
+            format_d['c_usern'] = ctrStructure.get_tab_str(cr_tab)['user_n']['part_name'] + str(n)  # UserN_{n}
+            CtrConverter.add_column(connection, table_name=cr_tab, column_name=format_d['c_utype'])  # <--- Добавление UserType_{n} = Null в таблицу crostab_razv
+            # написано обновить user_table, но обновляется crostab.
+            # UserType_{n} в crostab приравнимаем с UserType у Users
             query = 'UPDATE %(us_t)s u INNER JOIN %(cr_t)s c ON u.%(u_usern)s = c.%(c_usern)s SET c.%(c_utype)s = u.%(u_utype)s;' % format_d
             connection.exec_query(query)
-            # sql2 = '''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
-            #             SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
-            #                 %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
-            #             WHERE %(t)s.UserN_%(nn)d is not null
-            #                     and %(t)s.UserN_Sad is not null
-            #                     and SLNAD = 2 ;''' % {'t': ct, 'nn': n}
-            # connection.exec_query(sql2)
-            # ---------------------------PART_n----------------------------------------------
-            # CtrConverter.add_column(connection, ct, u"Area_%s" % n, 'DOUBLE NULL')
-            # sqlarea = '''UPDATE %(t)s
-            #             SET Area_%(nn)s = (Part_%(nn)s/100)*[Shape_Area]
-            #             WHERE Part_%(nn)s <> 0''' % {'t': ct, 'nn': n}
-            # connection.exec_query(sqlarea)
-
-    # def upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
-    #     sqlupdnp = 'update %s set NPType = %s where mid(%s, 1, 1) in (%s)'%(table, typenp, f_kod, zn1)
-    #     if zn2 is not  None:
-    #         sqlupdnp += ' and mid(%s, 2, 1) = %s' % (f_kod, zn2)
-    #     if zn57min is not None and zn57max is not None:
-    #         sqlupdnp += ' and (mid(%s, 5, 3) between %s and %s)' % (f_kod, zn57min, zn57max)
-    #     if zn810min is not None or zn810max is not None:
-    #         sqlupdnp += ' and (mid(%s, 8, 3) between %s and %s)' % (f_kod, zn810min, zn810max)
-    #     return sqlupdnp
 
     @staticmethod
-    def _make_crtab_query(fields, n_max, where_case=None):
+    def _make_crtab_query(fields: tuple, n_max: int, where_case=None) -> str:
+        """ Создание щапросов """
+
         query = 'SELECT '
         for f in fields:
             if '*' in f:
@@ -129,7 +123,8 @@ class CtrConverter:
         return query
 
     @staticmethod
-    def collapse_row(row, structure, n_max):
+    def collapse_row(row: Row, structure: tuple, n_max: int) -> tuple[list, int]:
+        """ Удаление пустых значений и None """
         return_row = []
         row = list(row)
         n_survived = 0
@@ -149,7 +144,9 @@ class CtrConverter:
         return return_row, n_survived
 
     @staticmethod
-    def get_shape_area_sum(ct_conn):
+    def get_shape_area_sum(ct_conn: DbConnector) -> float:
+        """Сумма всех прощадей"""
+
         format_d = {
             'cr_tab': ctrStructure.crs_tab,
             'sh_area': ctrStructure.get_tab_str(ctrStructure.crs_tab)['shape_area']['name']
@@ -158,7 +155,7 @@ class CtrConverter:
         return sel_result[0][0]
 
     @staticmethod
-    def data_users_soato(ct_conn):
+    def data_users_soato(ct_conn: DbConnector) -> tuple[dict, dict]:
         """
         returns UsersDict and SoatoDict with keys usern and soato
         and values in unicode
@@ -179,20 +176,20 @@ class CtrConverter:
         soato_dict = dict(sel_result)
         return users_dict, soato_dict
 
-    @staticmethod
-    def make_soato_group(s_kods):
-        soato_group = {}
-        ate_soato = []
-        for s in s_kods:
-            ate_key = s[:-3]
-            if not s[-3:] == '000':
-                try:
-                    soato_group[ate_key].append(s)
-                except KeyError:
-                    soato_group[ate_key] = [s]
-            else:
-                ate_soato.append(ate_key)
-            for soato in ate_soato:
-                if soato not in soato_group.keys():
-                    soato_group[soato] = []
-        return soato_group
+    # @staticmethod
+    # def make_soato_group(s_kods):
+    #     soato_group = {}
+    #     ate_soato = []
+    #     for s in s_kods:
+    #         ate_key = s[:-3]
+    #         if not s[-3:] == '000':
+    #             try:
+    #                 soato_group[ate_key].append(s)
+    #             except KeyError:
+    #                 soato_group[ate_key] = [s]
+    #         else:
+    #             ate_soato.append(ate_key)
+    #         for soato in ate_soato:
+    #             if soato not in soato_group.keys():
+    #                 soato_group[soato] = []
+    #     return soato_group

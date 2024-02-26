@@ -10,7 +10,7 @@ from .db_decorators import catch_db_exception, try_make_conn
 
 
 class DbConnector:
-    def __init__(self, db_path, do_conn=True):
+    def __init__(self, db_path: str, do_conn: bool = True):
         self.db_f_path = db_path
         self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path
         self.__conn = None
