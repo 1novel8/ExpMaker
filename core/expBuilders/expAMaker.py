@@ -1,7 +1,7 @@
-from .buildUtils import ExpBuilder
-from .expARowDataCombiner import RowDataCombiner as DataComb
 from ..extractors import ctrRow
 from ..settingsHolders import SpravHolder
+from .buildUtils import ExpBuilder
+from .expARowDataCombiner import RowDataCombiner as DataComb
 
 
 class ExpAMaker:

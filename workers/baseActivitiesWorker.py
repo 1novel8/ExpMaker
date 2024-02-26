@@ -3,7 +3,7 @@ import pickle
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
 from core.extractors import CtrControl
-from core.settingsHolders import SpravHolder, SettingsHolder
+from core.settingsHolders import SettingsHolder, SpravHolder
 from locales import customErrors
 
 
