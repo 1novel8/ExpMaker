@@ -1,12 +1,5 @@
 import math
-import sys
 import traceback
-
-from PyQt5.QtWidgets import QMessageBox
-
-from constants import errTypes
-from core.errors import CustomError
-from locales import customErrors
 
 
 class ExpBalancer:

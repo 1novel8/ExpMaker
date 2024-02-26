@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtWidgets import QWidget
 
 from constants import errTypes, expActions
 from core.errors import CustomError
@@ -18,19 +19,21 @@ class ExplicationThread(QThread):
 
     def __init__(
             self,
-            parent=None,
+            parent: QWidget = None,
             success_handler=lambda x: x,
             progress_handler=lambda x: x,
-            error_handler=lambda x: x
+            error_handler=lambda x: x,
     ):
         super(ExplicationThread, self).__init__(parent)
         # сигнали для демонстрации показа состояния потока
         self.success_signal.connect(success_handler)
         self.progress_signal.connect(progress_handler)
         self.error_signal.connect(error_handler)
+
         # класс который фактически выполняет действие
         self.worker = ExplicationWorker(process_event_handler=self.emit_progress)
-        # словарь {"действие пользователя": "ответ со стороны программ"}
+
+        # словарь {"действие пользователя": "ответ программы"}
         self.activities = {
             expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
             expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,

@@ -1,14 +1,14 @@
-
 def catch_wrong_fkey(f_to_decor):
     def wrapper(self, *args, **kwargs):
         try:
             return f_to_decor(self, *args, **kwargs)
         except KeyError:
             raise Exception(u'Прервана попытка получить элемент по несуществующему ключу %s' % args[0])
+
     return wrapper
 
 
-class CtrRow(object):
+class CtrRow:
     def __init__(self, spr_holder, r_args, n):
         """
         land_code is always on index 0, slnad on index 1
@@ -20,9 +20,9 @@ class CtrRow(object):
         :param spr_holder: SpravHolder instance
         """
         self.row_ready = False
-        self.has_err = False                # отанется False - контроль пройден,
+        self.has_err = False  # отанется False - контроль пройден,
         self.err_in_part = None
-        self.structure = spr_holder.attr_config
+        self.structure: dict = spr_holder.attr_config
         self.n = n
         self.__r_args = r_args
         self.soato = self.get_el_by_fkey('nptype')
@@ -34,8 +34,8 @@ class CtrRow(object):
             return
         self.__r_args[self.structure['nptype']] = np_type
         self.new_lc = None
-        self.dopname = [None]*self.n
-        self.nusname = [None]*self.n
+        self.dopname = [None] * self.n
+        self.nusname = [None] * self.n
         self.run_bgd_control(spr_holder)
         if not self.has_err:
             self.remake_area()
@@ -92,7 +92,7 @@ class CtrRow(object):
             self.__r_args[self.structure[f_key]] = val
 
     @catch_wrong_fkey
-    def set_el_by_fkey_n(self, f_key, n,  val):
+    def set_el_by_fkey_n(self, f_key, n, val):
         if not self.row_ready:
             self.__r_args[self.structure[f_key]][n] = val
 
@@ -101,7 +101,7 @@ class CtrRow(object):
             areas = []
             shape_area = self.get_el_by_fkey(u'area')
             for part in self.get_el_by_fkey(u'part'):
-                areas.append(shape_area*part/100)
+                areas.append(shape_area * part / 100)
             self.set_el_by_fkey(u'area', areas)
         else:
             self.set_el_by_fkey(u'area', self.get_el_by_fkey(u'area'))
@@ -114,6 +114,7 @@ class CtrRow(object):
     def block_r_args(self, fix=True):
         def change_type(item):
             return tuple(item) if fix else list(item)
+
         r_args = self.__r_args
         for i in range(len(r_args)):
             if isinstance(r_args[i], (tuple, list)):
@@ -164,12 +165,13 @@ class CtrRow(object):
                         self.set_el_by_fkey('lc', self.new_lc)
                 else:
                     self.has_err = 2
-                    self.err_in_part = n+1
+                    self.err_in_part = n + 1
                     break
 
     def bgd1_control(self, spr, n):
         try:
-            bgd_li = spr.bgd2ekp_1[self.get_el_by_fkey('f22')[n]][self.get_el_by_fkey('usertype')[n]][self.get_el_by_fkey('state')][self.get_el_by_fkey('slnad')]
+            bgd_li = spr.bgd2ekp_1[self.get_el_by_fkey('f22')[n]][self.get_el_by_fkey('usertype')[n]][
+                self.get_el_by_fkey('state')][self.get_el_by_fkey('slnad')]
             for b_row in bgd_li:  # bgd_row:
                 #  f22 > UTYPE > State > SLNAD > NPTYPE_min, NPTYPE_max,  NEWUSNAME, DOPUSNAME,
                 if b_row[0] <= self.get_el_by_fkey('nptype') <= b_row[1]:
@@ -188,7 +190,7 @@ class CtrRow(object):
         try:
             bgd_li = spr.bgd2ekp_2[f22][utype][state][slnad]
             # newF22,NPTYPE_min, NPTYPE_max, lc_min, lc_max, newlc, NEWUSNAME, DOPUSNAME
-            for b_row in bgd_li: # bgd_row: newF22(0), NPTYPE_min (1),
+            for b_row in bgd_li:  # bgd_row: newF22(0), NPTYPE_min (1),
                 # NPTYPE_max (2), lc_min(3), lc_max(4), newlc(5), NEWUSNAME(6), DOPUSNAME(7)
                 if b_row[1] <= self.get_el_by_fkey('nptype') <= b_row[2] \
                         and b_row[3] <= self.get_el_by_fkey('lc') <= b_row[4]:

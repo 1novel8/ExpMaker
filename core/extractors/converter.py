@@ -1,6 +1,6 @@
 from core.db import ctrStructure
 from core.db.connector import DbConnector
-
+from pyodbc import Row
 from .ctrRow import CtrRow
 
 
@@ -89,29 +89,6 @@ class CtrConverter:
             CtrConverter.add_column(connection, cr_tab, format_d['c_utype'])
             query = 'UPDATE %(us_t)s u INNER JOIN %(cr_t)s c ON u.%(u_usern)s = c.%(c_usern)s SET c.%(c_utype)s = u.%(u_utype)s;' % format_d
             connection.exec_query(query)
-            # sql2 = '''UPDATE Users INNER JOIN %(t)s ON Users.UserN = %(t)s.UserN_Sad
-            #             SET %(t)s.Usertype_%(nn)d = [Users].[UserType],
-            #                 %(t)s.UserN_%(nn)d = %(t)s.[UserN_Sad]
-            #             WHERE %(t)s.UserN_%(nn)d is not null
-            #                     and %(t)s.UserN_Sad is not null
-            #                     and SLNAD = 2 ;''' % {'t': ct, 'nn': n}
-            # connection.exec_query(sql2)
-            # ---------------------------PART_n----------------------------------------------
-            # CtrConverter.add_column(connection, ct, u"Area_%s" % n, 'DOUBLE NULL')
-            # sqlarea = '''UPDATE %(t)s
-            #             SET Area_%(nn)s = (Part_%(nn)s/100)*[Shape_Area]
-            #             WHERE Part_%(nn)s <> 0''' % {'t': ct, 'nn': n}
-            # connection.exec_query(sqlarea)
-
-    # def upd_soato_tnp(table, f_kod, zn1, zn2, zn57min, zn57max, zn810min, zn810max, typenp):
-    #     sqlupdnp = 'update %s set NPType = %s where mid(%s, 1, 1) in (%s)'%(table, typenp, f_kod, zn1)
-    #     if zn2 is not  None:
-    #         sqlupdnp += ' and mid(%s, 2, 1) = %s' % (f_kod, zn2)
-    #     if zn57min is not None and zn57max is not None:
-    #         sqlupdnp += ' and (mid(%s, 5, 3) between %s and %s)' % (f_kod, zn57min, zn57max)
-    #     if zn810min is not None or zn810max is not None:
-    #         sqlupdnp += ' and (mid(%s, 8, 3) between %s and %s)' % (f_kod, zn810min, zn810max)
-    #     return sqlupdnp
 
     @staticmethod
     def _make_crtab_query(fields, n_max, where_case=None):
@@ -129,7 +106,7 @@ class CtrConverter:
         return query
 
     @staticmethod
-    def collapse_row(row, structure, n_max):
+    def collapse_row(row: Row, structure: tuple, n_max: int) -> tuple:
         return_row = []
         row = list(row)
         n_survived = 0

@@ -34,7 +34,7 @@ class SettingsHolder:
         else:
             self.set_default_settings()
 
-    def check_xl_templates(self):
+    def check_xl_templates(self) -> dict:
         xls_s = self.xls  # WARNING я не понимаю
 
         def check_template(template_path):
