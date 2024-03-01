@@ -103,7 +103,7 @@ class CtrRow:
         if not self.row_ready:
             self.__r_args[self.structure[f_key]][n] = val
 
-    def remake_area(self):
+    def remake_area(self) -> None:
         if self.n > 1:
             areas = []
             shape_area = self.get_el_by_fkey(u'area')
@@ -113,12 +113,12 @@ class CtrRow:
         else:
             self.set_el_by_fkey(u'area', self.get_el_by_fkey(u'area'))
 
-    def remake_usern(self):
+    def remake_usern(self) -> None:
         user_sad = self.get_el_by_fkey('usern_sad')
         if user_sad:
             self.__r_args[self.structure['usern']] = [user_sad for x in range(self.n)]
 
-    def block_r_args(self, fix=True):
+    def block_r_args(self, fix=True) -> None:
         def change_type(item):
             return tuple(item) if fix else list(item)
 
@@ -129,7 +129,7 @@ class CtrRow:
         self.__r_args = change_type(r_args)
         self.row_ready = fix
 
-    def has_code(self, n, param, codes):
+    def has_code(self, n, param, codes) -> bool:
         # if n <= self.n:
         val = self.get_el_by_fkey(param)
         if isinstance(val, (list, tuple)):
@@ -153,7 +153,7 @@ class CtrRow:
                 return False
         return True
 
-    def run_bgd_control(self, sprav_holder):
+    def run_bgd_control(self, sprav_holder) -> None:
         if self.n == 1:
             if self.bgd1_control(sprav_holder, 0):
                 pass
@@ -175,7 +175,7 @@ class CtrRow:
                     self.err_in_part = n + 1
                     break
 
-    def bgd1_control(self, sprav_holder, n):
+    def bgd1_control(self, sprav_holder, n) -> bool:
         try:
             bgd_li = sprav_holder.bgd2ekp_1[
                 self.get_el_by_fkey('f22')[n]][
@@ -192,7 +192,7 @@ class CtrRow:
             pass
         return False
 
-    def bgd2_control(self, spr, n):
+    def bgd2_control(self, spr, n) -> bool:
         f22 = self.get_el_by_fkey('f22')[n]
         utype = self.get_el_by_fkey('usertype')[n]
         state = self.get_el_by_fkey('state')

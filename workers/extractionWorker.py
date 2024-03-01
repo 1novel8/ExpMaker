@@ -1,6 +1,7 @@
 from constants import coreFiles, errTypes
 from core.errors import CustomError
-from core.extractors import CtrConverter, DataControl
+from core.extractors.converter import CtrConverter
+from core.extractors.validator import DataControl
 
 
 class ExtractionWorker:

@@ -1,5 +1,5 @@
-from ..extractors import ctrRow
-from ..settingsHolders import SpravHolder
+from core.extractors.ctrRow import CtrRow
+from core.settingsHolders.spravHolder import SpravHolder
 from .buildUtils import ExpBuilder
 from .expARowDataCombiner import RowDataCombiner as DataComb
 
@@ -12,7 +12,7 @@ class ExpAMaker:
 
     def __init__(
             self,
-            rows_data: list[ctrRow],
+            rows_data: list[CtrRow],
             users_data: dict,
             soato_data: dict,
             sprav_holder: SpravHolder = None,

@@ -1,4 +1,7 @@
-class SpravStructure:
+from core.db.structures.abstractions import AbstractDBStructure
+
+
+class SpravStructure(AbstractDBStructure):
     lc = "S_LandCodes"
     r_alias = "Alias_F_Config"
     a_r_str = "ExpA_R_Structure"
@@ -15,19 +18,13 @@ class SpravStructure:
     ustype = "S_Usertype"
     select_conditions = "Select_Conditions"
 
-    tabs_enum = [
+    all_tables = [
         lc, r_alias, a_r_str, a_f_str, b_r_str, b_f_str, b2e_1, b2e_2,
         soato, state, f22, mc, slnad, ustype, select_conditions
     ]
 
-    def get_tab_str(self, table):
-        if table in self.tabs_enum:
-            return SpravStructure._get_str()[table]
-        else:
-            raise Exception("faled to handle unsupported table")
-
     @staticmethod
-    def _get_str():
+    def _get_structure():
         return {
             "S_LandCodes": {
                 "lc": {

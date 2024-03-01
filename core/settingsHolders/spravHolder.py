@@ -3,9 +3,9 @@ import time
 
 from constants import coreFiles
 from constants import spravErrTypes as errTypes
-from core.db import sprStructure
+from core.db.structures.sprav import SpravStructure
 from core.errors import SpravError
-from core.extractors import SprControl
+from core.extractors.initializer import SpravController
 
 
 def catch_ex_as_sprav_err(decor_method):
@@ -20,7 +20,7 @@ def catch_ex_as_sprav_err(decor_method):
     return wrapper
 
 
-class SpravHolder(object):
+class SpravHolder:
     def __init__(self):
         self._s_conn = None
         self.expa_f_str = None
@@ -55,16 +55,16 @@ class SpravHolder(object):
             'b_r': []
         }
 
-    def check_spr_db(self, db_path):
-        s_controller = SprControl(db_path)
+    def check_spr_db(self, db_path: str):
+        s_controller = SpravController(db_path)
         if not s_controller.is_connected:
             raise SpravError(errTypes.no_db_conn, db_path)
-        bad_tbls = s_controller.contr_tables()
-        if bad_tbls:
-            raise SpravError(errTypes.empty_spr_tabs, bad_tbls)
-        bad_fields = s_controller.contr_field_types()
-        if bad_fields:
-            raise SpravError(errTypes.empty_spr_fields, bad_fields.items())
+        not_found_tables = s_controller.get_not_found_tables()
+        if not_found_tables:
+            raise SpravError(errTypes.empty_spr_tabs, not_found_tables)
+        wrong_typed_fields = s_controller.validate_field_types()
+        if wrong_typed_fields:
+            raise SpravError(errTypes.empty_spr_fields, wrong_typed_fields.items())
         else:
             self._s_conn = s_controller.conn
             return True
@@ -132,17 +132,17 @@ class SpravHolder(object):
         data_dict['soato_npt'] = self.get_np_type()
         data_dict['bgd2ekp'] = self.remake_bgd2()
         data_dict['f22_notes'] = self.get_f22_names()
-        get_str = sprStructure.get_tab_str
-        tab_name = sprStructure.ustype
+        get_str = SpravStructure.get_tab_str
+        tab_name = SpravStructure.ustype
         data_dict['user_types'] = self.select_to_str('select %s from %s' %
                                                      (get_str(tab_name)['user_type']['name'], tab_name))
-        tab_name = sprStructure.slnad
+        tab_name = SpravStructure.slnad
         data_dict['slnad_codes'] = self.select_to_str('select %s from %s' %
                                                       (get_str(tab_name)['sl_nad_code']['name'], tab_name))
-        tab_name = sprStructure.state
+        tab_name = SpravStructure.state
         data_dict['state_codes'] = self.select_to_str('select %s from %s' %
                                                       (get_str(tab_name)['state_code']['name'], tab_name))
-        tab_name = sprStructure.mc
+        tab_name = SpravStructure.mc
         data_dict['melio_codes'] = self.select_to_str('select %s from %s' %
                                                       (get_str(tab_name)['mc']['name'], tab_name))
 
@@ -197,8 +197,8 @@ class SpravHolder(object):
         check_aliases = ['lc', 'mc', 'area', 'usertype', 'usern_sad', 'id', 'f22', 'state', 'part', 'slnad', 'usern',
                          'nptype']
         # check_aliases are resolved key-names, they got info about Field_Names (their indexes)
-        tab_name = sprStructure.r_alias
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.r_alias
+        tab_str = SpravStructure.get_table_scheme(tab_name)
 
         format_d = {
             't': tab_name,
@@ -257,8 +257,8 @@ class SpravHolder(object):
         return order
 
     def get_expa_f_str(self, l_codes):
-        tab_name = sprStructure.a_f_str
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.a_f_str
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'f_num': tab_str['f_num']['name'],
@@ -315,8 +315,8 @@ class SpravHolder(object):
         !!! key 'total' hold additional information with distinct group fields
         """
 
-        tab_name = sprStructure.a_r_str
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.a_r_str
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'row_id': tab_str['row_id']['name'],
@@ -351,8 +351,8 @@ class SpravHolder(object):
         return r_props
 
     def get_expb_f_str(self, l_codes, valid_aliases):
-        tab_name = sprStructure.b_f_str
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.b_f_str
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'f_num': tab_str['f_num']['name'],
@@ -405,8 +405,8 @@ class SpravHolder(object):
         return f_props
 
     def get_l_codes(self):
-        tab = sprStructure.lc
-        tab_str = sprStructure.get_tab_str(tab)
+        tab = SpravStructure.lc
+        tab_str = SpravStructure.get_table_scheme(tab)
         format_d = {
             't': tab,
             'lc': tab_str['lc']['name'],
@@ -424,8 +424,8 @@ class SpravHolder(object):
         return lc_d
 
     def get_expb_r_str(self, valid_aliases):
-        tab_name = sprStructure.b_r_str
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.b_r_str
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'row_id': tab_str['row_id']['name'],
@@ -573,8 +573,8 @@ class SpravHolder(object):
         return len(set(li)) == len(main_li)
 
     def get_np_type(self):
-        tab_name = sprStructure.soato
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.soato
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'zn_1': tab_str['zn_1']['name'],
@@ -589,8 +589,8 @@ class SpravHolder(object):
         return self._s_conn.exec_sel_query(query)
 
     def get_select_conditions(self):
-        tab_name = sprStructure.select_conditions
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.select_conditions
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         id = tab_str['id']['name']
         title = tab_str['title']['name']
         wc = tab_str['where_case']['name']
@@ -601,8 +601,8 @@ class SpravHolder(object):
         BGD1 have fields: F22,UTYPE, NPTYPE_min, NPTYPE_max, State, SLNAD, NEWUSNAME, DOPUSNAME
         :return: list with BGD1 rows
         """
-        tab_name = sprStructure.b2e_1
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.b2e_1
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'f22': tab_str['f22']['name'],
@@ -628,8 +628,8 @@ class SpravHolder(object):
         return newbgd
 
     def remake_bgd2(self):
-        tab_name = sprStructure.b2e_2
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.b2e_2
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'f22': tab_str['f22']['name'],
@@ -663,8 +663,8 @@ class SpravHolder(object):
         return bgd2
 
     def get_f22_names(self):
-        tab_name = sprStructure.f22
-        tab_str = sprStructure.get_tab_str(tab_name)
+        tab_name = SpravStructure.f22
+        tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,
             'f22_code': tab_str['f22_code']['name'],
@@ -677,7 +677,7 @@ class SpravHolder(object):
         return f22_n_dict
 
     @staticmethod
-    def bgd_to_dicts(bgd_li):
+    def bgd_to_dicts(bgd_li) -> dict:
         """
         :param bgd_li:
         :return: bgd like a tree (dict of dict structure) Keys: f22->utype->state->slnad-> list of others parameters
@@ -696,14 +696,14 @@ class SpravHolder(object):
         return bgd_dict
 
     @staticmethod
-    def u_to_int(li):
+    def u_to_int(li: list) -> list:
         newli = []
         for i in range(len(li)):
             newli.append(int(li[i]))
         return newli
 
     @staticmethod
-    def remake_list(li):
+    def remake_list(li: list[int]) -> list[tuple[int, int]]:
         """
             Rturns list of tuples with intervals of numbers
         :param li: <example> [1,2,3,4,8,9]

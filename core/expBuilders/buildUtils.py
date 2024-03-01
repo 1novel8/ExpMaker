@@ -1,4 +1,4 @@
-from core import log_error
+from core.system_logger import log_error
 
 
 class ExpBuilder:
