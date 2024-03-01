@@ -1,5 +1,5 @@
 from constants import coreFiles
-from core.db import DbConnector
+from core.db.connector import DbConnector
 
 
 class DbExporter(DbConnector):

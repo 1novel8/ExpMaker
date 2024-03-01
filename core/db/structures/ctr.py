@@ -1,17 +1,14 @@
-class CtrStructure:
-    crs_tab = "crostab_razv"
-    soato_tab = "SOATO"
-    users_tab = "Users"
-    tabs_enum = [crs_tab, soato_tab, users_tab]
+from core.db.structures.abstractions import AbstractDBStructure
 
-    def get_tab_str(self, table):
-        if table in self.tabs_enum:
-            return CtrStructure._get_str()[table]
-        else:
-            raise Exception("failed to handle unsupported table")
+
+class CtrStructure(AbstractDBStructure):
+    crs_table = "crostab_razv"
+    soato_table = "SOATO"
+    users_table = "Users"
+    all_tables = [crs_table, soato_table, users_table]
 
     @staticmethod
-    def _get_str():
+    def _get_structure() -> dict:
         return {
             "crostab_razv": {
                 "id": {

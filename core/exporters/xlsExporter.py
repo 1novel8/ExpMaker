@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 
 from openpyxl import load_workbook, utils
@@ -35,7 +32,7 @@ class XlExporter:
             start_r,
             start_r_total,
             sh_name=None,
-            **kwargs
+            **kwargs,
     ):
         """
         You can give templ_path parameter and save w_book or give worksheet parameter and export matrix without saving
@@ -94,7 +91,7 @@ class XlExporter:
             return start_letter
 
     @staticmethod
-    def add_values_cells(data, cells):
+    def add_values_cells(data: list[list], cells):
         zips = zip(data, cells)
         for row in zips:
             for v, c in zip(row[0], row[1]):

@@ -1,25 +1,30 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from core.extractors.ctrRow import CtrRow
+from core.settingsHolders.spravHolder import SpravHolder
 from .buildUtils import ExpBuilder
 from .expARowDataCombiner import RowDataCombiner as DataComb
 
 
-class ExpAMaker(object):
+class ExpAMaker:
     shape_area_sum = 0
     exp_tree = None
     sv_matrix = []
     row_counter = 1
 
-    def __init__(self, rows_data, users_data, soato_data, sprav_holder, options=None):
+    def __init__(
+            self,
+            rows_data: list[CtrRow],
+            users_data: dict,
+            soato_data: dict,
+            sprav_holder: SpravHolder = None,
+            options: dict = None,
+    ) -> None:
         self.sprav_holder = sprav_holder
         self.errors_occured = {}
         self.usersInfo, self.soatoInfo = users_data, soato_data
         if options and 'shape_sum_enabled' in options:
             self.shape_area_sum = options['shape_sum']
         self.cc_soato_d = self.get_cc_soato_d()
-        # Main Dict :keys F22>>Dict with keys UserN/SOATo >> list of tuples with data from ctr for ExpA
         self.datadict = self.make_datadict(rows_data)
-        # Exp Dict :keys F22>>Dict with keys UserN/SOATo >> combdata instance
         self.exps_dict = self.make_comb_data()
 
     def get_cc_soato_d(self):
@@ -31,9 +36,6 @@ class ExpAMaker(object):
 
     def get_cc_name(self, soato):
         soato = str(soato)
-        # if soato[-3:] == '000':
-        #     return ''
-        # else:
         try:
             return self.cc_soato_d[soato[:-3]] + '  '
         except KeyError:
@@ -128,15 +130,16 @@ class ExpAMaker(object):
                     exp_obj = self.exps_dict[key1][key2]
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
-                        # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
 
                     if exp_obj.group_as_sad:
                         soato_total_key = exp_obj.soato_code[:-3]
                         if soato_total_key in sv_exp[key1]:
-                            sv_exp[key1][soato_total_key] = ExpBuilder.sum_dict_values(sv_exp[key1][soato_total_key],
-                                                                                       (sv_row,))
+                            sv_exp[key1][soato_total_key] = ExpBuilder.sum_dict_values(
+                                sv_exp[key1][soato_total_key],
+                                (sv_row,)
+                            )
                         else:
                             sv_exp[key1][soato_total_key] = sv_row
                             title = self.cc_soato_d[soato_total_key] + ' Сад'
@@ -151,14 +154,15 @@ class ExpAMaker(object):
                     else:
                         soato_total_key = exp_obj.soato_code[:-3]
                         if soato_total_key in sv_exp[key1]:
-                            sv_exp[key1][soato_total_key] = ExpBuilder.sum_dict_values(sv_exp[key1][soato_total_key],
-                                                                                       (sv_row,))
+                            sv_exp[key1][soato_total_key] = ExpBuilder.sum_dict_values(
+                                sv_exp[key1][soato_total_key],
+                                (sv_row,)
+                            )
                         else:
                             sv_exp[key1][soato_total_key] = sv_row
                             sv_texts[key1][soato_total_key] = '%s. Всего:' % self.cc_soato_d[soato_total_key]
 
             self.__add_total_rows(sv_exp)
-            # sv_exp['sh_sum'] = self.__make_shape_row()
             if self.shape_area_sum:
                 sv_exp['sh_init_sum'] = self.__make_init_shape_row()
 
@@ -181,7 +185,6 @@ class ExpAMaker(object):
                     exp_obj = self.exps_dict[key1][key2]
                     sv_row = exp_obj.make_sv_row(self.sprav_holder)
                     if exp_obj.errors:
-                        # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
 
@@ -221,7 +224,6 @@ class ExpAMaker(object):
                             sv_texts[key1][soato_total_key] = '%s. Всего:' % self.cc_soato_d[soato_total_key]
 
             self.__add_total_rows(sv_exp, sv_texts)
-            # sv_exp['sh_sum'] = self.__make_shape_row()
             if self.shape_area_sum:
                 sv_exp['sh_init_sum'] = self.__make_init_shape_row()
 
@@ -278,6 +280,7 @@ class ExpAMaker(object):
         Caution! The first row contains field Names in order to export!
         :return : tuple, matrix to export
         """
+        """ТУТ ВРОДЕ ГЕНЕРИРУЕТЯС МАТРИЦА"""
         f_orders = self.sprav_holder.str_orders['sv_f']
         r_order_base = sv_dict['texts']
         self.sv_matrix = []
@@ -286,9 +289,20 @@ class ExpAMaker(object):
 
         for f22_key in sorted(list(r_order_base.keys())):
             if for_xls:
-                self.__push_to_sv_matrix('', '', ['', ] * (len(f_orders) + 2), skip_num=True, for_xls=for_xls)
-                self.__push_to_sv_matrix(f22_key, self.sprav_holder.f22_notes[f22_key], ['', ] * len(f_orders),
-                                         skip_num=True, for_xls=for_xls)
+                self.__push_to_sv_matrix(
+                    '',
+                    '',
+                    ['', ] * (len(f_orders) + 2),
+                    skip_num=True,
+                    for_xls=for_xls,
+                )
+                self.__push_to_sv_matrix(
+                    f22_key,
+                    self.sprav_holder.f22_notes[f22_key],
+                    ['', ] * len(f_orders),
+                    skip_num=True,
+                    for_xls=for_xls,
+                )
             n = 1
 
             for row_key, row_name in self.get_ordered_by_keys_items(r_order_base[f22_key]):

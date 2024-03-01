@@ -2,32 +2,32 @@ import os.path
 import shutil
 
 import pyodbc
+from pyodbc import Cursor
 
-from core import log_error
-
-from ..errors import DbError
-from .db_decorators import catch_db_exception, try_make_conn
+from core.db.decorators import catch_db_exception, try_make_conn
+from core.errors.dberror import DbError
+from core.system_logger import log_error
 
 
 class DbConnector:
-    def __init__(self, db_path, do_conn=True):
+    def __init__(self, db_path: str, do_conn: bool = True):
         self.db_f_path = db_path
         self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path
         self.__conn = None
-        self.__dbc = None
+        self.__dbc: Cursor | None = None
         self.reconnect = False
         if do_conn:
             self.make_connection()
 
     @property
-    def get_dbc(self):
+    def get_dbc(self) -> Cursor | None:
         return self.__dbc
 
     @property
-    def has_dbc(self):
+    def has_dbc(self) -> bool:
         return True if self.__dbc else False
 
-    def make_connection(self):
+    def make_connection(self) -> None:
         if not self.__dbc:
             try:
                 self.__conn = pyodbc.connect(self.db_access, autocommit=True, unicode_results=True)
@@ -35,46 +35,39 @@ class DbConnector:
             except pyodbc.Error:
                 self.__dbc = None
 
-    def close_conn(self):
+    def close_conn(self) -> None:
         try:
             self.__dbc.close()
             self.__conn.close()
         except Exception as err:
             log_error(err, 'Failed to close database: ')
 
-    def run_db(self):
+    def run_db(self) -> None:
         os.system("start %s" % self.db_f_path)
 
     @try_make_conn
-    def get_tab_names(self):
+    def get_all_table_names(self) -> list[str]:
         return [row[2] for row in self.__dbc.tables(tableType="TABLE")]
 
     @try_make_conn
-    def __get_columns(self, table_name):
+    def __get_columns(self, table_name: str) -> Cursor:
         return self.__dbc.columns(table=table_name)
 
-    @try_make_conn
-    def get_f_names(self, table_name):
-        f_names = []
-        for f_info in self.__get_columns(table_name):
-            f_names.append(f_info[3])
-        return f_names
-
-    def get_f_names_types(self, table_name):
-        f_name_type = {}
+    def read_table_scheme(self, table_name: str) -> dict[str, str]:
+        fields_name_type = {}
         try:
-            for f_info in list(self.__get_columns(table_name)):
-                f_name_type[f_info[3]] = f_info[5]
-            return f_name_type
+            for field_info in list(self.__get_columns(table_name)):
+                fields_name_type[field_info[3]] = field_info[5]
+            return fields_name_type
         except TypeError:
             err = Exception("Ошибка соединения с базой данных")
             log_error(err)
             raise err
 
-    def get_common_selection(self, table, fields, where_case=""):
+    def get_common_selection(self, table_name, fields: list[str], where_case: str = ""):
         query = "select "
         query += ", ".join(fields)
-        query += " from %s %s" % (table, where_case)
+        query += " from %s %s" % (table_name, where_case)
         rc_rows = self.exec_sel_query(query)
         result = []
         for row in rc_rows:
@@ -86,33 +79,24 @@ class DbConnector:
 
     @try_make_conn
     @catch_db_exception
-    def exec_sel_query(self, query):
+    def exec_sel_query(self, query: str):
         results = self.__dbc.execute(query).fetchall()
         return [row for row in results]
 
     @try_make_conn
     @catch_db_exception
-    def select_single_f(self, query):
+    def select_single_f(self, query: str):
         return [row[0] for row in self.__dbc.execute(query).fetchall()]
 
     @try_make_conn
     @catch_db_exception
-    def exec_covered_query(self, query, covered_args):
+    def exec_covered_query(self, query: str, covered_args):
         return self.__dbc.execute(query, covered_args)
 
     @try_make_conn
     @catch_db_exception
-    def exec_query(self, query):
+    def exec_query(self, query: str):
         return self.__dbc.execute(query)
-
-    # def insert_row(self, tab_name, fields, vals):
-    #     if len(fields) == len(vals):
-    #         ins_query = "insert into %s(" % tab_name
-    #         f_count = len(fields)-1
-    #         ins_query+="?,"*f_count+"?) values (" + "?,"*f_count +"?);"
-    #         args = tuple(fields+vals)
-    #         self.exec_covered_query(ins_query, args)
-    #     return False
 
     def get_tab_dict(self, query):
         """Вернет словарь на основе данных полученных в результате выполнения запроса.
@@ -134,23 +118,16 @@ class DbConnector:
         else:
             return []
 
-    def guarantee_dbf_exists(self, template):
+    def guarantee_dbf_exists(self, template_path):
         if not os.path.isfile(self.db_f_path):
             # templ = os.path.join(templ_path, "template.mdb")
-            if os.path.isfile(template):
+            if os.path.isfile(template_path):
                 try:
-                    shutil.copyfile(template, self.db_f_path)
+                    shutil.copyfile(src=template_path, dst=self.db_f_path)
                 except Exception:
                     raise DbError("err_create_file", self.db_f_path)
             else:
-                raise DbError("tmpl_empty", template)
-
-    def run_db_process(self):
-        try:
-            self.close_conn()
-            os.system("start %s" % self.db_f_path)
-        except Exception as err:
-            log_error(err)
+                raise DbError("tmpl_empty", template_path)
 
     def __del__(self):
         self.close_conn()

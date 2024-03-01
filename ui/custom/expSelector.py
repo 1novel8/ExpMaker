@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QGridLayout,
                              QWidget)
 
 from constants import settingsActions
-from core.settingsHolders import SettingsHolder, SpravHolder
+from core.settingsHolders.settingsHolder import SettingsHolder
+from core.settingsHolders.spravHolder import SpravHolder
 from locales import titleLocales
 from ui.components import Dropdown, PrimaryButton
 from ui.custom.editSettingsWindow import EditSettingsWindow
