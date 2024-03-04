@@ -296,7 +296,8 @@ class ExpSelector(QWidget):
             indexes_before_sort = self.tree_index_dict[pressed_f22]
             exp_index = indexes_before_sort[pressed_exp_ind]
             pressed_exp = data[pressed_f22][exp_index]
-            self.handle_exp_click(pressed_exp)
+            parent_name = qindex.parent().data()
+            self.handle_exp_click(pressed_exp, sub_dir_name=parent_name)
 
     def make_soato_groups(self, wrong_pref_ids=None):
         not_groupped_key = 'not_groupped'

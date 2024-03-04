@@ -49,7 +49,18 @@ class XlExporter:
     def start_excel(self):
         os.system('start excel.exe %s' % self.out_filename)
 
-    def exp_single_fa(self, fa_data, obj_name, a_l, a_n, a_obj_l, a_obj_n, a_path, a_sh_name, **kwargs):
+    def exp_single_fa(
+            self,
+            fa_data,
+            obj_name: str,
+            a_l: str,
+            a_n: int,
+            a_obj_l: str,
+            a_obj_n: int,
+            a_path: str,
+            a_sh_name: str,
+            **kwargs
+    ):
         w_book = self.try_load_wb(a_path)
         sheet = self.get_sheet_by_name(w_book, a_sh_name)
         sheet.cell(a_obj_n, utils.column_index_from_string(a_obj_l)).value = obj_name

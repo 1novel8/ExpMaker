@@ -7,4 +7,4 @@ class CustomError(Exception):
             err_type = errTypes.unexpected
         self.type = err_type
         self.message = err_message
-        super(CustomError, self).__init__(err_message)
+        super().__init__(err_message)

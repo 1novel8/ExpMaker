@@ -19,7 +19,7 @@ def prepare_xl_digits(initial_val):
 
 class SettingsBlock(QFrame):
     def __init__(self, parent=None, title=''):
-        super(SettingsBlock, self).__init__(parent)
+        super().__init__(parent)
         self.box = QVBoxLayout(self)
         self.setLayout(self.box)
         if title:
@@ -57,7 +57,7 @@ class EditSettingsWindow(ModalWindow):
             init_method = self.init_exp_filter_settings
         else:
             raise Exception('Unsupported params provided!')
-        super(EditSettingsWindow, self).__init__(parent, *init_params)
+        super().__init__(parent, *init_params)
         init_method()
 
     def init_xl_widgets(self):
