@@ -12,7 +12,7 @@ err_messages = {
 
 class DbError(Exception):
     def __init__(self, err_type, *args):
-        super(DbError, self).__init__(DbError.get_message_by_type(err_type, args))
+        super().__init__(DbError.get_message_by_type(err_type, args))
 
     @staticmethod
     def get_message_by_type(err_type, args):

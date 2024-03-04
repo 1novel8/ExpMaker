@@ -1,6 +1,7 @@
 from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
 from core.settingsHolders.spravHolder import SpravHolder
+
 from .initializer import CtrControl
 
 
@@ -8,7 +9,7 @@ class DataControl(CtrControl):
     def __init__(self, sprav_holder: SpravHolder, file_path: str, temp_db_path: str) -> None:
         self.errors_protocol = []
         self.sprav_holder = sprav_holder
-        super(DataControl, self).__init__(file_path, temp_db_path)
+        super().__init__(file_path, temp_db_path)
         self.all_tabs_columns: dict[str, dict[str, str]] = self.read_all_tables_scheme()
         self.f22_string: str = self.get_f22_string()
         self.max_n: int = self.get_n_max()

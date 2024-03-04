@@ -5,7 +5,7 @@ from core.db.structures.sprav import SpravStructure
 
 class CtrControl(DbController):
     def __init__(self, db_path: str, tmp_db_path: str):
-        super(CtrControl, self).__init__(db_path, CtrStructure, tmp_db_path)
+        super().__init__(db_path, CtrStructure, tmp_db_path)
 
     def is_empty_f_pref(self) -> str | bool:
         """
@@ -80,4 +80,4 @@ class CtrControl(DbController):
 
 class SpravController(DbController):
     def __init__(self, db_path: str):
-        super(SpravController, self).__init__(db_path, SpravStructure)
+        super().__init__(db_path, SpravStructure)

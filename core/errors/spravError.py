@@ -34,7 +34,7 @@ class SpravError(Exception):
         }
         self.type = err_type
         self.message = str(errors[err_type]())
-        super(SpravError, self).__init__(self.message)
+        super().__init__(self.message)
 
     def empty_spr_tabs(tabs):
         _end = u'ет таблица' if len(tabs) < 2 else u'ют таблицы'

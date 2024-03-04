@@ -24,7 +24,7 @@ class ExplicationThread(QThread):
             progress_handler=lambda x: x,
             error_handler=lambda x: x,
     ):
-        super(ExplicationThread, self).__init__(parent)
+        super().__init__(parent)
         # сигнали для демонстрации показа состояния потока
         self.success_signal.connect(success_handler)
         self.progress_signal.connect(progress_handler)
@@ -46,7 +46,7 @@ class ExplicationThread(QThread):
         """ Запуск процесса, который вызывает метод run"""
         self.current_action = action
         self.current_params = kwargs
-        super(ExplicationThread, self).start()
+        super().start()
 
     def emit_progress(self, progress_meta):
         self.progress_signal.emit(progress_meta)

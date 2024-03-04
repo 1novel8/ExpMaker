@@ -5,7 +5,7 @@ class LoadingThread(QThread):
     tick_signal = pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None, tick_handler=lambda x: x):
-        super(LoadingThread, self).__init__(parent)
+        super().__init__(parent)
         self.tick_signal.connect(tick_handler)
 
     def run(self):

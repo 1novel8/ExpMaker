@@ -7,8 +7,8 @@ from core.expBuilders.expARowDataCombiner import RowDataCombiner
 from core.exporters.mdbExporter import DbExporter
 from core.exporters.xlsExporter import XlExporter, XlsError
 from core.extractors import ctrRow
-from core.settingsHolders.spravHolder import SpravHolder
 from core.settingsHolders.settingsHolder import SettingsHolder
+from core.settingsHolders.spravHolder import SpravHolder
 
 
 class ExplicationWorker:
@@ -43,6 +43,7 @@ class ExplicationWorker:
             sprav_holder: SpravHolder = None,
             settings_holder: SettingsHolder = None,
             out_exp_file: str = None,
+            sub_dir_name: str = None,
     ) -> None:
         with_balance = settings_holder.balance.include_a_sv_balance
         exp_provider.add_data(sprav_holder)
@@ -53,9 +54,12 @@ class ExplicationWorker:
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_provider.prepare_out_matrix(counted_exp, sprav_holder)
         self.export_selected_to_xl(
-            matrix, settings_holder.xls, out_exp_file,
+            matrix=matrix,
+            out_settings=settings_holder.xls,
+            out_db_file=out_exp_file,
             f22_ind=exp_provider.full_obj_name,
-            obj_name=exp_provider.obj_name
+            obj_name=exp_provider.obj_name,
+            sub_dir_name=sub_dir_name,
         )
 
     def create_exp_a_sv(
@@ -158,9 +162,9 @@ class ExplicationWorker:
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     @staticmethod
-    def export_selected_to_xl(matrix, out_settings, out_db_file, f22_ind="", obj_name="") -> None:
+    def export_selected_to_xl(matrix: list[list], out_settings, out_db_file: str, f22_ind="", obj_name="", sub_dir_name="") -> None:
         try:
-            out_dir = path.dirname(out_db_file) + '\\FA_%s_xlsx_files' % path.basename(out_db_file)
+            out_dir = path.dirname(out_db_file) + '\\FA_%s_xlsx_files\\%s' % (path.basename(out_db_file), sub_dir_name)
             save_as = '%s\\%s.xlsx' % (out_dir, f22_ind)
             exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)

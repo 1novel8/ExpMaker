@@ -1,4 +1,5 @@
 import shutil
+from typing import Type
 
 from core.db.connector import DbConnector
 from core.db.structures.abstractions import AbstractDBStructure
@@ -7,7 +8,7 @@ from core.system_logger import log_error
 
 
 class DbController:
-    def __init__(self, db_path: str, db_schema: AbstractDBStructure, temp_db_path: str = None):
+    def __init__(self, db_path: str, db_schema: Type[AbstractDBStructure], temp_db_path: str = None):
         self.db_path = db_path
         self.db_schema = db_schema
         if temp_db_path:

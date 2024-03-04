@@ -12,7 +12,7 @@ class BaseActivityThread(QThread):
     current_params = None
 
     def __init__(self, parent=None, success_handler=lambda x: x, error_handler=lambda x: x):
-        super(BaseActivityThread, self).__init__(parent)
+        super().__init__(parent)
         self.success_signal.connect(success_handler)
         self.error_signal.connect(error_handler)
         self.worker = BaseWorker(self.emit_error)
@@ -28,7 +28,7 @@ class BaseActivityThread(QThread):
     def start(self, action, **kwargs):
         self.current_action = action
         self.current_params = kwargs
-        super(BaseActivityThread, self).start()
+        super().start()
 
     def emit_error(self, error):
         if not isinstance(error, CustomError) and not isinstance(error, SpravError):
