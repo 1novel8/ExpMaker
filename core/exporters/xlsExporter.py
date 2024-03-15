@@ -59,7 +59,7 @@ class XlExporter:
             a_obj_n: int,
             a_path: str,
             a_sh_name: str,
-            **kwargs
+            **kwargs,
     ):
         w_book = self.try_load_wb(a_path)
         sheet = self.get_sheet_by_name(w_book, a_sh_name)
