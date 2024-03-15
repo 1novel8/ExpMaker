@@ -162,10 +162,17 @@ class ExplicationWorker:
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     @staticmethod
-    def export_selected_to_xl(matrix: list[list], out_settings, out_db_file: str, f22_ind="", obj_name="", sub_dir_name="") -> None:
+    def export_selected_to_xl(
+            matrix: list[list],
+            out_settings,
+            out_db_file: str,
+            f22_ind: str = "",
+            obj_name: str = "",
+            sub_dir_name: str = "",
+    ) -> None:
         try:
-            out_dir = path.dirname(out_db_file) + '\\FA_%s_xlsx_files\\%s' % (path.basename(out_db_file), sub_dir_name)
-            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind)
+            out_dir = path.dirname(out_db_file) + '\\FA_%s_data\\%s' % (path.basename(out_db_file), sub_dir_name)
+            save_as = '%s\\%s%s.xlsx' % (out_dir, sub_dir_name, f22_ind)
             exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)
         except XlsError as err:

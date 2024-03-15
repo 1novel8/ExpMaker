@@ -1,9 +1,11 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QSemaphore
 from PyQt5.QtWidgets import QWidget
 
 from constants import errTypes, expActions
 from core.errors import CustomError
 from workers import ExplicationWorker
+
+semophore = QSemaphore(1)
 
 
 class ExplicationThread(QThread):
@@ -62,8 +64,11 @@ class ExplicationThread(QThread):
 
     def run(self):
         try:
+            semophore.acquire()
             result = self.run_activity()
         except Exception as err:
             self.emit_error(err)
         else:
             self.success_signal.emit(result)
+        finally:
+            semophore.release()
