@@ -37,6 +37,24 @@ class ExplicationWorker:
         exp_maker.make_exp_tree()
         return exp_maker
 
+    def create_exp_a_multy(
+            self,
+            exp_provider: RowDataCombiner | list = None,
+            sprav_holder: SpravHolder = None,
+            settings_holder: SettingsHolder = None,
+            out_exp_file: str = None,
+            sub_dir_name: str = None,
+    ) -> None:
+        for ind, exp in enumerate(exp_provider):
+            self.create_exp_a(
+                exp_provider=exp,
+                sprav_holder=sprav_holder,
+                settings_holder=settings_holder,
+                out_exp_file=out_exp_file,
+                sub_dir_name=sub_dir_name,
+                ind=str(ind),
+            )
+
     def create_exp_a(
             self,
             exp_provider: RowDataCombiner = None,
@@ -44,6 +62,7 @@ class ExplicationWorker:
             settings_holder: SettingsHolder = None,
             out_exp_file: str = None,
             sub_dir_name: str = None,
+            ind: str = '1',
     ) -> None:
         with_balance = settings_holder.balance.include_a_sv_balance
         exp_provider.add_data(sprav_holder)
@@ -51,7 +70,7 @@ class ExplicationWorker:
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(counted_exp, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
-        self.__emit_process_changes(expActions.EXPORT_EXP)
+        self.__emit_process_changes(expActions.EXPORT_EXP, ind)
         matrix = exp_provider.prepare_out_matrix(counted_exp, sprav_holder)
         self.export_selected_to_xl(
             matrix=matrix,

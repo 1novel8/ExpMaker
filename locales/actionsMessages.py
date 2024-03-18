@@ -13,10 +13,12 @@ class ActionMessages:
         baseActions.SAVE_SPRAV: "",
         baseActions.LOAD_PKL_SESSION: "Инициализация сессии",
         baseActions.SAVE_PKL_SESSION: "Запуск сохранения сессии",
+
         extractionActions.CONTROL: "Запуск контроля данных",
         extractionActions.CONVERTATION: "Запуск конвертации данных",
         expActions.INIT_A_MAKER: "",
         expActions.EXP_A_SINGLE: "Запуск одиночной экспликации А",
+        expActions.EXP_A_MULTI: "Запуск пакетной экспликации А",
         expActions.EXP_A_SV: "Запуск сводной экспликации",
         expActions.EXP_B: "Запуск экспликации F22",
     }
@@ -32,6 +34,7 @@ class ActionMessages:
         extractionActions.CONVERTATION: "Конвертация данных успешно завершена. Доступно создание экспликаций.",
         expActions.INIT_A_MAKER: "Инициализация данных для расчета экспликаций успешно проведена",
         expActions.EXP_A_SINGLE: "Выборочная экспликация А успешно создана",
+        expActions.EXP_A_MULTI: "Пакентая экспликация А успешло завершена",
         expActions.EXP_A_SV: "Сводная экспликация успешно создана",
         expActions.EXP_B: "Экспликация F22 успешно создана",
 
@@ -48,6 +51,7 @@ class ActionMessages:
         extractionActions.CONVERTATION: "Конвертация данных завершена с ошибками",
         expActions.INIT_A_MAKER: "Инициализация данных для расчета экспликаций завершилась с ошибкой",
         expActions.EXP_A_SINGLE: "Ошибка при создании экспликации А",
+        expActions.EXP_A_MULTI: "Ошибка пакетной экспликации А",
         expActions.EXP_A_SV: "Ошибка при создании  сводной экспликации",
         expActions.EXP_B: "Ошибка при создании экспликации F22",
 
@@ -65,6 +69,7 @@ class ActionMessages:
         expActions.INIT_A_MAKER: "Инициализация данных",
         expActions.RELOAD_A_MAKER: "Перестроение дерева экспликаций",
         expActions.EXP_A_SINGLE: "Создание экспликации А",
+        expActions.EXP_A_MULTI: "Создание пакентой экспликации А",
         expActions.EXP_A_SV: "Создание сводной экспликации",
         expActions.EXP_B: "Создание экспликации F22",
         expActions.MAKE_BALANCE: "Балансировка",
