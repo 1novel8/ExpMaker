@@ -1,7 +1,7 @@
 from .buildUtils import ExpBuilder
 
 
-class RowDataCombiner(object):
+class RowDataCombiner:
     def __init__(self, data_li, full_inf, main_inf, soato_inf, soato_code, nusname, group_as_sad=False):
         self.soato_inf = soato_inf
         self.soato_code = soato_code

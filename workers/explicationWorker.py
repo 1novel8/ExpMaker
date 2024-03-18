@@ -4,9 +4,11 @@ from os import path
 from constants import expActions
 from core.expBuilders import ExpAMaker, ExpF22Maker, balanceMaker
 from core.expBuilders.expARowDataCombiner import RowDataCombiner
-from core.exporters import DbExporter, XlExporter, XlsError
+from core.exporters.mdbExporter import DbExporter
+from core.exporters.xlsExporter import XlExporter, XlsError
 from core.extractors import ctrRow
-from core.settingsHolders import SettingsHolder, SpravHolder
+from core.settingsHolders.settingsHolder import SettingsHolder
+from core.settingsHolders.spravHolder import SpravHolder
 
 
 class ExplicationWorker:
@@ -35,12 +37,32 @@ class ExplicationWorker:
         exp_maker.make_exp_tree()
         return exp_maker
 
+    def create_exp_a_multy(
+            self,
+            exp_provider: RowDataCombiner | list = None,
+            sprav_holder: SpravHolder = None,
+            settings_holder: SettingsHolder = None,
+            out_exp_file: str = None,
+            sub_dir_name: str = None,
+    ) -> None:
+        for ind, exp in enumerate(exp_provider):
+            self.create_exp_a(
+                exp_provider=exp,
+                sprav_holder=sprav_holder,
+                settings_holder=settings_holder,
+                out_exp_file=out_exp_file,
+                sub_dir_name=sub_dir_name,
+                ind=str(ind),
+            )
+
     def create_exp_a(
             self,
             exp_provider: RowDataCombiner = None,
             sprav_holder: SpravHolder = None,
             settings_holder: SettingsHolder = None,
             out_exp_file: str = None,
+            sub_dir_name: str = None,
+            ind: str = '1',
     ) -> None:
         with_balance = settings_holder.balance.include_a_sv_balance
         exp_provider.add_data(sprav_holder)
@@ -48,12 +70,15 @@ class ExplicationWorker:
         if with_balance:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_asv_balancer(counted_exp, sprav_holder.expa_f_str, sprav_holder.expa_r_str)
-        self.__emit_process_changes(expActions.EXPORT_EXP)
+        self.__emit_process_changes(expActions.EXPORT_EXP, ind)
         matrix = exp_provider.prepare_out_matrix(counted_exp, sprav_holder)
         self.export_selected_to_xl(
-            matrix, settings_holder.xls, out_exp_file,
+            matrix=matrix,
+            out_settings=settings_holder.xls,
+            out_db_file=out_exp_file,
             f22_ind=exp_provider.full_obj_name,
-            obj_name=exp_provider.obj_name
+            obj_name=exp_provider.obj_name,
+            sub_dir_name=sub_dir_name,
         )
 
     def create_exp_a_sv(
@@ -156,10 +181,17 @@ class ExplicationWorker:
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     @staticmethod
-    def export_selected_to_xl(matrix, out_settings, out_db_file, f22_ind="", obj_name="") -> None:
+    def export_selected_to_xl(
+            matrix: list[list],
+            out_settings,
+            out_db_file: str,
+            f22_ind: str = "",
+            obj_name: str = "",
+            sub_dir_name: str = "",
+    ) -> None:
         try:
-            out_dir = path.dirname(out_db_file) + '\\FA_%s_xlsx_files' % path.basename(out_db_file)
-            save_as = '%s\\%s.xlsx' % (out_dir, f22_ind)
+            out_dir = path.dirname(out_db_file) + '\\FA_%s_data\\%s' % (path.basename(out_db_file), sub_dir_name)
+            save_as = '%s\\%s%s.xlsx' % (out_dir, sub_dir_name, f22_ind)
             exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)
         except XlsError as err:

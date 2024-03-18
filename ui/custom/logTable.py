@@ -12,6 +12,6 @@ class LogTable(TableWidget):
     def add_row(self, log_msg, time_label=None):
         if not time_label:
             time_label = time.strftime(u"%H:%M:%S  \n%d.%m.%y")
-        super(LogTable, self).add_representation_row(time_label, with_span=False)
-        row_count = super(LogTable, self).get_row_count()
+        super().add_representation_row(time_label, with_span=False)
+        row_count = super().get_row_count()
         self.table.setCellWidget(row_count - 1, 1, TableLabel(log_msg))

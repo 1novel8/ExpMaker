@@ -20,7 +20,7 @@ class ExtractionThread(QThread):
             warnings_handler=lambda x: x,
             error_handler=lambda x: x
     ):
-        super(ExtractionThread, self).__init__(parent)
+        super().__init__(parent)
         self.success_signal.connect(success_handler)
         self.warnings_signal.connect(warnings_handler)
         self.error_signal.connect(error_handler)
@@ -33,7 +33,7 @@ class ExtractionThread(QThread):
     def start(self, action, **kwargs):
         self.current_action = action
         self.current_params = kwargs
-        super(ExtractionThread, self).start()
+        super().start()
 
     def emit_error(self, error):
         if not isinstance(error, CustomError):

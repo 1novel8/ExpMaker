@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QSemaphore, QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
 from constants import errTypes, expActions
@@ -24,7 +24,7 @@ class ExplicationThread(QThread):
             progress_handler=lambda x: x,
             error_handler=lambda x: x,
     ):
-        super(ExplicationThread, self).__init__(parent)
+        super().__init__(parent)
         # сигнали для демонстрации показа состояния потока
         self.success_signal.connect(success_handler)
         self.progress_signal.connect(progress_handler)
@@ -38,15 +38,16 @@ class ExplicationThread(QThread):
             expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
             expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
             expActions.EXP_A_SINGLE: self.worker.create_exp_a,
+            expActions.EXP_A_MULTI: self.worker.create_exp_a_multy,
             expActions.EXP_A_SV: self.worker.create_exp_a_sv,
             expActions.EXP_B: self.worker.create_exp_b,
         }
 
-    def start(self, action, **kwargs):
+    def start(self, action=None, **kwargs):
         """ Запуск процесса, который вызывает метод run"""
         self.current_action = action
         self.current_params = kwargs
-        super(ExplicationThread, self).start()
+        super().start()
 
     def emit_progress(self, progress_meta):
         self.progress_signal.emit(progress_meta)

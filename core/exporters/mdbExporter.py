@@ -1,12 +1,12 @@
 from constants import coreFiles
-from core.db import DbConnector
+from core.db.connector import DbConnector
 
 
 class DbExporter(DbConnector):
     def __init__(self, dbf_path, template_path=coreFiles.templ_db_path):
         self.db_f_path = dbf_path
         self.guarantee_dbf_exists(template_path)
-        super(DbExporter, self).__init__(dbf_path)
+        super().__init__(dbf_path)
         self.created_tables = {}
 
     def create_table(self, tab_name, field_str, f_order=None):

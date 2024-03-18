@@ -40,6 +40,7 @@ class ExplicationActions:
     INIT_A_MAKER = 'initialize exp A maker'
     RELOAD_A_MAKER = 'reload exp A maker'
     EXP_A_SINGLE = 'single_exp'
+    EXP_A_MULTI = 'multi_exp'
     EXP_A_SV = 'sv_exp'
     EXP_B = 'exp_f22'
     MAKE_BALANCE = 'balance'

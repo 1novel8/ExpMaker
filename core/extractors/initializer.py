@@ -1,16 +1,23 @@
-from ..db import DbControl, ctrStructure, sprStructure
+from core.db.controller import DbController
+from core.db.structures.ctr import CtrStructure
+from core.db.structures.sprav import SpravStructure
 
 
-class CtrControl(DbControl):
-    def __init__(self, db_path, tmp_db_path):
-        super(CtrControl, self).__init__(db_path, ctrStructure, tmp_db_path)
+class CtrControl(DbController):
+    def __init__(self, db_path: str, tmp_db_path: str):
+        super().__init__(db_path, CtrStructure, tmp_db_path)
 
-    def is_empty_f_pref(self):
-        soato_tab_str = ctrStructure.get_tab_str(self.db_schema.soato_tab)
+    def is_empty_f_pref(self) -> str | bool:
+        """
+        Поле Pref (д., р-н. и тд)
+        проверяет если есть незаполненные поля (None)
+        """
+        soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         all_soato = self.conn.select_single_f(
             'select %s from %s where %s is Null' % (
-                soato_tab_str['code']['name'],
-                self.db_schema.soato_tab, soato_tab_str['pref']['name'],
+                soato_table_scheme['code']['name'],
+                self.db_schema.soato_table,
+                soato_table_scheme['pref']['name'],
             )
         )
 
@@ -25,12 +32,15 @@ class CtrControl(DbControl):
         else:
             return False
 
-    def is_wrong_f_pref(self):
-        soato_tab_str = ctrStructure.get_tab_str(self.db_schema.soato_tab)
+    def is_wrong_f_pref(self) -> str | bool:
+        """
+        проверяем чтобы все значения soato были правильными
+        """
+        soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         all_soato = self.conn.select_single_f(
             'select %s from %s ' % (
-                soato_tab_str['code']['name'],
-                self.db_schema.soato_tab),
+                soato_table_scheme['code']['name'],
+                self.db_schema.soato_table),
         )
         failed_obj = []
         for i in all_soato:
@@ -46,12 +56,13 @@ class CtrControl(DbControl):
         else:
             return False
 
-    def is_wrong_f_pref_sez(self):
-        soato_tab_str = ctrStructure.get_tab_str(self.db_schema.soato_tab)
+    def is_wrong_f_pref_sez(self) -> str | bool:
+        """проверяем на правильность SOATO"""
+        soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         all_soato = self.conn.select_single_f(
             'select %s from %s where %s is not Null ' % (
-                soato_tab_str['code']['name'],
-                self.db_schema.soato_tab, soato_tab_str['pref']['name'],
+                soato_table_scheme['code']['name'],
+                self.db_schema.soato_table, soato_table_scheme['pref']['name'],
             )
         )
 
@@ -67,6 +78,6 @@ class CtrControl(DbControl):
             return False
 
 
-class SprControl(DbControl):
-    def __init__(self, db_path):
-        super(SprControl, self).__init__(db_path, sprStructure)
+class SpravController(DbController):
+    def __init__(self, db_path: str):
+        super().__init__(db_path, SpravStructure)

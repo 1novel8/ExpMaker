@@ -1,11 +1,14 @@
+import time
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QGridLayout,
                              QHBoxLayout, QLabel, QMessageBox, QTreeView,
                              QWidget)
 
-from constants import settingsActions
-from core.settingsHolders import SettingsHolder, SpravHolder
+from constants import expActions, settingsActions
+from core.settingsHolders.settingsHolder import SettingsHolder
+from core.settingsHolders.spravHolder import SpravHolder
 from locales import titleLocales
 from ui.components import Dropdown, PrimaryButton
 from ui.custom.editSettingsWindow import EditSettingsWindow
@@ -61,6 +64,7 @@ class ExpFilter(QFrame):
     """
     ... NOT IMPLEMENTED ...
     """
+
     def __init__(self, parent=None, settings=None):
         QFrame.__init__(self, parent)
         self.settings = settings
@@ -107,8 +111,8 @@ class ExpSelector(QWidget):
             settings: SettingsHolder = None,
             sprav: SpravHolder = None,
             reinit_exp_hook=lambda x: x,
-            handle_exp_click=lambda x: x
-    ):
+            handle_exp_click=lambda x: x,
+    ) -> None:
         """
         WARNING продолжить разбирать эту таблицу для формы 22
         """
@@ -129,6 +133,7 @@ class ExpSelector(QWidget):
         self.treeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.treeView.setExpandsOnDoubleClick(False)
         self.treeView.activated.connect(self.on_tree_cell_click)
 
         self.grid = QGridLayout(self)
@@ -197,7 +202,7 @@ class ExpSelector(QWidget):
         self.groupped_soatos = group_soatos
         self.header.change_first_cmb(cmb1_data)
 
-    # второй косбобокс группировки данных по нп
+    # второй комбобокс группировки данных по нп
     def show_second_combo(self, ate_soato):
         expl_data = {}
         """
@@ -287,15 +292,22 @@ class ExpSelector(QWidget):
         self.current_exps = current_exps
 
     def on_tree_cell_click(self, qindex):
+        data = self.current_exps
+
         if qindex.parent().isValid():
-            data = self.current_exps
             pressed_f22_ind = qindex.parent().row()
             pressed_exp_ind = qindex.row()
             pressed_f22 = sorted(data.keys())[pressed_f22_ind]
+
             indexes_before_sort = self.tree_index_dict[pressed_f22]
             exp_index = indexes_before_sort[pressed_exp_ind]
             pressed_exp = data[pressed_f22][exp_index]
-            self.handle_exp_click(pressed_exp)
+
+            self.handle_exp_click(pressed_exp, sub_dir_name=pressed_f22)
+        else:
+            sub_dir_name = sorted(data.keys())[qindex.row()]
+            pressed_exp = data[sub_dir_name]
+            self.handle_exp_click(pressed_exp, sub_dir_name=sub_dir_name, action_id=expActions.EXP_A_MULTI)
 
     def make_soato_groups(self, wrong_pref_ids=None):
         not_groupped_key = 'not_groupped'
