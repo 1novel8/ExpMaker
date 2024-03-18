@@ -1,11 +1,9 @@
-from PyQt5.QtCore import QThread, pyqtSignal, QSemaphore
+from PyQt5.QtCore import QSemaphore, QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
 from constants import errTypes, expActions
 from core.errors import CustomError
 from workers import ExplicationWorker
-
-semophore = QSemaphore(1)
 
 
 class ExplicationThread(QThread):
@@ -40,11 +38,12 @@ class ExplicationThread(QThread):
             expActions.INIT_A_MAKER: self.worker.init_exp_a_maker,
             expActions.RELOAD_A_MAKER: self.worker.init_exp_a_maker,
             expActions.EXP_A_SINGLE: self.worker.create_exp_a,
+            expActions.EXP_A_MULTI: self.worker.create_exp_a_multy,
             expActions.EXP_A_SV: self.worker.create_exp_a_sv,
             expActions.EXP_B: self.worker.create_exp_b,
         }
 
-    def start(self, action, **kwargs):
+    def start(self, action=None, **kwargs):
         """ Запуск процесса, который вызывает метод run"""
         self.current_action = action
         self.current_params = kwargs
@@ -64,11 +63,8 @@ class ExplicationThread(QThread):
 
     def run(self):
         try:
-            semophore.acquire()
             result = self.run_activity()
         except Exception as err:
             self.emit_error(err)
         else:
             self.success_signal.emit(result)
-        finally:
-            semophore.release()

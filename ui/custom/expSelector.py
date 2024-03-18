@@ -1,10 +1,12 @@
+import time
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QAbstractItemView, QCheckBox, QFrame, QGridLayout,
                              QHBoxLayout, QLabel, QMessageBox, QTreeView,
                              QWidget)
 
-from constants import settingsActions
+from constants import expActions, settingsActions
 from core.settingsHolders.settingsHolder import SettingsHolder
 from core.settingsHolders.spravHolder import SpravHolder
 from locales import titleLocales
@@ -305,8 +307,7 @@ class ExpSelector(QWidget):
         else:
             sub_dir_name = sorted(data.keys())[qindex.row()]
             pressed_exp = data[sub_dir_name]
-            for exp in pressed_exp:
-                self.handle_exp_click(exp, sub_dir_name=sub_dir_name)
+            self.handle_exp_click(pressed_exp, sub_dir_name=sub_dir_name, action_id=expActions.EXP_A_MULTI)
 
     def make_soato_groups(self, wrong_pref_ids=None):
         not_groupped_key = 'not_groupped'
