@@ -1,5 +1,6 @@
 import json
 import time
+from typing import List, Tuple
 
 from constants import coreFiles
 from constants import spravErrTypes as errTypes
@@ -132,7 +133,7 @@ class SpravHolder:
         data_dict['soato_npt'] = self.get_np_type()
         data_dict['bgd2ekp'] = self.remake_bgd2()
         data_dict['f22_notes'] = self.get_f22_names()
-        get_str = SpravStructure.get_tab_str
+        get_str = SpravStructure.get_table_scheme
         tab_name = SpravStructure.ustype
         data_dict['user_types'] = self.select_to_str('select %s from %s' %
                                                      (get_str(tab_name)['user_type']['name'], tab_name))
@@ -696,14 +697,14 @@ class SpravHolder:
         return bgd_dict
 
     @staticmethod
-    def u_to_int(li: list) -> list:
+    def u_to_int(li:List) -> List:
         newli = []
         for i in range(len(li)):
             newli.append(int(li[i]))
         return newli
 
     @staticmethod
-    def remake_list(li: list[int]) -> list[tuple[int, int]]:
+    def remake_list(li: List[int]) -> List[Tuple[int, int]]:
         """
             Rturns list of tuples with intervals of numbers
         :param li: <example> [1,2,3,4,8,9]

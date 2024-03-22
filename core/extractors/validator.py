@@ -1,3 +1,5 @@
+from typing import Dict
+
 from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
 from core.settingsHolders.spravHolder import SpravHolder
@@ -10,7 +12,7 @@ class DataControl(CtrControl):
         self.errors_protocol = []
         self.sprav_holder = sprav_holder
         super().__init__(file_path, temp_db_path)
-        self.all_tabs_columns: dict[str, dict[str, str]] = self.read_all_tables_scheme()
+        self.all_tabs_columns: Dict[str, Dict[str, str]] = self.read_all_tables_scheme()
         self.f22_string: str = self.get_f22_string()
         self.max_n: int = self.get_n_max()
         sprav_holder.max_n = self.max_n

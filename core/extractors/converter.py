@@ -1,3 +1,5 @@
+from typing import Dict, List, Tuple
+
 from pyodbc import Row
 
 from core.db.connector import DbConnector
@@ -9,7 +11,7 @@ from core.settingsHolders.spravHolder import SpravHolder
 class CtrConverter:
     """ Используется при конвертации """
     @classmethod
-    def convert(cls, sprav_holder: SpravHolder, temp_db_path: str, select_condition: dict):
+    def convert(cls, sprav_holder: SpravHolder, temp_db_path: str, select_condition: Dict):
         n_max = sprav_holder.max_n
         ctr_conn = DbConnector(db_path=temp_db_path)
 
@@ -108,7 +110,7 @@ class CtrConverter:
             connection.exec_query(query)
 
     @staticmethod
-    def _make_crtab_query(fields: tuple, n_max: int, where_case=None) -> str:
+    def _make_crtab_query(fields: Tuple, n_max: int, where_case=None) -> str:
         """ Создание щапросов """
 
         query = 'SELECT '
@@ -125,7 +127,7 @@ class CtrConverter:
         return query
 
     @staticmethod
-    def collapse_row(row: Row, structure: tuple, n_max: int) -> tuple[list, int]:
+    def collapse_row(row: Row, structure: Tuple, n_max: int) -> Tuple[List, int]:
         """ Удаление пустых значений и None """
         return_row = []
         row = list(row)
@@ -157,7 +159,7 @@ class CtrConverter:
         return sel_result[0][0]
 
     @staticmethod
-    def data_users_soato(ct_conn: DbConnector) -> tuple[dict, dict]:
+    def data_users_soato(ct_conn: DbConnector) -> Tuple[Dict, Dict]:
         """
         returns UsersDict and SoatoDict with keys usern and soato
         and values in unicode

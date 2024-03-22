@@ -3,7 +3,7 @@ from typing import List
 
 
 class AbstractDBStructure(ABC):
-    all_tables: list[str]
+    all_tables: List[str]
 
     @classmethod
     def get_table_scheme(cls, table_name: str) -> dict:

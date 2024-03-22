@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from openpyxl import load_workbook, utils
 
@@ -102,7 +103,7 @@ class XlExporter:
             return start_letter
 
     @staticmethod
-    def add_values_cells(data: list[list], cells):
+    def add_values_cells(data: List[List], cells):
         zips = zip(data, cells)
         for row in zips:
             for v, c in zip(row[0], row[1]):

@@ -1,3 +1,5 @@
+from typing import List, Type
+
 from pyodbc import Row
 
 
@@ -15,7 +17,7 @@ class CtrRow:
     """
     Класс строки из базы
     """
-    def __init__(self, spr_holder, row_args: list, n_survived: int) -> None:
+    def __init__(self, spr_holder, row_args: List, n_survived: int) -> None:
         """
         land_code is always on index 0, slnad on index 1
 
@@ -49,7 +51,7 @@ class CtrRow:
             self.block_r_args()
 
     @staticmethod
-    def make_nptype(soato_code: str, npt_sprav: list[Row]) -> int:
+    def make_nptype(soato_code: str, npt_sprav: List[Type[Row]]) -> int:
         """ Вычисление TypeNP через таблицу S_SOATO"""
         for row in npt_sprav:
             if int(soato_code[0]) == 5:
