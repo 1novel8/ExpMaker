@@ -1,12 +1,13 @@
 import time
 from os import path
+from typing import Any, Dict, List, Type
 
 from constants import expActions
 from core.expBuilders import ExpAMaker, ExpF22Maker, balanceMaker
 from core.expBuilders.expARowDataCombiner import RowDataCombiner
 from core.exporters.mdbExporter import DbExporter
 from core.exporters.xlsExporter import XlExporter, XlsError
-from core.extractors import ctrRow
+from core.extractors.ctrRow import CtrRow
 from core.settingsHolders.settingsHolder import SettingsHolder
 from core.settingsHolders.spravHolder import SpravHolder
 
@@ -27,11 +28,11 @@ class ExplicationWorker:
 
     @staticmethod
     def init_exp_a_maker(
-            rows: list[ctrRow] = None,
-            users: dict = None,
-            soato: dict = None,
+            rows: List[CtrRow] = None,
+            users: Dict = None,
+            soato: Dict = None,
             sprav_holder: SpravHolder = None,
-            options: dict = None,
+            options: Dict = None,
     ) -> ExpAMaker:
         exp_maker = ExpAMaker(rows, users, soato, sprav_holder, options)
         exp_maker.make_exp_tree()
@@ -39,9 +40,9 @@ class ExplicationWorker:
 
     def create_exp_a_multy(
             self,
-            exp_provider: RowDataCombiner | list = None,
-            sprav_holder: SpravHolder = None,
-            settings_holder: SettingsHolder = None,
+            exp_provider=None,
+            sprav_holder: Type[SpravHolder] = None,
+            settings_holder: Type[SettingsHolder] = None,
             out_exp_file: str = None,
             sub_dir_name: str = None,
     ) -> None:
@@ -182,7 +183,7 @@ class ExplicationWorker:
 
     @staticmethod
     def export_selected_to_xl(
-            matrix: list[list],
+            matrix: List[List],
             out_settings,
             out_db_file: str,
             f22_ind: str = "",

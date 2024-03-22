@@ -9,7 +9,7 @@ if sys.platform == 'win32':
 executables = [Executable('ExpMaker.py', base=base)]
 
 packages = [
-    'sip', 'threads', 'uiWidgets', 'os', 'decimal', 'datetime',
+    'threads', 'os', 'decimal', 'datetime',
     'sys', 'pyodbc', 'PyQt5', 'PyQt5.QtGui', 'PyQt5.QtWidgets',
 ]
 options = {
@@ -23,7 +23,7 @@ options = {
 setup(
     name='ExpMaker 2.0',
     options=options,
-    version='2.0.0',
+    version='2024.1.0',
     description='Explication maker tool',
-    executables=executables
+    executables=executables,
 )

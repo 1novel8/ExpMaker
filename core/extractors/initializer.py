@@ -1,3 +1,5 @@
+from typing import Union
+
 from core.db.controller import DbController
 from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
@@ -7,7 +9,7 @@ class CtrControl(DbController):
     def __init__(self, db_path: str, tmp_db_path: str):
         super().__init__(db_path, CtrStructure, tmp_db_path)
 
-    def is_empty_f_pref(self) -> str | bool:
+    def is_empty_f_pref(self) -> Union[str, bool]:
         """
         Поле Pref (д., р-н. и тд)
         проверяет если есть незаполненные поля (None)
@@ -32,7 +34,7 @@ class CtrControl(DbController):
         else:
             return False
 
-    def is_wrong_f_pref(self) -> str | bool:
+    def is_wrong_f_pref(self) -> Union[str, bool]:
         """
         проверяем чтобы все значения soato были правильными
         """
@@ -56,7 +58,7 @@ class CtrControl(DbController):
         else:
             return False
 
-    def is_wrong_f_pref_sez(self) -> str | bool:
+    def is_wrong_f_pref_sez(self) -> Union[str, bool]:
         """проверяем на правильность SOATO"""
         soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         all_soato = self.conn.select_single_f(
