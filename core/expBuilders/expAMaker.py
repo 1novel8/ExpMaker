@@ -1,3 +1,5 @@
+from typing import List
+
 from core.extractors.ctrRow import CtrRow
 from core.settingsHolders.spravHolder import SpravHolder
 
@@ -13,7 +15,7 @@ class ExpAMaker:
 
     def __init__(
             self,
-            rows_data: list[CtrRow],
+            rows_data: List[CtrRow],
             users_data: dict,
             soato_data: dict,
             sprav_holder: SpravHolder = None,

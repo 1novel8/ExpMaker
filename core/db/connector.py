@@ -1,5 +1,6 @@
 import os.path
 import shutil
+from typing import Dict, List, Optional
 
 import pyodbc
 from pyodbc import Cursor
@@ -12,15 +13,16 @@ from core.system_logger import log_error
 class DbConnector:
     def __init__(self, db_path: str, do_conn: bool = True):
         self.db_f_path = db_path
-        self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path
+        self.db_access = "DRIVER={Microsoft Access Driver (*.mdb)};DBQ=%s;" % db_path
         self.__conn = None
-        self.__dbc: Cursor | None = None
+        self.__dbc: Optional[Cursor] = None
         self.reconnect = False
+        self.conn_attempt_available = False
         if do_conn:
             self.make_connection()
 
     @property
-    def get_dbc(self) -> Cursor | None:
+    def get_dbc(self) -> Optional[Cursor]:
         return self.__dbc
 
     @property
@@ -46,14 +48,14 @@ class DbConnector:
         os.system("start %s" % self.db_f_path)
 
     @try_make_conn
-    def get_all_table_names(self) -> list[str]:
+    def get_all_table_names(self) -> List[str]:
         return [row[2] for row in self.__dbc.tables(tableType="TABLE")]
 
     @try_make_conn
     def __get_columns(self, table_name: str) -> Cursor:
         return self.__dbc.columns(table=table_name)
 
-    def read_table_scheme(self, table_name: str) -> dict[str, str]:
+    def read_table_scheme(self, table_name: str) -> Dict[str, str]:
         fields_name_type = {}
         try:
             for field_info in list(self.__get_columns(table_name)):
@@ -64,7 +66,7 @@ class DbConnector:
             log_error(err)
             raise err
 
-    def get_common_selection(self, table_name, fields: list[str], where_case: str = ""):
+    def get_common_selection(self, table_name, fields: List[str], where_case: str = ""):
         query = "select "
         query += ", ".join(fields)
         query += " from %s %s" % (table_name, where_case)

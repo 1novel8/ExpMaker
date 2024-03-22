@@ -1,5 +1,5 @@
 import shutil
-from typing import Type
+from typing import Dict, List, Type
 
 from core.db.connector import DbConnector
 from core.db.structures.abstractions import AbstractDBStructure
@@ -26,7 +26,7 @@ class DbController:
     def is_connected(self) -> bool:
         return self.conn.has_dbc
 
-    def get_not_found_tables(self) -> list[str]:
+    def get_not_found_tables(self) -> List[str]:
         """Возвращает список не найденных таблиц"""
         not_found_tables = []
         tab_names = self.conn.get_all_table_names()
@@ -35,7 +35,7 @@ class DbController:
                 not_found_tables.append(tab)
         return not_found_tables
 
-    def get_empty_tables(self) -> list:
+    def get_empty_tables(self) -> List:
         """
         Получить список пустых таблиц
         """
@@ -48,7 +48,7 @@ class DbController:
                 empty_tables.append(tab)
         return empty_tables
 
-    def validate_field_types(self) -> dict:
+    def validate_field_types(self) -> Dict:
         """
         Достаем поля и их типы из реальной таблицы и сравниваем с структурой в db.structures.ctr
         возвращаем dict {table_name: [bad_fields], ...]}
@@ -76,7 +76,7 @@ class DbController:
                 log_error(err)
         return fails
 
-    def read_all_tables_scheme(self) -> dict[str, dict[str, str]]:
+    def read_all_tables_scheme(self) -> Dict[str, Dict[str, str]]:
         all_fields = {}
         for table in self.db_schema.all_tables:
             all_fields[table] = self.conn.read_table_scheme(table)
