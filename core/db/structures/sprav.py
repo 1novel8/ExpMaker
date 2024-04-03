@@ -6,8 +6,8 @@ class SpravStructure(AbstractDBStructure):
     r_alias = "Alias_F_Config"
     a_r_str = "ExpA_R_Structure"
     a_f_str = "ExpA_F_Structure"
-    b_r_str = "ExpB_R_Structure"
-    b_f_str = "ExpB_F_Structure"
+    b_r_str = "ExpF22_R_Structure"
+    b_f_str = "ExpF22_F_Structure"
     b2e_1 = "BGDToEkp1"
     b2e_2 = "BGDToEkp2"
     soato = "S_SOATO"
@@ -98,7 +98,7 @@ class SpravStructure(AbstractDBStructure):
                     "type": "VARCHAR",
                 }
             },
-            "ExpB_R_Structure": {
+            "ExpF22_R_Structure": {
                 "row_id": {
                     "name": "row_id",
                     "type": "INTEGER",
@@ -129,7 +129,7 @@ class SpravStructure(AbstractDBStructure):
                     "type": "VARCHAR",
                 }
             },
-            "ExpB_F_Structure": {
+            "ExpF22_F_Structure": {
                 "f_num": {
                     "name": "f_num",
                     "type": "INTEGER",
