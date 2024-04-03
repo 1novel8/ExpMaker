@@ -82,17 +82,17 @@ class BaseWorker:
 
     @staticmethod
     def load_mdb_sprav(sprav_holder=None, sprav_path=coreFiles.spr_default_path):
-        if sprav_holder.check_spr_db(sprav_path):
-            try:
-                sprav_data = sprav_holder.get_data_from_db()
-                sprav_holder.set_changes(sprav_data, sprav_path)
-            except SpravError as err:
-                raise err
-            except Exception as err:
-                print(err)
-                raise SpravError(spravErrTypes.unexpected, err)
-            finally:
-                sprav_holder.close_db_connection()
+        try:
+            sprav_holder.check_spr_db(sprav_path)
+            sprav_data = sprav_holder.get_data_from_db()
+            sprav_holder.set_changes(sprav_data, sprav_path)
+        except SpravError as err:
+            raise err
+        except Exception as err:
+            print(err)
+            raise SpravError(spravErrTypes.unexpected, err)
+        finally:
+            sprav_holder.close_db_connection()
 
     @staticmethod
     def load_pkl_sprav(
