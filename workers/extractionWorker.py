@@ -16,7 +16,7 @@ class ExtractionWorker:
 
         contr = DataControl(sprav_holder, db_file, coreFiles.tempDB_path)
         try:
-            errors = contr.run_field_control()
+            errors = contr.run_control()
         except Exception as err:
             if isinstance(err, CustomError):
                 raise err

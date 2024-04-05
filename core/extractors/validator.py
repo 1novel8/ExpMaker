@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
@@ -8,34 +8,68 @@ from .initializer import CtrControl
 
 
 class DataControl(CtrControl):
-    def __init__(self, sprav_holder: SpravHolder, file_path: str, temp_db_path: str) -> None:
+    """ Отвечает за контроль входной базы данных """
+
+    def __init__(
+            self,
+            sprav_holder: SpravHolder,
+            db_path: str,
+            temp_db_path: str,
+    ) -> None:
         self.errors_protocol = []
         self.sprav_holder = sprav_holder
-        super().__init__(file_path, temp_db_path)
-        self.all_tabs_columns: Dict[str, Dict[str, str]] = self.read_all_tables_scheme()
-        self.f22_string: str = self.get_f22_string()
+        super().__init__(db_path, temp_db_path)
+        # self.all_tabs_columns: Dict[str, Dict[str, str]] = self.read_all_tables_scheme()
+        self.f22_choices: str = self.get_f22_string()
         self.max_n: int = self.get_n_max()
         sprav_holder.max_n = self.max_n
-        self.update_str_to_null()
-        self.drop_empty_f_pref()
 
-    def drop_empty_f_pref(self):
-        self.conn.exec_query(
-            'delete from %s where %s is Null'
-            % (CtrStructure.soato_table, CtrStructure.get_table_scheme(CtrStructure.soato_table)['pref']['name'])
-        )
+        self._update_empty_string_to_null()
+        self._delete_empty_pref_rows()
 
-    def get_crostab_fields(self):
-        return self.conn.read_table_scheme(CtrStructure.crs_table).keys()
+    def run_control(self) -> List:
+        """
+        Весь контроль входной базы данных
+        """
+        self.errors_protocol = []
 
-    def update_str_to_null(self) -> None:
+        self.check_group_fields()  # ничего не делает
+        self.check_valid_soato_table()  # SOATO table not null  and unique check
+        self.check_usern__usern_sad_relation()  # проверка users + crostab по userN_Sad
+        self.check_user_1()  # crostab_razv.UserN_1 not NULL Users.UserN not NULL
+        self.check_soato_crostab_relation()  # SOATO.code != None & crostab_razv.soato != None
+        self.check_part_1()  # crostab_razv.Part_1 ≠ Null 0.0001≤ crostab_razv.Part_1 ≤ 10
+        self.check_users()  # users.userN - unique users.UserType in spav choices
+        self.check_sl_nad()  # crostab_razv.SLNAD - должен находиться в списке возможных в справочнике
+        self.check_state()  # crostab_razv.STATE - должен находиться в списке возможных в справочнике
+        self.check_f22_1()  # crostab_razv.Forma22_1 - должен находиться в списке возможных в справочнике
+        self.check_land_code()  # crostab_razv.LANDCODE -  должен находиться в списке возможных в справочнике
+        self.check_melio_code()  # crostab_razv.MELIOCODE -  должен находиться в списке возможных в справочнике
+        self.check_user_n()
+        self.check_f22_n()
+        self.check_part_n()
+        self.check_part_sum()
+        self.check_us_f22_part()
+        return self.errors_protocol
+
+    def _delete_empty_pref_rows(self) -> None:
+        soato_table = CtrStructure.soato_table
+        soato_table_scheme = CtrStructure.get_table_scheme(soato_table)
+        query = (f"DELETE FROM {soato_table} "
+                 f"WHERE {soato_table_scheme['pref']['name']} is Null")
+        self.conn.exec_query(query)
+
+    def _update_empty_string_to_null(self) -> None:
         for table in self.db_schema.all_tables:
             for field in self.db_schema.get_table_scheme(table).values():
                 if isinstance(field['type'], list) and 'VARCHAR' in field['type']:
-                    # TODO:
-                    # You can add a check query here like "select OBJECTID from %s where  %s = ''" to make it better
-                    self.conn.exec_query(
-                        u"update %s set %s = Null where %s = ''" % (table, field['name'], field['name']))
+                    query = (f"UPDATE {table} "
+                             f"SET {field['name']} = NULL "
+                             f"WHERE {field['name']} = ''")
+                    self.conn.exec_query(query)
+
+    def get_crostab_fields(self):
+        return self.conn.read_table_scheme(CtrStructure.crs_table).keys()
 
     def select_errors(self, query: str):
         return self.conn.select_single_f(query)
@@ -47,15 +81,14 @@ class DataControl(CtrControl):
         f22_str = ','.join(f22_str)
         return f22_str
 
-    def add_to_protocol(self, table: str, field: str, err_ids: str, err_code: int, dynamic_param=None):
-        """
-        Makes data systematization for errors protocol, adds to protocol when err_ids returns True
-        :param table: table with errors                 type: str
-        :param field: field where errors found          type: str
-        :param err_ids: OBJECTIDs where errors found,   type: str or some array type
-        :param err_desc: code of the error (you can find the description of error by this code), type: int
-        :param dynamic_param: if description, founded by err_desc code, need some dop parameters, you should transfer it by this parameter
-        """
+    def add_error_to_protocol(
+            self,
+            table: str,
+            field: str,
+            err_ids: str,
+            err_code: int,
+            dynamic_param=None
+    ) -> None:
         if err_ids:
             err_doc = {
                 'table': table,
@@ -66,7 +99,8 @@ class DataControl(CtrControl):
             }
             self.errors_protocol.append(err_doc)
 
-    def check_group_fields(self):
+    def check_group_fields(self) -> List:
+        """ DO NOTHING """
         crostab_fields = self.get_crostab_fields()
         check_fields = []
         for field in self.sprav_holder.attr_config['ctr_structure']:
@@ -77,31 +111,7 @@ class DataControl(CtrControl):
                 check_fields.append(field)
         return list(filter(lambda x: x in crostab_fields, check_fields))
 
-    def run_field_control(self):
-        """
-        Весь контроль входной базы данных
-        """
-        self.errors_protocol = []
-        self.check_group_fields()
-        self.check_valid_soato_table()
-        self.check_usern__usern_sad_relation()
-        self.check_user_1()
-        self.check_soato_crostab_relation()
-        self.check_part_1()
-        self.check_users()
-        self.check_sl_nad()
-        self.check_state()
-        self.check_f22_1()
-        self.check_land_code()
-        self.check_melio_code()
-        self.check_user_n()
-        self.check_f22_n()
-        self.check_part_n()
-        self.check_part_sum()
-        self.check_us_f22_part()
-        return self.errors_protocol
-
-    def check_us_f22_part(self):
+    def check_us_f22_part(self) -> None:
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
@@ -117,21 +127,21 @@ class DataControl(CtrControl):
                      f"WHERE {user_n_part}{ind} is NOT Null "
                      f"     and ({f22_part}{ind} is Null or {part_n_part}{ind} = 0)")
             search_err = self.select_errors(query)
-            self.add_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
+            self.add_error_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
 
             query = (f"SELECT {cros_table_scheme['id']['name']} "
                      f"FROM {cros_table} "
                      f"WHERE {f22_part}{ind} is not Null "
                      f"     and ({user_n_part}{ind} is Null or {part_n_part}{ind} = 0)")
             search_err = self.select_errors(query)
-            self.add_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
+            self.add_error_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
 
             query = (f"SELECT {cros_table_scheme['id']['name']} "
                      f"FROM {cros_table} "
                      f"WHERE {part_n_part}{ind} <> 0 "
                      f"     and ({user_n_part}{ind} is Null or {f22_part}{ind} is Null)")
             search_err = self.select_errors(query)
-            self.add_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
+            self.add_error_to_protocol(cros_table, protocol_tip, search_err, 6, ind)
 
     def check_part_sum(self) -> None:
         cros_table = CtrStructure.crs_table
@@ -145,8 +155,9 @@ class DataControl(CtrControl):
                  f"FROM {cros_table} "
                  f"WHERE round({part_sum},3) <> 100")
         search_err = self.select_errors(query)
-        self.add_to_protocol(cros_table, f"{cros_table_scheme['part_n']['name']} ... {part_sum}self.max_n", search_err,
-                             8)
+        self.add_error_to_protocol(cros_table, f"{cros_table_scheme['part_n']['name']} ... {part_sum}self.max_n",
+                                   search_err,
+                                   8)
 
     def check_part_n(self) -> None:
         cros_table = CtrStructure.crs_table
@@ -158,15 +169,15 @@ class DataControl(CtrControl):
                      f"WHERE not {cros_table_scheme['part_n']['part_name']}{ind} between 0 and 99.9999 "
                      f"      or {cros_table_scheme['part_n']['part_name']}{ind} is Null")
             search_err = self.select_errors(query)
-            self.add_to_protocol(CtrStructure.crs_table, 'Part_%d' % ind, search_err, 7)
+            self.add_error_to_protocol(CtrStructure.crs_table, 'Part_%d' % ind, search_err, 7)
 
             query = (f"SELECT {cros_table_scheme['id']['name']} "
                      f"FROM {cros_table} "
                      f"WHERE {cros_table_scheme['part_n']['part_name']}{ind} is Null")
             search_err = self.select_errors(query)
-            self.add_to_protocol(cros_table, 'Part_%d' % ind, search_err, 3)
+            self.add_error_to_protocol(cros_table, 'Part_%d' % ind, search_err, 3)
 
-    def check_f22_n(self):
+    def check_f22_n(self) -> None:
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
         for ind in range(2, self.max_n + 1):
@@ -174,22 +185,21 @@ class DataControl(CtrControl):
             self.check_field_choices(
                 table=cros_table,
                 field=field_name,
-                choices=self.f22_string,
+                choices=self.f22_choices,
                 sprav_table_name=SpravStructure.f22,
                 id_field=cros_table_scheme['id']['name'],
                 is_null_allowed=True,
             )
 
-    def get_n_max(self):
-        def part_fields(n):
+    def get_n_max(self) -> int:
+        def part_fields(n) -> List[str]:
+            cros_table = CtrStructure.crs_table
+            cros_table_scheme = CtrStructure.get_table_scheme(table_name=cros_table)
             return [
-                CtrStructure.get_table_scheme(CtrStructure.crs_table)['part_n']['part_name'] + n,
-                CtrStructure.get_table_scheme(CtrStructure.crs_table)['user_n']['part_name'] + n,
-                CtrStructure.get_table_scheme(CtrStructure.crs_table)['f22']['part_name'] + n
+                cros_table_scheme['part_n']['part_name'] + n,
+                cros_table_scheme['user_n']['part_name'] + n,
+                cros_table_scheme['f22']['part_name'] + n
             ]
-
-        def raise_err(msg):
-            raise Exception('Проверьте наличие полей %s' % str(msg))
 
         max_n = 1
         crtab_fields = list(self.get_crostab_fields())
@@ -199,14 +209,14 @@ class DataControl(CtrControl):
             if col_fields == len(f_set):
                 max_n += 1
             elif max_n == 1:
-                raise_err(part_fields(1))
+                raise Exception(f"Проверьте наличие полей {part_fields(1)}")
             elif len(f_set) - col_fields == 3:
                 break
             else:
-                raise_err(', '.join(part_fields(max_n)))
+                raise Exception(f"Проверьте наличие полей {', '.join(part_fields(max_n))}")
         return max_n - 1
 
-    def check_user_n(self):
+    def check_user_n(self) -> None:
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
         users_table = CtrStructure.users_table
@@ -221,9 +231,12 @@ class DataControl(CtrControl):
                      f"      and c.{cros_table_scheme['user_n']['name']} is not Null "
                      f"      and c.{cros_table_scheme['user_n_sad']['name']} is Null")
             search_err = self.select_errors(query)
-            self.add_to_protocol(cros_table, cros_table_scheme['user_n']['name'], search_err, 2, users_table)
+            self.add_error_to_protocol(cros_table, cros_table_scheme['user_n']['name'], search_err, 2, users_table)
 
     def check_melio_code(self) -> None:
+        """
+        crostab_razv.MELIOCODE -  должен находиться в списке возможных в справочнике
+        """
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
@@ -237,6 +250,10 @@ class DataControl(CtrControl):
         )
 
     def check_land_code(self) -> None:
+        """
+        crostab_razv.LANDCODE -  должен находиться в списке возможных в справочнике
+        """
+
         land_codes = []
         sprav_land_codes = self.sprav_holder.land_codes
         for key in sprav_land_codes:
@@ -256,19 +273,26 @@ class DataControl(CtrControl):
         )
 
     def check_f22_1(self) -> None:
+        """
+        crostab_razv.Forma22_1 - должен находиться в списке возможных в справочнике
+        """
+
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
         self.check_field_choices(
             table=cros_table,
             field=cros_table_scheme['f22']['name'],
-            choices=self.f22_string,
+            choices=self.f22_choices,
             sprav_table_name=SpravStructure.f22,
             id_field=cros_table_scheme['id']['name'],
             is_null_allowed=False,
         )
 
     def check_state(self) -> None:
+        """
+        STATE - должен находиться в списке возможных в справочнике
+        """
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
@@ -282,6 +306,9 @@ class DataControl(CtrControl):
         )
 
     def check_sl_nad(self) -> None:
+        """
+        crostab_razv.SLNAD - должен находиться в списке возможных в справочнике
+        """
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
@@ -295,6 +322,10 @@ class DataControl(CtrControl):
         )
 
     def check_users(self) -> None:
+        """
+        UserN - уникальное
+        UserType -  должен находиться в списке возможных в справочнике
+        """
         users_table = CtrStructure.users_table
         users_table_scheme = CtrStructure.get_table_scheme(users_table)
 
@@ -312,7 +343,12 @@ class DataControl(CtrControl):
             id_field=users_table_scheme['id']['name'],
         )
 
-    def check_is_unique(self, table_name: str, unique_field: str, id_field) -> None:
+    def check_is_unique(
+            self,
+            table_name: str,
+            unique_field: str,
+            id_field: str,
+    ) -> None:
         unique_rows = self.select_errors(f"SELECT {unique_field} FROM {table_name}")
         duplicate_codes = list(filter(lambda x: unique_rows.count(x) > 1, unique_rows))
         if duplicate_codes:
@@ -320,7 +356,7 @@ class DataControl(CtrControl):
                      f"FROM {table_name} "
                      f"WHERE {unique_field} in {str(tuple(set(duplicate_codes)))}")
             search_err = self.select_errors(query)
-            self.add_to_protocol(table_name, unique_field, search_err, 9)
+            self.add_error_to_protocol(table_name, unique_field, search_err, 9)
 
     def check_field_choices(
             self,
@@ -336,15 +372,20 @@ class DataControl(CtrControl):
                  f"WHERE {field} not in ({choices}) "
                  f"       and {field} is not Null")
         search_err = self.select_errors(query)
-        self.add_to_protocol(table, field, search_err, 1, sprav_table_name)
+        self.add_error_to_protocol(table, field, search_err, 1, sprav_table_name)
         if not is_null_allowed:
             query = (f"SELECT {id_field} "
                      f"FROM {table} "
                      f"WHERE {field} is Null")
             search_err = self.select_errors(query)
-            self.add_to_protocol(table, field, search_err, 3)
+            self.add_error_to_protocol(table, field, search_err, 3)
 
     def check_part_1(self) -> None:
+        """
+        crostab_razv.Part_1 ≠ Null
+        0.0001≤ crostab_razv.Part_1 ≤ 100
+        """
+
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
 
@@ -352,15 +393,20 @@ class DataControl(CtrControl):
                  f"FROM {cros_table} "
                  f"WHERE not {cros_table_scheme['part_n']['name']} between 0.0001 and 100")
         search_err = self.select_errors(query)
-        self.add_to_protocol(CtrStructure.crs_table, cros_table_scheme['part_n']['name'], search_err, 5)
+        self.add_error_to_protocol(CtrStructure.crs_table, cros_table_scheme['part_n']['name'], search_err, 5)
 
         query = (f"SELECT {cros_table_scheme['id']['name']} "
                  f"FROM {cros_table} "
                  f"WHERE {cros_table_scheme['part_n']['name']} is Null")
         search_err = self.select_errors(query)
-        self.add_to_protocol(CtrStructure.crs_table, 'Part_1', search_err, 3)
+        self.add_error_to_protocol(CtrStructure.crs_table, 'Part_1', search_err, 3)
 
-    def check_soato_crostab_relation(self):
+    def check_soato_crostab_relation(self) -> None:
+        """
+        SOATO.KOD ≠ Null
+        crostab_razv.soato ≠ Null
+        """
+
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
         soato_table = CtrStructure.soato_table
@@ -372,15 +418,19 @@ class DataControl(CtrControl):
                  f"         ON c.{cros_table_scheme['soato']['name']} = s.{soato_table_scheme['code']['name']} "
                  f"WHERE s.{soato_table_scheme['code']['name']} Is Null")
         search_err = self.select_errors(query)
-        self.add_to_protocol(cros_table, cros_table_scheme['soato']['name'], search_err, 2, soato_table)
+        self.add_error_to_protocol(cros_table, cros_table_scheme['soato']['name'], search_err, 2, soato_table)
 
         query = (f"SELECT {cros_table_scheme['id']['name']} "
                  f"FROM {cros_table} "
                  f"WHERE {cros_table_scheme['soato']['name']} Is Null")
         search_err = self.select_errors(query)
-        self.add_to_protocol(cros_table, cros_table_scheme['soato']['name'], search_err, 3)
+        self.add_error_to_protocol(cros_table, cros_table_scheme['soato']['name'], search_err, 3)
 
-    def check_user_1(self):
+    def check_user_1(self) -> None:
+        """
+        UserN_1 not NULL
+        UserN not NULL
+        """
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
         users_table = CtrStructure.users_table
@@ -393,17 +443,17 @@ class DataControl(CtrControl):
                  f"WHERE u.{users_table_scheme['user_n']['name']} IS NULL "
                  f"       and c.{cros_table_scheme['user_n_sad']['name']} IS NULL")
         search_err = self.select_errors(query)
-        self.add_to_protocol(CtrStructure.crs_table, cros_table_scheme['user_n']['name'], search_err, 2,
-                             CtrStructure.users_table)
+        self.add_error_to_protocol(CtrStructure.crs_table, cros_table_scheme['user_n']['name'], search_err, 2,
+                                   CtrStructure.users_table)
 
         query = (f"SELECT {cros_table_scheme['id']['name']} "
                  f"FROM {cros_table} "
                  f"WHERE {cros_table_scheme['user_n']['name']} IS NULL")
         search_err = self.select_errors(query)
-        self.add_to_protocol(CtrStructure.crs_table, cros_table_scheme['user_n']['name'], search_err, 3)
+        self.add_error_to_protocol(CtrStructure.crs_table, cros_table_scheme['user_n']['name'], search_err, 3)
 
-    def check_usern__usern_sad_relation(self):
-        """НЕЛОГИЧНЫЙ ЗАПРОС"""
+    def check_usern__usern_sad_relation(self) -> None:
+        """ проверяем что все Users которые есть в UserN_Sad существуют """
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
         users_table = CtrStructure.users_table
@@ -417,8 +467,8 @@ class DataControl(CtrControl):
                  f"       and c.{cros_table_scheme['user_n_sad']['name']} IS NOT NULL")
 
         search_err = self.select_errors(query)
-        self.add_to_protocol(cros_table, cros_table_scheme['user_n_sad']['name'], search_err, 2,
-                             CtrStructure.users_table)
+        self.add_error_to_protocol(cros_table, cros_table_scheme['user_n_sad']['name'], search_err, 2,
+                                   users_table)
 
     def check_valid_soato_table(self) -> None:
         """
@@ -432,7 +482,7 @@ class DataControl(CtrControl):
                  f"WHERE {table_scheme['code']['name']} IS NULL "
                  f"       or {table_scheme['name']['name']} Is NULL")
         search_err = self.select_errors(query)
-        self.add_to_protocol(table_name, 'KOD, Name', search_err, 3)
+        self.add_error_to_protocol(table_name, 'KOD, Name', search_err, 3)
         self.check_is_unique(
             table_name,
             table_scheme['code']['name'],
