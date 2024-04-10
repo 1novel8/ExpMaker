@@ -3,8 +3,8 @@ from .buildUtils import ExpBuilder
 
 class ExpF22Maker:
     def __init__(self, ctr_rows, sprav_holder):
-        self.r_structure = sprav_holder.expb_r_str
-        self.f_structure = sprav_holder.expb_f_str
+        self.r_structure = sprav_holder.expf22_r_str
+        self.f_structure = sprav_holder.expf22_f_str
         self.filtered_rows = self.filter_by_r_str(ctr_rows, list(sprav_holder.attr_config.keys()))
 
     def filter_by_r_str(self, ct_rows, aliases):
@@ -154,7 +154,7 @@ class ExpF22Maker:
         for r_key in r_orders:
             # print(r_key)
             digits = map(lambda x: b_dict[r_key][x]['val'], f_orders)
-            push_to_matr(digits)  # (r_key, sprav_holder.expb_r_str[r_key]['r_name'], digits)
+            push_to_matr(digits)  # (r_key, sprav_holder.expf22_r_str[r_key]['r_name'], digits)
 
         # digits = map(lambda x: b_dict['by_SHAPE'][x]['val'], f_orders)
         # push_to_matr( digits)#push_to_matr('Total', 'By_Shape', digits)

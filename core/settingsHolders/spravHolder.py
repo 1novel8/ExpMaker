@@ -26,8 +26,8 @@ class SpravHolder:
         self._s_conn = None
         self.expa_f_str = None
         self.expa_r_str = None
-        self.expb_f_str = None
-        self.expb_r_str = None
+        self.expf22_f_str = None
+        self.expf22_r_str = None
         self.soato_npt = None
         self.bgd2ekp = None
         self.f22_notes = None
@@ -79,8 +79,8 @@ class SpravHolder:
             self.attr_config = sprav_dict['attr_depnd']
             self.expa_f_str = sprav_dict['expa_f_str']
             self.expa_r_str = sprav_dict['expa_r_str']
-            self.expb_f_str = sprav_dict['expb_f_str']
-            self.expb_r_str = sprav_dict['expb_r_str']
+            self.expf22_f_str = sprav_dict['expf22_f_str']
+            self.expf22_r_str = sprav_dict['expf22_r_str']
             self.str_orders = sprav_dict['str_orders']
             self.soato_npt = sprav_dict['soato_npt']
             self.f22_notes = sprav_dict['f22_notes']
@@ -125,8 +125,8 @@ class SpravHolder:
         attr_config = self.make_attr_dependencies()
         data_dict['expa_f_str'] = self.get_expa_f_str(data_dict['land_codes'])
         data_dict['expa_r_str'] = self.get_expa_r_str(attr_config)
-        data_dict['expb_f_str'] = self.get_expb_f_str(data_dict['land_codes'], attr_config)
-        data_dict['expb_r_str'] = self.get_expb_r_str(attr_config)
+        data_dict['expf22_f_str'] = self.get_expf22_f_str(data_dict['land_codes'], attr_config)
+        data_dict['expf22_r_str'] = self.get_expf22_r_str(attr_config)
         data_dict['attr_depnd'] = self.remake_attr_conf(attr_config)
         data_dict['str_orders'] = self.make_orders()
         data_dict['soato_npt'] = self.get_np_type()
@@ -375,8 +375,8 @@ class SpravHolder:
         self._add_balance_props(params.values(), 0, 3, 4, rows_props, table_name)
         return rows_props
 
-    def get_expb_f_str(self, l_codes, valid_aliases):
-        table_name = SpravStructure.b_f_str
+    def get_expf22_f_str(self, l_codes, valid_aliases):
+        table_name = SpravStructure.f22_f_str
         table_scheme = SpravStructure.get_table_scheme(table_name)
         query = (f"SELECT {table_scheme['f_num']['name']}, "
                  f"       {table_scheme['f_name']['name']}, "
@@ -442,8 +442,8 @@ class SpravHolder:
             land_codes_mapped[k] = tuple(v)
         return land_codes_mapped
 
-    def get_expb_r_str(self, valid_aliases):
-        tab_name = SpravStructure.b_r_str
+    def get_expf22_r_str(self, valid_aliases):
+        tab_name = SpravStructure.f22_r_str
         tab_str = SpravStructure.get_table_scheme(tab_name)
         format_d = {
             't': tab_name,

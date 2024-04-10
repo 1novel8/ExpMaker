@@ -2,7 +2,7 @@ import pickle
 
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
-from core.extractors.initializer import CtrControl
+from core.extractors.initializer import CtrController
 from core.settingsHolders.settingsHolder import SettingsHolder
 from core.settingsHolders.spravHolder import SpravHolder
 from locales import customErrors
@@ -42,7 +42,7 @@ class BaseWorker:
         """
         Проходят проверки над базой
         """
-        contr = CtrControl(file_path, coreFiles.tempDB_path)
+        contr = CtrController(file_path, coreFiles.tempDB_path)
         # получение табиц, которые нужны, но не представлены
         not_found_tables = contr.get_not_found_tables()
         if len(not_found_tables) != 0:

@@ -1,7 +1,7 @@
 from constants import coreFiles, errTypes
 from core.errors import CustomError
 from core.extractors.converter import CtrConverter
-from core.extractors.validator import DataControl
+from core.extractors.validator import CtrDBValidator
 
 
 class ExtractionWorker:
@@ -14,9 +14,9 @@ class ExtractionWorker:
     def run_contol(self, sprav_holder=None, db_file=None):
         """ Нажатие на кнопку Контроль """
 
-        contr = DataControl(sprav_holder, db_file, coreFiles.tempDB_path)
+        contr = CtrDBValidator(sprav_holder, db_file, coreFiles.tempDB_path)
         try:
-            errors = contr.run_control()
+            errors = contr.validate()
         except Exception as err:
             if isinstance(err, CustomError):
                 raise err

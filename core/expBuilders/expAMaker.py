@@ -57,7 +57,6 @@ class ExpAMaker:
                 else:  # группировка по SOATo
                     group_key = row.soato
                 row_params = row.simplify_to_d(n, need_keys)
-                # NEWUSNAME_%(N)d, Area_%(N)d, LANDCODE, MELIOCODE, ServType08, State_1
                 try:
                     f22_dict[f22_key][group_key]['r_params'].append(row_params)
                 except KeyError:
@@ -250,7 +249,6 @@ class ExpAMaker:
                     sv_exp[key1][key2] = exp_obj.make_sv_row(self.sprav_holder)
                     sv_texts[key1][key2] = self.__get_sv_row_text(key2, exp_obj.obj_name)
                     if exp_obj.errors:
-                        # TODO: Work with exception (get message from exp_obj)
                         self.errors_occured[1] = exp_obj.errors
                         return {}
             self.__add_total_rows(sv_exp, sv_texts)

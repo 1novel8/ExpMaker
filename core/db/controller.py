@@ -28,6 +28,7 @@ class DbController:
 
     def get_not_found_tables(self) -> List[str]:
         """Возвращает список не найденных таблиц"""
+
         not_found_tables = []
         tab_names = self.conn.get_all_table_names()
         for tab in self.db_schema.all_tables:

@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 from os import path
-from typing import Any, Dict, List, Type
+from typing import Dict, List, Type
 
 from constants import expActions
 from core.expBuilders import ExpAMaker, ExpF22Maker, balanceMaker
@@ -150,8 +150,8 @@ class ExplicationWorker:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_b_balancer(
                 exp_dict,
-                sprav_holder.expb_f_str,
-                sprav_holder.expb_r_str,
+                sprav_holder.expf22_f_str,
+                sprav_holder.expf22_r_str,
                 settings_holder.rnd.b_accuracy
             )
         self.__emit_process_changes(expActions.EXPORT_EXP)
