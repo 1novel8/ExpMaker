@@ -10,6 +10,7 @@ class SprActions:
     CHOOSE_PKL = 'choose_pkl'
     CHOOSE_MDB = 'choose_mdb'
     SAVE = 'save_spr'
+    SAVE_AS_DEFAULT = 'save_as_default'
     INFO = 'info'
 
 
@@ -26,6 +27,7 @@ class BaseActivityActions:
     LOAD_PKL_SPRAV = 'load_pkl_sprav'
     LOAD_MDB_SPRAV = 'load_mdb_sprav'
     SAVE_SPRAV = 'save_pkl_sprav'
+    SAVE_SPRAV_AS_DEFAULT = 'save_pkl_sprav_as_default'
     LOAD_PKL_SESSION = 'load_work_session'
     SAVE_PKL_SESSION = 'save_work_session'
 
