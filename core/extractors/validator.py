@@ -30,6 +30,7 @@ class CtrDBValidator:
 
     def validate_cros_table(self) -> None:
         self.validate_cros_table__user_n_sad__in_users()
+        self.validate_cros_table__user_n_sad_with_slnad_2_only()
         self.validate_cros_table__user_1__in_users()
         self.validate_cros_table__user_1__is_not_null()
         self.validate_cros_table__soato__in_soato_table()
@@ -104,6 +105,23 @@ class CtrDBValidator:
             else:
                 raise Exception(f"Проверьте наличие полей {', '.join(part_fields(count))}")
         return count - 1
+
+    def validate_cros_table__user_n_sad_with_slnad_2_only(self) -> None:
+        cros_table = CtrStructure.crs_table
+        cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
+
+        sl_nad = cros_table_scheme['sl_nad']['name']
+        user_n_sad = cros_table_scheme['user_n_sad']['name']
+
+        query = (f"SELECT {cros_table_scheme['id']['name']} "
+                 f"FROM {cros_table} "
+                 f"WHERE ({sl_nad} = 2 and {user_n_sad} IS NULL) "
+                 f"     or ({sl_nad} <> 2 and {user_n_sad} IS NOT NULL)")
+        print(1)
+        search_err = self.select__first_field_only(query)
+        print(search_err)
+        self.errors.add(cros_table, 'UserN_Sad or SLNAD', search_err, 10)
+        print(2)
 
     def validate_cros_table__user_n_f22_part_n__if_one_exist_other_not_null(self) -> None:
         cros_table = CtrStructure.crs_table
