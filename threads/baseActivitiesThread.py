@@ -21,6 +21,7 @@ class BaseActivityThread(QThread):
             baseActions.LOAD_PKL_SPRAV: self.worker.load_pkl_sprav,
             baseActions.LOAD_MDB_SPRAV: self.worker.load_mdb_sprav,
             baseActions.SAVE_SPRAV: self.worker.save_sprav,
+            baseActions.SAVE_SPRAV_AS_DEFAULT: self.worker.save_sprav_as_default,
             baseActions.LOAD_PKL_SESSION: self.worker.load_pkl_session,
             baseActions.SAVE_PKL_SESSION: self.worker.save_pkl_session,
         }

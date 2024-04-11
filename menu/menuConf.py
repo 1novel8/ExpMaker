@@ -55,6 +55,13 @@ class MenuConf:
         "shortcut": 'Ctrl+S',
         "tip": titleLocales.spr_save_pkl,
     }
+    spr_save_as_default = {
+        "action_id": 13,
+        "action_title": titleLocales.spr_save_as_default,
+        "icon_path": path.join(icons_dir, 'save.png'),
+        "shortcut": 'Ctrl+A',
+        "tip": titleLocales.spr_save_pkl,
+    }
     spr_info = {
         "action_id": 8,
         "action_title": titleLocales.spr_info,

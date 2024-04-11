@@ -137,3 +137,13 @@ class BaseWorker:
         except Exception as err:
             print("save error: ", err)
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
+
+    def save_sprav_as_default(
+        self,
+        sprav_data=None,
+        settings_data=None,
+        sprav_holder: SpravHolder = None,
+        settings_holder: SettingsHolder = None,
+    ) -> None:
+        self.save_sprav(save_as=coreFiles.spr_default_path, sprav_data=sprav_data, settings_data=settings_data)
+        self.load_pkl_sprav(sprav_holder=sprav_holder, settings_holder=settings_holder)
