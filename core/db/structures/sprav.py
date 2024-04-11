@@ -6,8 +6,8 @@ class SpravStructure(AbstractDBStructure):
     r_alias = "Alias_F_Config"
     a_r_str = "ExpA_R_Structure"
     a_f_str = "ExpA_F_Structure"
-    b_r_str = "ExpF22_R_Structure"
-    b_f_str = "ExpF22_F_Structure"
+    f22_r_str = "ExpF22_R_Structure"
+    f22_f_str = "ExpF22_F_Structure"
     b2e_1 = "BGDToEkp1"
     b2e_2 = "BGDToEkp2"
     soato = "S_SOATO"
@@ -19,7 +19,7 @@ class SpravStructure(AbstractDBStructure):
     select_conditions = "Select_Conditions"
 
     all_tables = [
-        lc, r_alias, a_r_str, a_f_str, b_r_str, b_f_str, b2e_1, b2e_2,
+        lc, r_alias, a_r_str, a_f_str, f22_r_str, f22_f_str, b2e_1, b2e_2,
         soato, state, f22, mc, slnad, ustype, select_conditions
     ]
 

@@ -5,7 +5,7 @@ from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
 
 
-class CtrControl(DbController):
+class CtrController(DbController):
     def __init__(self, db_path: str, tmp_db_path: str):
         super().__init__(db_path, CtrStructure, tmp_db_path)
 
