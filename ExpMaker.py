@@ -31,7 +31,7 @@ class ExpWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setMinimumSize(QSize(640, 480))
         self.resize(1400, 840)
-        self.setWindowTitle('Explication 2.0')
+        self.setWindowTitle('Explication 2024.2.0')
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         self.setWindowIcon(QIcon(path.join(project_dir, 'Images\\exp.png')))
@@ -285,6 +285,8 @@ class ExpWindow(QMainWindow):
                 return
             self.settings_holder.should_save_as = coreFiles.spr_default_path
             self.save_sprav_as_default(current_settings=self.settings_holder.get_settings_dict())
+            self.show_modal('Справочник сохранена как "справочник по умолчанию".',
+                            modal_type='information', title=titleLocales.spr_save_as_default)
         elif action_type == sprActions.INFO:
             info = self.sprav_holder.get_info()
             if info:

@@ -17,6 +17,7 @@ class LogoFrame(QFrame):
         self.logo_img.setMaximumWidth(40)
         self.logo_img.setScaledContents(True)
         self.logo_title_lbl = QLabel(title, self)
+        self.logo_title_lbl.setStyleSheet("font-size: 24px;")
         self.logo_box.addWidget(self.logo_img, 0, 0, 2, 2)
-        self.logo_box.addWidget(self.logo_title_lbl, 0, 2, 1, 100)
+        self.logo_box.addWidget(self.logo_title_lbl, 0, 3, 2, 100)
         self.logo_box.addWidget(QLabel(''), 1, 2, 1, 100)
