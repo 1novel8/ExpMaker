@@ -16,15 +16,17 @@ class SpravError(Exception):
                 lambda: err_head + str(args[0]) if len(args) >= 1 else args_err,
             errTypes.changes_rejected:
                 lambda: customErrors.spr_not_changed if args[0] else customErrors.spr_wrong_default,
-            errTypes.no_db_conn: lambda: err_head + customErrors.no_db_conn % args[0],
-            errTypes.empty_spr_tabs: lambda: err_head + customErrors.get_empty_spr_tabs_msg(args[0]),
-            errTypes.empty_spr_fields: lambda: err_head + customErrors.get_empty_spr_fields_msg(args[0]),
-            errTypes.failed_to_save: lambda: customErrors.failed_to_save_sprav,
+            errTypes.no_db_conn:
+                lambda: err_head + customErrors.no_db_conn % args[0],
+            errTypes.empty_spr_tabs:
+                lambda: err_head + customErrors.get_empty_spr_tabs_msg(args[0]),
+            errTypes.empty_spr_fields:
+                lambda: err_head + customErrors.get_empty_spr_fields_msg(args[0]),
+            errTypes.failed_to_save:
+                lambda: customErrors.failed_to_save_sprav,
 
             1: lambda: err_head + 'Не удалось выполнить запрос: < %s >. Проверьте корректность базы данных'
                        % str(args[0]) if len(args) >= 1 else args_err,
-            # errors[2] used when error occured in row, so [args] must contain table_name and row_name as first 2
-            # parameters
             2: lambda: err_head + 'Проверьте строку %s в таблице %s. ' % (args[1], args[0]) if len(
                 args) >= 2 else args_err,
             3: lambda: errors[2]() + args[2] if len(args) >= 3 else args_err,

@@ -40,7 +40,7 @@ class ExplicationThread(QThread):
             expActions.EXP_A_SINGLE: self.worker.create_exp_a,
             expActions.EXP_A_MULTI: self.worker.create_exp_a_multy,
             expActions.EXP_A_SV: self.worker.create_exp_a_sv,
-            expActions.EXP_B: self.worker.create_exp_b,
+            expActions.EXP_B: self.worker.create_exp_f22,
         }
 
     def start(self, action=None, **kwargs):

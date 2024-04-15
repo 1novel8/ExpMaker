@@ -1,6 +1,7 @@
 import time
+from datetime import datetime
 from os import path
-from typing import Any, Dict, List, Type
+from typing import Dict, List, Type
 
 from constants import expActions
 from core.expBuilders import ExpAMaker, ExpF22Maker, balanceMaker
@@ -132,7 +133,7 @@ class ExplicationWorker:
             self.export_to_mdb(matrix, out_exp_file, save_as_table, start_when_ready=True)
 
     # формирование матрицы В
-    def create_exp_b(
+    def create_exp_f22(
             self,
             rows_data,
             sprav_holder=None,
@@ -149,8 +150,8 @@ class ExplicationWorker:
             self.__emit_process_changes(expActions.MAKE_BALANCE)
             balanceMaker.run_b_balancer(
                 exp_dict,
-                sprav_holder.expb_f_str,
-                sprav_holder.expb_r_str,
+                sprav_holder.expf22_f_str,
+                sprav_holder.expf22_r_str,
                 settings_holder.rnd.b_accuracy
             )
         self.__emit_process_changes(expActions.EXPORT_EXP)
@@ -191,7 +192,8 @@ class ExplicationWorker:
             sub_dir_name: str = "",
     ) -> None:
         try:
-            out_dir = path.dirname(out_db_file) + '\\FA_%s_data\\%s' % (path.basename(out_db_file), sub_dir_name)
+            date = datetime.now().strftime('%m-%d-%Y')
+            out_dir = f'{path.dirname(out_db_file)}\\FA_{path.basename(out_db_file)}_{date}\\{sub_dir_name}'
             save_as = '%s\\%s%s.xlsx' % (out_dir, sub_dir_name, f22_ind)
             exporter = XlExporter(save_as, out_settings.a_path)
             exporter.exp_single_fa(matrix, obj_name, **out_settings.__dict__)

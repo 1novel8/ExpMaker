@@ -41,6 +41,7 @@ class TitleLocales:
     spr_pkl_action = "Загрузить файл *.pkl"
     spr_mdb_action = "Загрузить файл *.mdb"
     spr_save_pkl = "Сохранить текущий справочник как *.pkl"
+    spr_save_as_default = "Сохранить текущий справочник как справочник по умолчанию"
     spr_info = "Информация о текущем справочнике"
     settings_xls = "Вывод в Excel"
     settings_balance = "Увязка Формы 22-зем"

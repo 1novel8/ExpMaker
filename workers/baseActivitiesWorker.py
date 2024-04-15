@@ -2,7 +2,7 @@ import pickle
 
 from constants import appKey, coreFiles, errTypes, spravErrTypes
 from core.errors import CustomError, SpravError
-from core.extractors.initializer import CtrControl
+from core.extractors.initializer import CtrController
 from core.settingsHolders.settingsHolder import SettingsHolder
 from core.settingsHolders.spravHolder import SpravHolder
 from locales import customErrors
@@ -42,7 +42,7 @@ class BaseWorker:
         """
         Проходят проверки над базой
         """
-        contr = CtrControl(file_path, coreFiles.tempDB_path)
+        contr = CtrController(file_path, coreFiles.tempDB_path)
         # получение табиц, которые нужны, но не представлены
         not_found_tables = contr.get_not_found_tables()
         if len(not_found_tables) != 0:
@@ -82,17 +82,17 @@ class BaseWorker:
 
     @staticmethod
     def load_mdb_sprav(sprav_holder=None, sprav_path=coreFiles.spr_default_path):
-        if sprav_holder.check_spr_db(sprav_path):
-            try:
-                sprav_data = sprav_holder.get_data_from_db()
-                sprav_holder.set_changes(sprav_data, sprav_path)
-            except SpravError as err:
-                raise err
-            except Exception as err:
-                print(err)
-                raise SpravError(spravErrTypes.unexpected, err)
-            finally:
-                sprav_holder.close_db_connection()
+        try:
+            sprav_holder.check_spr_db(sprav_path)
+            sprav_data = sprav_holder.get_data_from_db()
+            sprav_holder.set_changes(sprav_data, sprav_path)
+        except SpravError as err:
+            raise err
+        except Exception as err:
+            print(err)
+            raise SpravError(spravErrTypes.unexpected, err)
+        finally:
+            sprav_holder.close_db_connection()
 
     @staticmethod
     def load_pkl_sprav(
@@ -137,3 +137,13 @@ class BaseWorker:
         except Exception as err:
             print("save error: ", err)
             raise SpravError(spravErrTypes.failed_to_save, customErrors.failed_to_save_sprav)
+
+    def save_sprav_as_default(
+        self,
+        sprav_data=None,
+        settings_data=None,
+        sprav_holder: SpravHolder = None,
+        settings_holder: SettingsHolder = None,
+    ) -> None:
+        self.save_sprav(save_as=coreFiles.spr_default_path, sprav_data=sprav_data, settings_data=settings_data)
+        self.load_pkl_sprav(sprav_holder=sprav_holder, settings_holder=settings_holder)

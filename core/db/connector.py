@@ -1,6 +1,6 @@
 import os.path
 import shutil
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pyodbc
 from pyodbc import Cursor
@@ -81,7 +81,7 @@ class DbConnector:
 
     @try_make_conn
     @catch_db_exception
-    def exec_sel_query(self, query: str):
+    def exec_sel_query(self, query: str) -> List:
         results = self.__dbc.execute(query).fetchall()
         return [row for row in results]
 
@@ -100,7 +100,7 @@ class DbConnector:
     def exec_query(self, query: str):
         return self.__dbc.execute(query)
 
-    def get_tab_dict(self, query):
+    def get_tab_dict(self, query) -> Dict[Any, List]:
         """Вернет словарь на основе данных полученных в результате выполнения запроса.
             :key - первый параметр запроса
             :value - список оставшихся параметров"""
@@ -113,7 +113,7 @@ class DbConnector:
         else:
             return {}
 
-    def get_tab_list(self, query):
+    def get_tab_list(self, query) -> List:
         result = self.exec_sel_query(query)
         if isinstance(result, list):
             return result

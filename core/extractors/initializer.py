@@ -5,7 +5,7 @@ from core.db.structures.ctr import CtrStructure
 from core.db.structures.sprav import SpravStructure
 
 
-class CtrControl(DbController):
+class CtrController(DbController):
     def __init__(self, db_path: str, tmp_db_path: str):
         super().__init__(db_path, CtrStructure, tmp_db_path)
 
@@ -60,18 +60,16 @@ class CtrControl(DbController):
 
     def is_wrong_f_pref_sez(self) -> Union[str, bool]:
         """проверяем на правильность SOATO"""
-        soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
-        all_soato = self.conn.select_single_f(
-            'select %s from %s where %s is not Null ' % (
-                soato_table_scheme['code']['name'],
-                self.db_schema.soato_table, soato_table_scheme['pref']['name'],
-            )
-        )
+        table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
+        query = (f"SELECT {table_scheme['code']['name']} "
+                 f"FROM {CtrStructure.soato_table} "
+                 f"WHERE {table_scheme['pref']['name']} is not Null")
+        soato_codes = self.conn.select_single_f(query)
 
         failed_obj = []
-        for i in all_soato:
-            if i[4] == "9":  # если СЭЗ
-                failed_obj.append(i)
+        for code in soato_codes:
+            if code[4] == "9":  # если СЭЗ
+                failed_obj.append(code)
 
         if failed_obj:
             failed_obj = str(tuple(failed_obj))
