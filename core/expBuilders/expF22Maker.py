@@ -14,13 +14,17 @@ class ExpF22Maker:
         fbrow_dict = {'by_SHAPE': []}
         for key in self.r_structure:
             fbrow_dict[key] = []
+        print(f'fbrow_dict = {fbrow_dict}')
         keys_not_used = ('ctr_structure', 'id', 'usern_sad', 'part', 'usern')
         need_keys = [k for k in aliases if k not in keys_not_used]
         r_str = self.r_structure.items()
+        print(f'need_keys = {need_keys}')
+        print(f'r_str = {r_str}')
 
         for row in ct_rows:
             for n in range(row.n):
                 need_params = row.simplify_to_d(n, need_keys)
+                print(f'need_params = {need_params}')
                 fbrow_dict['by_SHAPE'].append(need_params)
                 for key, fb_row in r_str:
                     try:
@@ -132,7 +136,7 @@ class ExpF22Maker:
         """
         f_orders = sprav_holder.str_orders['b_f']
         r_orders = sprav_holder.str_orders['b_r']
-        r_orders = r_orders[:34]  # отсекаем строки с 25 по 41, они заполняются в экселе автоматически
+        r_orders = r_orders[:41]  # отсекаем строки с 25 по 41, они заполняются в экселе автоматически
         matr = []
         print(f_orders)
         print(r_orders)
@@ -141,13 +145,6 @@ class ExpF22Maker:
             row = []
             row.extend(remain)
             matr.append(row)
-
-        """
-        def push_to_matr(first, second, remain):
-            row = [first, second]
-            row.extend(remain)
-            matr.append(row)
-        """
 
         print(matr)
         push_to_matr(f_orders)  # ('F22', 'description', f_orders)

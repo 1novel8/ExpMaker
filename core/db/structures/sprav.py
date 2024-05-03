@@ -16,11 +16,12 @@ class SpravStructure(AbstractDBStructure):
     mc = "S_MelioCode"
     slnad = "S_SlNad"
     ustype = "S_Usertype"
+    category = "S_Category"
     select_conditions = "Select_Conditions"
 
     all_tables = [
         lc, r_alias, a_r_str, a_f_str, f22_r_str, f22_f_str, b2e_1, b2e_2,
-        soato, state, f22, mc, slnad, ustype, select_conditions
+        soato, state, f22, mc, slnad, ustype, select_conditions, category
     ]
 
     @staticmethod
@@ -313,6 +314,12 @@ class SpravStructure(AbstractDBStructure):
                     "name": "UsertypeCode",
                     "type": "BYTE",
                 }
+            },
+            "S_Category": {
+                "category": {
+                    "name": "CategoryCode",
+                    "type": ["SMALLINT", "INTEGER"],
+                },
             },
             "Select_Conditions": {
                 "id": {

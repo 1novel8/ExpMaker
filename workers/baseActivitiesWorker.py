@@ -39,22 +39,21 @@ class BaseWorker:
             raise CustomError(errTypes.general, customErrors.failed_to_save_session)
 
     def run_initial_db_contol(self, file_path: str):
-        """
-        Проходят проверки над базой
-        """
+        """ Проверка входной базы данных при ее инициализации """
+
         contr = CtrController(file_path, coreFiles.tempDB_path)
-        # получение табиц, которые нужны, но не представлены
+        # все таблицы из structure/ctr присутствуют
         not_found_tables = contr.get_not_found_tables()
         if len(not_found_tables) != 0:
             err_message = customErrors.empty_tables % "", "".join(not_found_tables)
             raise CustomError(errTypes.control_failed, err_message)
-        # получить все пустые таблицы
+        # все таблицы не пустые
         empty_tables = contr.get_empty_tables()
         if len(empty_tables) != 0:
             err_message = customErrors.empty_table_data % "", "".join(empty_tables)
             raise CustomError(errTypes.control_failed, err_message)
-        # получение столбцов и их типов
-        wrong_typed_fields = contr.validate_field_types()  # если что-то не совпадает
+        # столбцы и их типы соответствуют structure/ctr
+        wrong_typed_fields = contr.validate_field_types()
         if wrong_typed_fields:
             for tab, fields in wrong_typed_fields.items():
                 err_message = customErrors.get_lost_fields(tab, fields)
@@ -62,18 +61,18 @@ class BaseWorker:
                     CustomError(errTypes.control_warning, err_message)
                 )
             raise CustomError(errTypes.control_failed, customErrors.field_control_failed)
-        # если есть записи с полем префикса (д. р-н. и тд) None
+        # соато префикс (д. р-н. и тд) != None
         empty_pref_ids = contr.is_empty_f_pref()
         if empty_pref_ids:
             err_message = customErrors.warning_no_pref % empty_pref_ids
             self.emit_process_event(
                     CustomError(errTypes.control_warning, err_message))
-        # проверяем чтобы все объекты имели правильный SOATO
+        # группа должна иметь с/c c 000 в конце или быть г/п.г.т
         wrong_pref_ids = contr.is_wrong_f_pref()
         if wrong_pref_ids:
             err_message = customErrors.warning_wrong_pref % wrong_pref_ids
             raise CustomError(errTypes.control_warning, err_message)
-        # проверяем чтобы все объекты имели правильный SOATO
+        # код соато 5-ый знак != 9
         wrong_pref_ids_sez = contr.is_wrong_f_pref_sez()
         if wrong_pref_ids_sez:
             err_message = customErrors.warning_wrong_pref_sez % wrong_pref_ids_sez

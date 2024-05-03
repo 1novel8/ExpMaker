@@ -59,7 +59,6 @@ class ExpBalancer:
             key = 'minus'
 
         for ind in range(len(cells)):
-            print(cells[ind][key])
             if cells[ind][key]:
                 inds_false_key.append(ind)
 
@@ -1088,7 +1087,7 @@ class ExpBalancer:
                     bonus_list.append(r_key)
 
         '''if not check_balance:
-            self.show_modal('Уравнивание не удалось, необходимо увязать вручную', modal_type='warning')'''
+            self.show_modal('Уравнивание не удалось, необходимо уравнаять вручную', modal_type='warning')'''
         # 7... объединяем невязки(бонусы) со значениями
         self.merge_bonuses_to_values(self.current_exp)
 

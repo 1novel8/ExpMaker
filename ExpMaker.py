@@ -5,7 +5,7 @@ from os import getcwd, path, remove
 from PyQt5.QtCore import QCoreApplication, QSemaphore, QSize, QThreadPool
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QGridLayout,
-                             QMainWindow, QMessageBox, QSplitter, QWidget)
+                             QMainWindow, QMessageBox, QSplitter, QWidget, QAction)
 
 from constants import (ExplicationActions, baseActions, controlsStates,
                        coreFiles, errTypes, expActions, extractionActions,
@@ -111,6 +111,12 @@ class ExpWindow(QMainWindow):
             progress_handler=self.handle_explication_progress,
             success_handler=self.handle_explication_success,
         )
+
+        action = QAction('stop action', self)
+        action.setShortcut('Esc')
+        action.triggered.connect(self.stop_all_actions)
+        self.addAction(action)
+
         self.explicationThreadPool = QThreadPool()
         # progress bar снизу справа
         self.loading_process_label = LoadingLabel(self)
@@ -233,6 +239,12 @@ class ExpWindow(QMainWindow):
         )
         menu.file_section_key = file_section_key
         self.menu = menu
+
+    def stop_all_actions(self):
+        if self.explicationThread.isRunning():
+            self.explicationThread.terminate()
+            self.explicationThread.wait(5000)
+            self.finish_loading('Расчет экспликации прерван пользователем')
 
     def run_sprav_action(self, action_type):
         """
