@@ -132,24 +132,14 @@ class ExpF22Maker:
         """
         f_orders = sprav_holder.str_orders['b_f']
         r_orders = sprav_holder.str_orders['b_r']
-        r_orders = r_orders[:34]  # отсекаем строки с 25 по 41, они заполняются в экселе автоматически
+        r_orders = r_orders[:41]  # отсекаем строки с 25 по 41, они заполняются в экселе автоматически
         matr = []
-        print(f_orders)
-        print(r_orders)
 
         def push_to_matr(remain):
             row = []
             row.extend(remain)
             matr.append(row)
 
-        """
-        def push_to_matr(first, second, remain):
-            row = [first, second]
-            row.extend(remain)
-            matr.append(row)
-        """
-
-        print(matr)
         push_to_matr(f_orders)  # ('F22', 'description', f_orders)
         for r_key in r_orders:
             # print(r_key)
@@ -158,8 +148,6 @@ class ExpF22Maker:
 
         # digits = map(lambda x: b_dict['by_SHAPE'][x]['val'], f_orders)
         # push_to_matr( digits)#push_to_matr('Total', 'By_Shape', digits)
-        print('****')
-        print(matr)
         return matr
 
     @staticmethod
@@ -171,7 +159,6 @@ class ExpF22Maker:
         f_orders = sprav_holder.str_orders['b_f']
         r_orders = sprav_holder.str_orders['b_r']
         matr_total = []
-        print(f_orders)
 
         def push_to_matr_total(remain):
             row = []
@@ -180,7 +167,6 @@ class ExpF22Maker:
 
         digits = map(lambda x: b_dict['by_SHAPE'][x]['val'], f_orders)
         push_to_matr_total(digits)  # push_to_matr('Total', 'By_Shape', digits)
-        print(matr_total)
         return matr_total
 
     @staticmethod

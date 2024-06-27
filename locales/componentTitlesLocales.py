@@ -3,7 +3,7 @@
 
 
 class TitleLocales:
-    logo = "Республиканское унитарное предприятие \" Проектный институт Белгипрозем \""
+    logo = "Республиканское унитарное предприятие \"Проектный институт Белгипрозем\""
     control_lbl = "   1. Контроль"
     convert_lbl = "   2. Конвертация"
     exp_a_lbl = "   3. Расчет сводной\n       экспликации - форма В"
@@ -44,7 +44,7 @@ class TitleLocales:
     spr_save_as_default = "Сохранить текущий справочник как справочник по умолчанию"
     spr_info = "Информация о текущем справочнике"
     settings_xls = "Вывод в Excel"
-    settings_balance = "Увязка Формы 22-зем"
+    settings_balance = "Уравнивание Формы 22-зем"
     settings_accuracy = "Настройки округления в га"
     settings_conditions = "Настройки условий выборки"
 
@@ -62,8 +62,8 @@ class TitleLocales:
     edit_xls_run_mode_title = "Запуск .xls файлов по завершению расчетов"
     # edit_mdb_run_mode_title = "Запуск .mdb файлов по завершению расчетов"
 
-    edit_settings_balance_title = "Настройки увязки Формы 22-зем"
-    edit_settings_enable_b_balance_title = "Включить увязку площадей Формы 22-зем (I)"
+    edit_settings_balance_title = "Настройки уравнивания Формы 22-зем"
+    edit_settings_enable_b_balance_title = "Включить уравнивание площадей Формы 22-зем (I)"
     edit_settings_accuracy_title = "Настройки округления – знаки после запятой"
     edit_settings_accuracy_a_title = "Форма А"
     edit_settings_accuracy_a_sv_title = "Форма В, сводная"
