@@ -1,8 +1,8 @@
-from os import getcwd, path
+from os import path
 
 
 class CoreFilesPaths:
-    project_dir = getcwd()
+    project_dir = '.\\'
     spr_dir = path.join(project_dir, 'Spr')
     spr_default_path = path.join(spr_dir, 'DefaultSpr.pkl')
     tempDB_path = path.join(spr_dir, 'tempDbase.mdb')

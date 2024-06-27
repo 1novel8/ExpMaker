@@ -5,7 +5,7 @@ from os import getcwd, path, remove
 from PyQt5.QtCore import QCoreApplication, QSemaphore, QSize, QThreadPool
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QGridLayout,
-                             QMainWindow, QMessageBox, QSplitter, QWidget)
+                             QMainWindow, QMessageBox, QSplitter, QWidget, QAction)
 
 from constants import (ExplicationActions, baseActions, controlsStates,
                        coreFiles, errTypes, expActions, extractionActions,
@@ -31,7 +31,7 @@ class ExpWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setMinimumSize(QSize(640, 480))
         self.resize(1400, 840)
-        self.setWindowTitle('Explication 2.0')
+        self.setWindowTitle('Explication 2024.2.0')
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         self.setWindowIcon(QIcon(path.join(project_dir, 'Images\\exp.png')))
@@ -111,6 +111,12 @@ class ExpWindow(QMainWindow):
             progress_handler=self.handle_explication_progress,
             success_handler=self.handle_explication_success,
         )
+
+        action = QAction('stop action', self)
+        action.setShortcut('Esc')
+        action.triggered.connect(self.stop_all_actions)
+        self.addAction(action)
+
         self.explicationThreadPool = QThreadPool()
         # progress bar снизу справа
         self.loading_process_label = LoadingLabel(self)
@@ -234,6 +240,12 @@ class ExpWindow(QMainWindow):
         menu.file_section_key = file_section_key
         self.menu = menu
 
+    def stop_all_actions(self):
+        if self.explicationThread.isRunning():
+            self.explicationThread.terminate()
+            self.explicationThread.wait(5000)
+            self.finish_loading('Расчет экспликации прерван пользователем')
+
     def run_sprav_action(self, action_type):
         """
         Выбор справочника
@@ -285,6 +297,8 @@ class ExpWindow(QMainWindow):
                 return
             self.settings_holder.should_save_as = coreFiles.spr_default_path
             self.save_sprav_as_default(current_settings=self.settings_holder.get_settings_dict())
+            self.show_modal('Справочник сохранена как "справочник по умолчанию".',
+                            modal_type='information', title=titleLocales.spr_save_as_default)
         elif action_type == sprActions.INFO:
             info = self.sprav_holder.get_info()
             if info:
@@ -468,7 +482,6 @@ class ExpWindow(QMainWindow):
     def handle_explication_progress(self, next_action_meta) -> None:
         process_message = actionLocales.get_loading_msg(next_action_meta['action'])
         self.show_loading(process_message + ' ' + next_action_meta['message'])
-        print(next_action_meta['message'])
 
     def handle_extraction_warnings(self, warnings) -> None:
         action_id = self.extractionThread.current_action

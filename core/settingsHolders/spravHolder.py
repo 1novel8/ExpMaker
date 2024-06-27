@@ -37,6 +37,7 @@ class SpravHolder:
         self.slnad_codes = None
         self.state_codes = None
         self.melio_codes = None
+        self.category_codes = None
 
         self.select_conditions = None
         self.land_codes = None
@@ -91,6 +92,7 @@ class SpravHolder:
             self.state_codes = sprav_dict['state_codes']
             self.melio_codes = sprav_dict['melio_codes']
             self.land_codes = sprav_dict['land_codes']
+            self.category_codes = sprav_dict['category_codes']
             self.select_conditions = sprav_dict['select_conditions']
             return True
         except KeyError:
@@ -152,6 +154,11 @@ class SpravHolder:
         table_scheme = SpravStructure.get_table_scheme(table_name)
         query = f"SELECT {table_scheme['mc']['name']} FROM {table_name}"
         data_dict['melio_codes'] = self.select_to_str(query)
+
+        table_name = SpravStructure.category
+        table_scheme = SpravStructure.get_table_scheme(table_name)
+        query = f"SELECT {table_scheme['category']['name']} FROM {table_name}"
+        data_dict['category_codes'] = self.select_to_str(query)
 
         data_dict['select_conditions'] = self.get_select_conditions()
         data_dict['create_time'] = time.strftime(u"%H:%M__%d.%m.%Y")
@@ -469,7 +476,6 @@ class SpravHolder:
             try:
                 r_props[r_key]['sort_filter'] = SpravHolder.parse_filter_data(row[2], valid_aliases)
             except Exception as err:
-                print(err)
                 self.raise_strct_err(tab_name, r_key)
             sum_cnds = row[3]
 

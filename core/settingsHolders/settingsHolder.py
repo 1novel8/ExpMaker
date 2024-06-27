@@ -15,7 +15,7 @@ class DictAsObject:
 
 class SettingsHolder:
     def __init__(self, xls_templates_dir, store_source, on_save=lambda x, y: x):
-        self.xls_templates_dir = xls_templates_dir
+        self.xls_templates_dir = f'.\\Spr\\xls_forms'
         self.should_save_as = store_source
         self.set_default_settings()
         self.on_save = on_save
@@ -28,6 +28,7 @@ class SettingsHolder:
             try:
                 for k, v in settings_data.items():
                     self.set_settings_by_key(k, v)
+                self.balance.include_b_balance = True
             except Exception as err:
                 print(err)
                 self.set_default_settings()

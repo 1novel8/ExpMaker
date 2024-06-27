@@ -72,19 +72,19 @@ class ActionMessages:
         expActions.EXP_A_MULTI: "Создание пакентой экспликации А",
         expActions.EXP_A_SV: "Создание сводной экспликации",
         expActions.EXP_B: "Создание экспликации F22",
-        expActions.MAKE_BALANCE: "Балансировка",
+        expActions.MAKE_BALANCE: "Уравнивание",
         expActions.EXPORT_EXP: "Экспорт даннных",
     }
 
     save_settings_messages = {
         settingsActions.SHOW_XLS: "Установлены новые настройки экспорта в Excel",
-        settingsActions.SHOW_BALANCE: "Установлены новые настройки запуска баланса",
+        settingsActions.SHOW_BALANCE: "Установлены новые настройки запуска уравнивания",
         settingsActions.SHOW_ACCURACY: "Установлены новые настройки округления",
         settingsActions.SHOW_CONDITIONS: "Установлены новые настройки выборки и группировки данных",
     }
 
     balance_log_messages = {
-        expActions.EXP_B: "Уравнивание экспликации F22 не удалось. Необходимо выполнить увязку вручную",
+        expActions.EXP_B: "Уравнивание экспликации F22 не удалось. Необходимо выполнить уравнивание вручную",
     }
 
     def get_start_log(self, action_type):

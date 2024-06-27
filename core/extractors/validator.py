@@ -42,6 +42,7 @@ class CtrDBValidator:
         self.validate_cros_table__forma22_1__in_sprav()
         self.validate_cros_table__land_code__in_sprav()
         self.validate_cros_table__melio_code__in_sprav()
+        self.validate_cros_table__category_in_sprav()
         self.validate_cros_table__user_n()
         self.validate_cros_table__forma22_n__in_sprav()
         self.validate_cros_table__part_n__is_not_null_and_between_0_100()
@@ -106,6 +107,19 @@ class CtrDBValidator:
                 raise Exception(f"Проверьте наличие полей {', '.join(part_fields(count))}")
         return count - 1
 
+    def validate_cros_table__category_in_sprav(self):
+        cros_table = CtrStructure.crs_table
+        cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
+
+        self._is_field_values_in_choices(
+            table=cros_table,
+            field=cros_table_scheme['category']['name'],
+            choices=self.sprav_holder.category_codes,
+            sprav_table_name=SpravStructure.category,
+            id_field=cros_table_scheme['id']['name'],
+            is_null_allowed=False,
+        )
+
     def validate_cros_table__user_n_sad_with_slnad_2_only(self) -> None:
         cros_table = CtrStructure.crs_table
         cros_table_scheme = CtrStructure.get_table_scheme(cros_table)
@@ -117,11 +131,8 @@ class CtrDBValidator:
                  f"FROM {cros_table} "
                  f"WHERE ({sl_nad} = 2 and {user_n_sad} IS NULL) "
                  f"     or ({sl_nad} <> 2 and {user_n_sad} IS NOT NULL)")
-        print(1)
         search_err = self.select__first_field_only(query)
-        print(search_err)
         self.errors.add(cros_table, 'UserN_Sad or SLNAD', search_err, 10)
-        print(2)
 
     def validate_cros_table__user_n_f22_part_n__if_one_exist_other_not_null(self) -> None:
         cros_table = CtrStructure.crs_table

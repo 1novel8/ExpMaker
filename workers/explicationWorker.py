@@ -121,7 +121,6 @@ class ExplicationWorker:
                 'sh_name': xl_s.a_sv_sh_name,
                 'is_xls_start': xl_s.is_xls_start
             }
-            print(out_settings)
             self.export_matr_to_xl(
                 matrix,
                 self.gen_xl_out_file('FV_svod', out_exp_file),
@@ -146,21 +145,18 @@ class ExplicationWorker:
         exp_dict = exp_maker.create_exp_dict(settings_holder.rnd)
 
         if with_balance:
-            print("---------экспликация с Балансировкой----------------")
+            # print("---------экспликация с Уравниванием----------------")
             self.__emit_process_changes(expActions.MAKE_BALANCE)
-            balanceMaker.run_b_balancer(
-                exp_dict,
-                sprav_holder.expf22_f_str,
-                sprav_holder.expf22_r_str,
-                settings_holder.rnd.b_accuracy
+            balanceMaker.run_f22_balancer(
+                main_exp=exp_dict,
+                field_settings=sprav_holder.expf22_f_str,
+                row_settings=sprav_holder.expf22_r_str,
+                accuracy=settings_holder.rnd.b_accuracy,
             )
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_matrix(exp_dict, sprav_holder)
         matrix_total = exp_maker.prepare_matrix_total(exp_dict, sprav_holder)
-        print("\n---------------------матрица данных --------------------")
-        print(matrix)
-        print("\n------ матрица итогов   --------")
-        print(matrix_total)
+
         if is_xls_mode:
             xls = settings_holder.xls
             out_settings = {
@@ -171,11 +167,11 @@ class ExplicationWorker:
                 'is_xls_start': xls.is_xls_start,
             }
             self.export_matr_to_xl_F22(
-                matrix,
-                matrix_total,
-                self.gen_xl_out_file('F22_I_', out_exp_file),
-                xls.b_path,
-                out_settings,
+                matrix=matrix,
+                matrix_total=matrix_total,
+                out_db_file=self.gen_xl_out_file('F22_I_', out_exp_file),
+                template_path=xls.b_path,
+                out_settings=out_settings,
             )
 
         else:

@@ -61,6 +61,10 @@ class CtrStructure(AbstractDBStructure):
                 "user_n_sad": {
                     "name": "UserN_Sad",
                     "type": ["INTEGER", "SMALLINT"],
+                },
+                "category": {
+                    "name": "Category",
+                    "type": ["INTEGER", "SMALLINT"]
                 }
             },
             "SOATO": {

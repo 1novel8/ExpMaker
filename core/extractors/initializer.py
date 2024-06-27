@@ -36,20 +36,17 @@ class CtrController(DbController):
 
     def is_wrong_f_pref(self) -> Union[str, bool]:
         """
-        проверяем чтобы все значения soato были правильными
+        должен присутствовать сельский совет для группы, лобо должен быть город/ поселок годороского типа
         """
         soato_table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         all_soato = self.conn.select_single_f(
-            'select %s from %s ' % (
-                soato_table_scheme['code']['name'],
-                self.db_schema.soato_table),
+            f"SELECT {soato_table_scheme['code']['name']} "
+            f"FROM {self.db_schema.soato_table}"
         )
         failed_obj = []
         for i in all_soato:
             if (i[:7] + "000") not in all_soato:
-                if i[4] == "8":  # если не СЭЗ
-                    failed_obj.append(i)
-                if i[4] == "7":
+                if i[4] == "8" or i[4] == "7":
                     failed_obj.append(i)
 
         if failed_obj:
@@ -59,7 +56,10 @@ class CtrController(DbController):
             return False
 
     def is_wrong_f_pref_sez(self) -> Union[str, bool]:
-        """проверяем на правильность SOATO"""
+        """
+        проверяем на правильность SOATO
+        5-ый знак не может быть равен 9
+        """
         table_scheme = CtrStructure.get_table_scheme(self.db_schema.soato_table)
         query = (f"SELECT {table_scheme['code']['name']} "
                  f"FROM {CtrStructure.soato_table} "
@@ -68,7 +68,7 @@ class CtrController(DbController):
 
         failed_obj = []
         for code in soato_codes:
-            if code[4] == "9":  # если СЭЗ
+            if code[4] == "9":
                 failed_obj.append(code)
 
         if failed_obj:
