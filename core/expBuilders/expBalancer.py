@@ -433,7 +433,7 @@ class ExpBalancer:
         """
 
         child_sum = 0
-        parent_val = parent_cell['val'] + parent_cell['bonus']
+        parent_val = parent_cell['val'] + parent_cell['bonus'] + parent_cell['tail'] - 0.1
         for cell in child_cells:
             child_sum += cell['val'] + cell['bonus']
 
