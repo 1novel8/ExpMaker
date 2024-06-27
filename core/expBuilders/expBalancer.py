@@ -1,5 +1,6 @@
 import math
 import traceback
+from typing import Dict, Any, List, Tuple, Union
 
 
 class ExpBalancer:
@@ -16,12 +17,7 @@ class ExpBalancer:
             return value < 0
 
     @staticmethod
-    def _assert_equal(parent_cell, child_cells):
-        """
-        :param parent_cell: test parent cell
-        :param child_cells: test child cells
-        @:return boolean
-        """
+    def _assert_equal(parent_cell, child_cells) -> bool:
         is_equal = True
 
         if not parent_cell['fixed']:
@@ -251,10 +247,8 @@ class ExpBalancer:
 
     def _split_bonus(self, bonus, cells):
         bonus_count = math.fabs(bonus * 10 ** self.accuracy)
-        if bonus_count:
-            print(bonus_count, bonus)
         bonus /= bonus_count
-        bonus = round(bonus, int(self.accuracy))
+        bonus = round(bonus, self.accuracy)
         for bonusInd in range(int(bonus_count)):
             if len(cells) == 1:
                 bonus_cell_key = 0
@@ -274,7 +268,7 @@ class ExpBalancer:
                 # TODO: Uncomment here after debugging
                 # raise Exception('Something went wrong while Balancing')
 
-    def _make_equal_bonus_fix(self, parent_cell, child_cells, level):
+    def _make_equal_bonus_fix(self, parent_cell: Dict[str, Any], child_cells: List[Dict[str, Any]], level: int):
         # сравниваем итоговое значение с суммой входящих ячеек и находим бонус, который записываем в ячейку и фиксируем
         # значения, они уже уравнены
         """
@@ -285,34 +279,33 @@ class ExpBalancer:
         :param child_cells: array of cells
         :return:
         """
-        accuracy = int(self.accuracy)
         child_sum = 0
-        parent_val = round(parent_cell['val'] + parent_cell['bonus'], accuracy)
+        parent_val = round(parent_cell['val'] + parent_cell['bonus'], self.accuracy)
         for cell in child_cells:
             child_sum += cell['val'] + cell['bonus']
 
-        child_sum = round(child_sum, accuracy)
+        child_sum = round(child_sum, self.accuracy)
         if parent_cell['fixed']:
             if level == 1 or level == 2:
-                total_bonus = round(parent_val - child_sum, accuracy)
+                total_bonus = round(parent_val - child_sum, self.accuracy)
                 if total_bonus != 0:
                     self._split_bonus(total_bonus, child_cells)
-                for cll in child_cells:
-                    cll['fixed'] = True
+                for cell in child_cells:
+                    cell['fixed'] = True
             elif level == 3:
-                total_bonus = round(parent_val - child_sum, accuracy)
+                total_bonus = round(parent_val - child_sum, self.accuracy)
                 if total_bonus < 0:
                     self._split_bonus(total_bonus, child_cells)
-                for cll in child_cells:
-                    cll['fixed'] = True
+                for cell in child_cells:
+                    cell['fixed'] = True
             else:
-                for cll in child_cells:
-                    if parent_val < cll['val']:
-                        total_bonus = round(parent_val - cll['val'], accuracy)
-                        cll['bonus'] = cll['bonus'] + total_bonus
-                    cll['fixed'] = True
+                for cell in child_cells:
+                    if parent_val < cell['val']:
+                        total_bonus = round(parent_val - cell['val'], self.accuracy)
+                        cell['bonus'] = cell['bonus'] + total_bonus
+                    cell['fixed'] = True
         else:
-            parent_cell['bonus'] = round(child_sum - parent_cell['val'], accuracy)
+            parent_cell['bonus'] = round(child_sum - parent_cell['val'], self.accuracy)
             parent_cell['fixed'] = True
 
     def _make_equal_bonus_fix_bonus(self, parent_cell, child_cells, level, bonus_fields_plus, bonus_fields_minus):
@@ -357,7 +350,9 @@ class ExpBalancer:
             parent_cell['bonus'] = round(child_sum - parent_cell['val'], accuracy)
             parent_cell['fixed'] = True
 
-    def _make_equal_bonus_not_fix(self, parent_cell, child_cells, level):
+    def _make_equal_bonus_not_fix(
+            self, parent_cell: Dict[str, Any], child_cells: List[Dict[str, Any]], row_level: int
+    ) -> None:
 
         """
         Caution. This method changes the input objects
@@ -374,11 +369,11 @@ class ExpBalancer:
             child_sum += cell['val'] + cell['bonus']
 
         if parent_cell['fixed']:
-            if level == 1 or level == 2:
+            if row_level == 1 or row_level == 2:
                 total_bonus = round(parent_val - child_sum, accuracy)
                 if total_bonus != 0:
                     self._split_bonus(total_bonus, child_cells)
-            elif level == 3:
+            elif row_level == 3:
                 total_bonus = round(parent_val - child_sum, accuracy)
                 if total_bonus < 0:
                     self._split_bonus(total_bonus, child_cells)
@@ -391,7 +386,9 @@ class ExpBalancer:
             parent_cell['bonus'] = round(child_sum - parent_cell['val'], accuracy)
             parent_cell['fixed'] = True
 
-    def _make_equal_bonus_not_fix_25(self, parent_cell, child_cells, level):
+    def _make_equal_bonus_not_fix_25(
+            self, parent_cell: Dict[str, Any], child_cells: List[Dict[str, Any]], level: int
+    ) -> None:
 
         """
         Caution. This method changes the input objects
@@ -401,7 +398,6 @@ class ExpBalancer:
         :param child_cells: array of cells
         :return:
         """
-        accuracy = int(self.accuracy)
 
         child_sum = 0
         parent_val = parent_cell['val'] + parent_cell['bonus']
@@ -409,23 +405,24 @@ class ExpBalancer:
             child_sum += cell['val'] + cell['bonus']
 
         if level == 1 or level == 2:
-            total_bonus = round(parent_val - child_sum, accuracy)
+            total_bonus = round(parent_val - child_sum, self.accuracy)
             parent_cell['bonus'] += total_bonus
-            parent_cell['bonus'] = round(parent_cell['bonus'], accuracy)
+            parent_cell['bonus'] = round(parent_cell['bonus'], self.accuracy)
         elif level == 3:
-            total_bonus = round(parent_val - child_sum, accuracy)
+            total_bonus = round(parent_val - child_sum, self.accuracy)
             if total_bonus < 0:
                 parent_cell['bonus'] += total_bonus
-                parent_cell['bonus'] = round(parent_cell['bonus'], accuracy)
+                parent_cell['bonus'] = round(parent_cell['bonus'], self.accuracy)
         else:
             for cll in child_cells:
                 if parent_val < cll['val']:
-                    total_bonus = round(parent_val - cll['val'], accuracy)
+                    total_bonus = round(parent_val - cll['val'], self.accuracy)
                     parent_cell['bonus'] += total_bonus
-                    parent_cell['bonus'] = round(parent_cell['bonus'], accuracy)
+                    parent_cell['bonus'] = round(parent_cell['bonus'], self.accuracy)
 
-    def _make_equal_bonus_not_fix_Total(self, parent_cell, child_cells, level):
-
+    def _make_equal_bonus_not_fix_Total(
+            self, parent_cell: Dict[str, Any], child_cells: List[Dict[str, Any]], field_level: int
+    ) -> None:
         """
         Caution. This method changes the input objects
         it doesnt change the keys of input parameters,
@@ -434,24 +431,23 @@ class ExpBalancer:
         :param child_cells: array of cells
         :return:
         """
-        accuracy = int(self.accuracy)
 
         child_sum = 0
         parent_val = parent_cell['val'] + parent_cell['bonus']
         for cell in child_cells:
             child_sum += cell['val'] + cell['bonus']
 
-        if level == 1 or level == 2:
-            total_bonus = round(parent_val - child_sum, accuracy)
+        if field_level == 1 or field_level == 2:
+            total_bonus = round(parent_val - child_sum, self.accuracy)
             parent_cell['bonus'] -= total_bonus
-        elif level == 3:
-            total_bonus = round(parent_val - child_sum, accuracy)
+        elif field_level == 3:
+            total_bonus = round(parent_val - child_sum, self.accuracy)
             if total_bonus < 0:
                 parent_cell['bonus'] -= total_bonus
         else:
-            for cll in child_cells:
-                if parent_val < cll['val']:
-                    total_bonus = round(parent_val - cll['val'], accuracy)
+            for cell in child_cells:
+                if parent_val < cell['val']:
+                    total_bonus = round(parent_val - cell['val'], self.accuracy)
                     parent_cell['bonus'] -= total_bonus
 
     def _search_tail_in_a_field(self, f_key, depend_rs, is_positive):
@@ -536,20 +532,24 @@ class ExpBalancer:
                 row_list.append(row_key)
         return not_empty_cells, row_list
 
-    def _search_one_cell_in_a_row(self, base_r, base_f, depend_fs, r_key):
+    def _search_one_cell_in_a_row(
+            self, base_row: str, base_field: str, depend_fields: List[str], row: str
+    ) -> Tuple[List[str], List[str]]:
         not_empty_cells = []
         fld_list = []
-        p_cell = self.current_exp[r_key][base_f]
-        for f_key in depend_fs:
+        p_cell = self.current_exp[row][base_field]
+        for f_key in depend_fields:
             # if self.check_zero(p_cell['bonus'], p_cell['bonus'] > 0):
-            if not self.current_exp[r_key][f_key]['fixed']:
+            if not self.current_exp[row][f_key]['fixed']:
                 # if self.check_zero(self.current_exp[r_key][f_key]['tail'], p_cell['bonus'] > 0):
-                not_empty_cells.append(self.current_exp[r_key][f_key])
+                not_empty_cells.append(self.current_exp[row][f_key])
                 fld_list.append(f_key)
         return not_empty_cells, fld_list
 
     @staticmethod
-    def modify_settings(settings):
+    def modify_settings(
+            settings: Dict[str, Dict[str, Any]]
+    ) -> Dict[Any, Union[Dict, List[int]]]:
         mod_settings = {1: {}, -1: {}, 'lvls': [1, ]}
         for f in settings:
             if 'balance_lvl' not in settings[f]:
@@ -572,38 +572,45 @@ class ExpBalancer:
         return mod_settings
 
     @staticmethod
-    def prepare_matrix(matr, accuracy):
-        for row in matr:
-            for field in matr[row]:
+    def prepare_matrix(matrix: Dict[str, Dict[str, Any]], accuracy: int) -> None:
+        for row in matrix:
+            for field in matrix[row]:
                 try:
-                    matr[row][field]['bonus'] = 0
-                    matr[row][field]['plus'] = False
-                    matr[row][field]['minus'] = False
-                    if matr[row][field]['val'] == 0 and matr[row][field]['tail'] == 0:
-                        matr[row][field]['fixed'] = True
+                    cell = matrix[row][field]
+                    cell['bonus'] = 0
+                    cell['plus'] = False
+                    cell['minus'] = False
+                    if cell['val'] == 0 and cell['tail'] == 0:
+                        cell['fixed'] = True
                     else:
-                        matr[row][field]['fixed'] = False
-                    matr[row][field]['tail'] = round(matr[row][field]['tail'], (accuracy + 2))
+                        cell['fixed'] = False
+                    cell['tail'] = round(cell['tail'], (accuracy + 2))
                 except KeyError:
                     raise Exception('Get wrong cell data during balancing!')
                 except Exception:
                     print('Ошибка:\n', traceback.format_exc())
 
-    @staticmethod
-    def merge_bonuses_to_values(nested_exp_doc):
-        for row in nested_exp_doc:
-            for field in nested_exp_doc[row]:
-                nested_exp_doc[row][field]['val'] += nested_exp_doc[row][field]['bonus']
-                nested_exp_doc[row][field]['bonus'] = 0
+    def merge_bonuses_to_values(self) -> None:
+        for row in self.current_exp:
+            for field in self.current_exp[row]:
+                self.current_exp[row][field]['val'] += self.current_exp[row][field]['bonus']
+                self.current_exp[row][field]['bonus'] = 0
 
-    def _fix_little_tails(self, depend_rs, depend_fs, accuracy, is_positive, little_tail=0.3):
-        for r_key in depend_rs:
-            for f_key in depend_fs:
-                if 0 < abs(round(self.current_exp[r_key][f_key]['tail'], accuracy + 1)) < little_tail * 10 ** -accuracy:
-                    self.current_exp[r_key][f_key]['fixed'] = is_positive
+    def _fix_little_tails(
+            self,
+            depend_rows: List[str],
+            depend_fields: List[str],
+            accuracy: int,
+            is_positive: bool,
+            little_tail: float = 0.3,
+    ) -> None:
+        for row in depend_rows:
+            for field in depend_fields:
+                if 0 < abs(round(self.current_exp[row][field]['tail'], accuracy + 1)) < little_tail * 10 ** -accuracy:
+                    self.current_exp[row][field]['fixed'] = is_positive
                     if not is_positive:
-                        if 0 < abs(round(self.current_exp[r_key][f_key]['tail'], accuracy + 1)) < 0.1 * 10 ** -accuracy:
-                            self.current_exp[r_key][f_key]['fixed'] = True
+                        if 0 < abs(round(self.current_exp[row][field]['tail'], accuracy + 1)) < 0.1 * 10 ** -accuracy:
+                            self.current_exp[row][field]['fixed'] = True
 
     # поиск ячейки в графе для бонуса
     def _bonus_cell_in_a_field(self, p_cell, f_key, base_f, depend_rs, fields, ch_cells, r_cells, alt_fields=None):
@@ -639,75 +646,76 @@ class ExpBalancer:
         return ch_cells, r_cells
 
     # уравнивание по графам с невязками
-    def _balancing_by_each_field(self, base_r, base_f, depend_rs, depend_fs, balance_level):
-        for f_key in depend_fs:
-            p_cell = self.current_exp[base_r][f_key]
+    def _balancing_by_each_field(self, base_row, base_field, depend_rows, depend_fields, balance_level):
+        for field in depend_fields:
+            parent_cell = self.current_exp[base_row][field]
             # если невязка по графе
-            if round(p_cell['bonus'], self.accuracy) != 0:
-                ch_cells = []
+            if round(parent_cell['bonus'], self.accuracy) != 0:
+                child_cells = []
                 r_cells = []
                 alt_fields = []
                 bonus_fs_plus = []
                 bonus_fs_minus = []
-                for fld_key in depend_fs:
-                    if self.current_exp[base_r][fld_key]['bonus'] < 0:
+                for fld_key in depend_fields:
+                    if self.current_exp[base_row][fld_key]['bonus'] < 0:
                         bonus_fs_minus.append(fld_key)
-                    if self.current_exp[base_r][fld_key]['bonus'] > 0:
+                    if self.current_exp[base_row][fld_key]['bonus'] > 0:
                         bonus_fs_plus.append(fld_key)
-                if p_cell['bonus'] > 0:
+                if parent_cell['bonus'] > 0:
                     bonus_fields = bonus_fs_minus
                 else:
                     bonus_fields = bonus_fs_plus
                 try:
                     # смотрим ячейки с противоположным остатком, если есть , то добавляем эту строку для выборки по
                     # графе
-                    ch_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(p_cell, f_key, base_f, depend_rs,
-                                                                                bonus_fields, ch_cells, r_cells,
-                                                                                alt_fields)
+                    child_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(
+                        parent_cell, field, base_field, depend_rows, bonus_fields, child_cells, r_cells, alt_fields
+                    )
                     # если есть ячейки с противоположным остатком
-                    if len(ch_cells) != 0:
+                    if len(child_cells) != 0:
                         # выбираем ячейку в графе, для записи невязки
-                        self._split_bonus_each_field(p_cell, ch_cells, base_f, base_r, r_cells, alt_fields)
+                        self._split_bonus_each_field(parent_cell, child_cells, base_field, base_row, r_cells, alt_fields)
                     else:
-                        self._fix_little_tails(depend_rs, depend_fs, self.accuracy, False)
-                        ch_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(p_cell, f_key, base_f, depend_rs,
-                                                                                    bonus_fields, ch_cells, r_cells,
-                                                                                    alt_fields)
-                        if len(ch_cells) != 0:
-                            self._split_bonus_each_field(p_cell, ch_cells, base_f, base_r, r_cells, alt_fields)
-                        self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True)
-                    if p_cell['bonus'] != 0:
-                        ch_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(p_cell, f_key, base_f, depend_rs,
-                                                                                    depend_fs, ch_cells, r_cells)
-                        if len(ch_cells) != 0:
-                            self._split_bonus_each_field(p_cell, ch_cells, base_f, base_r, r_cells, alt_fields)
+                        self._fix_little_tails(depend_rows, depend_fields, self.accuracy, False)
+                        child_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(
+                            parent_cell, field, base_field, depend_rows, bonus_fields, child_cells, r_cells, alt_fields
+                        )
+                        if len(child_cells) != 0:
+                            self._split_bonus_each_field(parent_cell, child_cells, base_field, base_row, r_cells, alt_fields)
+                        self._fix_little_tails(depend_rows, depend_fields, self.accuracy, True)
+                    if parent_cell['bonus'] != 0:
+                        child_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(
+                            parent_cell, field, base_field, depend_rows, depend_fields, child_cells, r_cells
+                        )
+                        if len(child_cells) != 0:
+                            self._split_bonus_each_field(parent_cell, child_cells, base_field, base_row, r_cells, alt_fields)
                         else:
-                            self._fix_little_tails(depend_rs, depend_fs, self.accuracy, False)
-                            ch_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(p_cell, f_key, base_f,
-                                                                                        depend_rs,
-                                                                                        depend_fs, ch_cells, r_cells)
-                            if len(ch_cells) != 0:
-                                self._split_bonus_each_field(p_cell, ch_cells, base_f, base_r, r_cells, alt_fields)
-                                self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True)
+                            self._fix_little_tails(depend_rows, depend_fields, self.accuracy, False)
+                            child_cells, r_cells, alt_fields = self._bonus_cell_in_a_field(
+                                parent_cell, field, base_field, depend_rows, depend_fields, child_cells, r_cells
+                            )
+                            if len(child_cells) != 0:
+                                self._split_bonus_each_field(parent_cell, child_cells, base_field, base_row, r_cells, alt_fields)
+                                self._fix_little_tails(depend_rows, depend_fields, self.accuracy, True)
                             else:
 
                                 # если итак нет, то берем максимальное значение
-                                self._fix_little_tails(depend_rs, depend_fs, self.accuracy, False)
-                                ch_cells, r_cells = self._bonus_cell_in_a_field_max_value(p_cell, f_key, depend_rs,
-                                                                                          depend_fs, ch_cells, r_cells,
-                                                                                          base_f)
-                                if len(ch_cells) != 0:
-                                    winner_i = self._run_bonus_competition_max_value(ch_cells)
-                                    self.current_exp[r_cells[winner_i]][f_key]['bonus'] += p_cell['bonus']
-                                    if p_cell['bonus'] > 0:
-                                        self.current_exp[r_cells[winner_i]][f_key]['plus'] = True
+                                self._fix_little_tails(depend_rows, depend_fields, self.accuracy, False)
+                                child_cells, r_cells = self._bonus_cell_in_a_field_max_value(
+                                    parent_cell, field, depend_rows, depend_fields, child_cells, r_cells, base_field
+                                )
+                                if len(child_cells) != 0:
+                                    winner_i = self._run_bonus_competition_max_value(child_cells)
+                                    self.current_exp[r_cells[winner_i]][field]['bonus'] += parent_cell['bonus']
+                                    if parent_cell['bonus'] > 0:
+                                        self.current_exp[r_cells[winner_i]][field]['plus'] = True
                                     else:
-                                        self.current_exp[r_cells[winner_i]][f_key]['minus'] = True
+                                        self.current_exp[r_cells[winner_i]][field]['minus'] = True
                                 else:
                                     print('Error. Error. Error. There is no bonus in a filed!')
                                     return 1
 
-                                self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True)
+                                self._fix_little_tails(depend_rows, depend_fields, self.accuracy, True)
 
                 except Exception:
                     print('Ошибка:\n', traceback.format_exc())
@@ -720,8 +728,7 @@ class ExpBalancer:
                     if self.check_zero(self.current_exp[r_key][f_key]['tail'], p_cell['bonus'] > 0):
                         # проверяем, есть ли в данном столбце ячейки с противоположным
                         # остатком(чтобы было с чем потом увязать)
-                        search_tail_fld = self._search_tail_in_a_field(f_key, depend_rs,
-                                                                       p_cell['bonus'] > 0)
+                        search_tail_fld = self._search_tail_in_a_field(f_key, depend_rs, p_cell['bonus'] > 0)
                         if search_tail_fld:
                             ch_cells.append(self.current_exp[r_key][f_key])
                             fld_cells.append(f_key)
@@ -844,7 +851,9 @@ class ExpBalancer:
                     print('Ошибка:\n', traceback.format_exc())
                     print('Fail on balancing each row')
 
-    def _run_matrix_clockwise_balancing(self, base_r, depend_rs, base_f, depend_fs, field_level, row_level):
+    def _run_matrix_clockwise_balancing(
+            self, base_row: str, depend_rows: List[str], base_field, depend_fields, field_level: int, row_level: int
+    ) -> None:
         """
                     includes 3 steps :
                         1) right --> depend rows balancing;
@@ -856,35 +865,35 @@ class ExpBalancer:
                     :param depend_fs: balancing fields
                     """
         # 1...balancing_matrix_stage_1 balancing by depend fields from base field in every row
-        for row_key in depend_rs:
-            p_cell = self.current_exp[row_key][base_f]
-            ch_cells = []
-            for f_key in depend_fs:
+        for row in depend_rows:
+            parent_cell = self.current_exp[row][base_field]
+            child_cells = []
+            for field in depend_fields:
                 try:
-                    ch_cells.append(self.current_exp[row_key][f_key])
+                    child_cells.append(self.current_exp[row][field])
                 except KeyError:
                     print('Fail on first clockwise balancing phase')
-            self._make_equal_bonus_fix(p_cell, ch_cells, field_level)
+            self._make_equal_bonus_fix(parent_cell, child_cells, field_level)
 
         # 2...balancing_matrix_stage_2 collecting fixed fields from previous step to total row
-        for f_key in depend_fs:
-            p_cell = self.current_exp[base_r][f_key]
-            ch_cells = []
-            for row_key in depend_rs:
+        for field in depend_fields:
+            parent_cell = self.current_exp[base_row][field]
+            child_cells = []
+            for row in depend_rows:
                 try:
-                    ch_cells.append(self.current_exp[row_key][f_key])
+                    child_cells.append(self.current_exp[row][field])
                 except KeyError:
                     print('Fail on second clockwise balancing phase')
-            self._make_equal_bonus_fix(p_cell, ch_cells, row_level)
+            self._make_equal_bonus_fix(parent_cell, child_cells, row_level)
 
-    def _run_matrix_finish_balancing(self, base_r, depend_rs, base_f, depend_fs, field_level, row_level):
+    def _run_matrix_finish_balancing(self, base_row: str, depend_rows: List[str], base_field, depend_fields, field_level, row_level):
         # 1...balancing_matrix_stage_1 balancing by depend fields from base field in every row
-        for row_key in depend_rs:
-            p_cell = self.current_exp[row_key][base_f]
+        for row in depend_rows:
+            p_cell = self.current_exp[row][base_field]
             ch_cells = []
-            for f_key in depend_fs:
+            for field in depend_fields:
                 try:
-                    ch_cells.append(self.current_exp[row_key][f_key])
+                    ch_cells.append(self.current_exp[row][field])
                 except KeyError:
                     print('Fail on first clockwise balancing phase')
             child_sum = 0
@@ -895,10 +904,17 @@ class ExpBalancer:
                 child_sum += cell['val'] + cell['bonus']
             p_cell['bonus'] = child_sum - parent_val
             p_cell['fixed'] = True
-            self.current_exp[row_key]['total']['bonus'] += p_cell['bonus']
-            self.current_exp[row_key]['total']['fixed'] = True
+            self.current_exp[row]['total']['bonus'] += p_cell['bonus']
+            self.current_exp[row]['total']['fixed'] = True
 
-    def _run_matrix_balancing_1_stage(self, base_r, depend_rs, base_f, depend_fs, balance_level):
+    def _run_matrix_balancing_1_stage(
+            self,
+            base_row: str,
+            depend_rows: List[str],
+            base_field: str,
+            depend_fields: List[str],
+            row_level: int
+    ) -> None:
         """
         includes 5 steps :
             1) down --> balancing;
@@ -906,133 +922,135 @@ class ExpBalancer:
             3) each row --> balancing;
             4) each field down --> collecting
             5) each field --> improving
-
-        :param base_r: row to start
-        :param depend_rs: balancing rows
-        :param base_f: field to start
-        :param depend_fs: balancing fields
         """
         # 1... уравниваем итоговую строку с общими площадями, фиксируем значения в итоговой строке
         try:
-            p_cell = self.current_exp[base_r][base_f]
-            ch_cells = []
-            for f_key in depend_fs:
+            parent_cell = self.current_exp[base_row][base_field]
+            child_cells = []
+            for field in depend_fields:
                 try:
-                    ch_cells.append(self.current_exp[base_r][f_key])
-                except:
+                    child_cells.append(self.current_exp[base_row][field])
+                except Exception:
                     print('Fail on first anticlockwise balancing phase')
-            self._make_equal_bonus_fix(p_cell, ch_cells, balance_level)
-            self.merge_bonuses_to_values(self.current_exp)
-        except:
+            self._make_equal_bonus_fix(parent_cell=parent_cell, child_cells=child_cells, level=row_level)
+            self.merge_bonuses_to_values()
+        except Exception:
             print('1 Fail on Total row balance')
 
         # 1.2... уравниваем итоговую графу с общими площадями
         try:
-            p_cell = self.current_exp[base_r][base_f]
-            ch_cells = []
-            for r_key in depend_rs:
+            parent_cell = self.current_exp[base_row][base_field]
+            child_cells = []
+            for row in depend_rows:
                 try:
-                    ch_cells.append(self.current_exp[r_key][base_f])
+                    child_cells.append(self.current_exp[row][base_field])
                 except:
                     print('Fail on fourth anticlockwise balancing phase')
-            self._make_equal_bonus_fix(p_cell, ch_cells, balance_level)
-            self.merge_bonuses_to_values(self.current_exp)
+            self._make_equal_bonus_fix(parent_cell=parent_cell, child_cells=child_cells, level=row_level)
+            self.merge_bonuses_to_values()
         except:
             print('1.2 Fail on Total field balance')
 
         # 2... поиск бонусов(невязок) в графе и запись бонуса в итоговую(25) строку по каждой графе
-        for f_key in depend_fs:
+        for field in depend_fields:
             try:
-                p_cell = self.current_exp[base_r][f_key]
-                ch_cells = []
-                for r_key in depend_rs:
+                parent_cell = self.current_exp[base_row][field]
+                child_cells = []
+                for row in depend_rows:
                     try:
-                        ch_cells.append(self.current_exp[r_key][f_key])
-                    except:
+                        child_cells.append(self.current_exp[row][field])
+                    except Exception:
                         print('Fail on second clockwise balancing phase')
-                self._make_equal_bonus_not_fix_25(p_cell, ch_cells, balance_level)
+                self._make_equal_bonus_not_fix_25(parent_cell, child_cells, row_level)
             except:
                 print('2. Fail on searching Bonuses on each field')
 
         # 2.2... Проверка, есть ли значения в графах с бонусом(невязкой), если значение только одно,
         # то добавляем туда бонус(невязку) и записываем в итоговую строку и итоговую графу эту невязку
-        for f_key in depend_fs:
+        for field in depend_fields:
             try:
-                p_cell = self.current_exp[base_r][f_key]
-                if p_cell['bonus'] != 0:
-                    not_empty_cells, row_list = self._search_one_cell_in_a_field(base_r, base_f, depend_rs, f_key)
+                parent_cell = self.current_exp[base_row][field]
+                if parent_cell['bonus'] != 0:
+                    not_empty_cells, row_list = self._search_one_cell_in_a_field(base_row, base_field, depend_rows, field)
 
-                    if len(not_empty_cells) == abs(p_cell['bonus']):
+                    if len(not_empty_cells) == abs(parent_cell['bonus']):
                         for i in range(len(not_empty_cells)):
-                            bonus = p_cell['bonus'] / len(not_empty_cells)
-                            self.current_exp[row_list[i]][f_key]['bonus'] += bonus
-                            if p_cell['bonus'] > 0:
-                                self.current_exp[row_list[i]][f_key]['minus'] = True
+                            bonus = parent_cell['bonus'] / len(not_empty_cells)
+                            self.current_exp[row_list[i]][field]['bonus'] += bonus
+                            if parent_cell['bonus'] > 0:
+                                self.current_exp[row_list[i]][field]['minus'] = True
                             else:
-                                self.current_exp[row_list[i]][f_key]['plus'] = True
+                                self.current_exp[row_list[i]][field]['plus'] = True
 
-                            p_cell['bonus'] -= bonus
+                            parent_cell['bonus'] -= bonus
                             # self.current_exp[row_list[i]][base_f]['bonus'] -= bonus
             except:
                 print('2.2 Fail on searching one bonus in a field')
 
         # 3... поиск бонусов по каждой строке и запись в итоговую графу
-        for r_key in depend_rs:
-            p_cell = self.current_exp[r_key][base_f]
-            ch_cells = []
+        for row in depend_rows:
+            parent_cell = self.current_exp[row][base_field]
+            child_cells = []
             try:
-                for f_key in depend_fs:
+                for field in depend_fields:
                     try:
-                        ch_cells.append(self.current_exp[r_key][f_key])
+                        child_cells.append(self.current_exp[row][field])
                     except:
                         print('Fail on third anticlockwise balancing phase')
-                self._make_equal_bonus_not_fix_25(p_cell, ch_cells, balance_level)
+                self._make_equal_bonus_not_fix_25(parent_cell, child_cells, row_level)
             except:
                 print('3. Fail on searching bonus in a row')
 
             # 3.2... Проверка, есть ли значения в строках с бонусом(невязкой), если значение только одно,
             # то добавляем туда бонус(невязку) и записываем в итоговую строку в итоговую строку эту невязку
-            for r_key in depend_rs:
+            for row in depend_rows:
                 try:
-                    p_cell = self.current_exp[r_key][base_f]
-                    if p_cell['bonus'] != 0:
-                        not_empty_cells, fld_list = self._search_one_cell_in_a_row(base_r, base_f, depend_fs,
-                                                                                   r_key)
+                    parent_cell = self.current_exp[row][base_field]
+                    if parent_cell['bonus'] != 0:
+                        not_empty_cells, fld_list = self._search_one_cell_in_a_row(
+                            base_row, base_field, depend_fields, row
+                        )
 
-                        if len(not_empty_cells) == abs(p_cell['bonus']):
+                        if len(not_empty_cells) == abs(parent_cell['bonus']):
                             for i in range(len(not_empty_cells)):
-                                bonus = p_cell['bonus'] / len(not_empty_cells)
-                                self.current_exp[r_key][fld_list[i]]['bonus'] += bonus
-                                if p_cell['bonus'] > 0:
-                                    self.current_exp[r_key][fld_list[i]]['minus'] = True
+                                bonus = parent_cell['bonus'] / len(not_empty_cells)
+                                self.current_exp[row][fld_list[i]]['bonus'] += bonus
+                                if parent_cell['bonus'] > 0:
+                                    self.current_exp[row][fld_list[i]]['minus'] = True
                                 else:
-                                    self.current_exp[r_key][fld_list[i]]['plus'] = True
+                                    self.current_exp[row][fld_list[i]]['plus'] = True
 
-                                p_cell['bonus'] -= bonus
-                                self.current_exp[base_r][fld_list[i]]['bonus'] -= bonus
+                                parent_cell['bonus'] -= bonus
+                                self.current_exp[base_row][fld_list[i]]['bonus'] -= bonus
                 except:
                     print('3.2 Fail on searching one bonus in a row')
 
         # 4.1... если в итоговой строке значение 0, то весь столбец фиксируем и значения = 0
 
-        for f_key in depend_fs:
-            if self.current_exp[base_r][f_key]['val'] == 0 and self.current_exp[base_r][f_key]['fixed'] is True:
-                for r_key in depend_rs:
-                    self.current_exp[r_key][f_key]['val'] = 0
-                    self.current_exp[r_key][f_key]['tail'] = 0
-                    self.current_exp[r_key][f_key]['fixed'] = True
+        for field in depend_fields:
+            if self.current_exp[base_row][field]['val'] == 0 and self.current_exp[base_row][field]['fixed'] is True:
+                for row in depend_rows:
+                    self.current_exp[row][field]['val'] = 0
+                    self.current_exp[row][field]['tail'] = 0
+                    self.current_exp[row][field]['fixed'] = True
 
         # 5... собираем невязки по строкам и графам
         bonus_list = []
-        for f_key in depend_fs:
-            if self.current_exp[base_r][f_key]['bonus'] != 0:
-                bonus_list.append(f_key)
-        for r_key in depend_rs:
-            if self.current_exp[r_key][base_f]['bonus'] != 0:
-                bonus_list.append(r_key)
+        for field in depend_fields:
+            if self.current_exp[base_row][field]['bonus'] != 0:
+                bonus_list.append(field)
+        for row in depend_rows:
+            if self.current_exp[row][base_field]['bonus'] != 0:
+                bonus_list.append(row)
 
         # 4... фиксируем значения с малым или большим остатком (>0.3 и >0.8)
-        self._fix_little_tails(depend_rs, depend_fs, self.accuracy, True, 0.3)
+        self._fix_little_tails(
+            depend_rows=depend_rows,
+            depend_fields=depend_fields,
+            accuracy=self.accuracy,
+            is_positive=True,
+            little_tail=0.3
+        )
 
         # 6... уравнивание по строкам и графам
         # пока бонусов(невязки) не будет ни в итоговой строке, ни в итоговой графе
@@ -1044,7 +1062,7 @@ class ExpBalancer:
             # итоговой ячейке в итоговой графе
             try:
                 balance_row = 0
-                balance_row = self._balancing_by_each_row(base_r, base_f, depend_rs, depend_fs)
+                balance_row = self._balancing_by_each_row(base_row, base_field, depend_rows, depend_fields)
                 '''if balance_row is None:
                     if balance_row == 1:
                         check_balance = False
@@ -1055,16 +1073,18 @@ class ExpBalancer:
 
             # 8.2... уравнивание по графе с невязкой, сумма ячеек по графе должна соответствовать
             # итоговой ячейке в итоговой строке
-            for r_key in depend_rs:
-                self.current_exp[r_key][base_f]['bonus'] = round(self.current_exp[r_key][base_f]['bonus'],
-                                                                 self.accuracy)
-                for f_key in depend_fs:
-                    self.current_exp[r_key][f_key]['bonus'] = round(self.current_exp[r_key][f_key]['bonus'],
-                                                                    self.accuracy)
+            for row in depend_rows:
+                self.current_exp[row][base_field]['bonus'] = round(
+                    self.current_exp[row][base_field]['bonus'], self.accuracy
+                )
+                for field in depend_fields:
+                    self.current_exp[row][field]['bonus'] = round(
+                        self.current_exp[row][field]['bonus'], self.accuracy
+                    )
 
             try:
                 balance_field = 0
-                balance_field = self._balancing_by_each_field(base_r, base_f, depend_rs, depend_fs, balance_level)
+                balance_field = self._balancing_by_each_field(base_row, base_field, depend_rows, depend_fields, row_level)
                 '''if balance_field is None:
                     if balance_field == 1:
                         check_balance = False
@@ -1079,24 +1099,33 @@ class ExpBalancer:
                                                                     self.accuracy)'''
             # 8.3... проверяем наличие невязок по строкам и графам
             bonus_list = []
-            for f_key in depend_fs:
-                if round(self.current_exp[base_r][f_key]['bonus'], self.accuracy) != 0:
-                    bonus_list.append(f_key)
-            for r_key in depend_rs:
-                if round(self.current_exp[r_key][base_f]['bonus'], self.accuracy) != 0:
-                    bonus_list.append(r_key)
+            for field in depend_fields:
+                if round(self.current_exp[base_row][field]['bonus'], self.accuracy) != 0:
+                    bonus_list.append(field)
+            for row in depend_rows:
+                if round(self.current_exp[row][base_field]['bonus'], self.accuracy) != 0:
+                    bonus_list.append(row)
 
         '''if not check_balance:
             self.show_modal('Уравнивание не удалось, необходимо уравнаять вручную', modal_type='warning')'''
         # 7... объединяем невязки(бонусы) со значениями
-        self.merge_bonuses_to_values(self.current_exp)
+        self.merge_bonuses_to_values()
 
         # 8... фиксируем значения увязанных данных
-        for r_key in depend_rs:
-            for f_key in depend_fs:
-                self.current_exp[r_key][f_key]['fixed'] = True
+        for row in depend_rows:
+            for field in depend_fields:
+                self.current_exp[row][field]['fixed'] = True
 
-    def _run_matrix_balancing_2_stage(self, base_r, depend_rs, base_f, depend_fs, balance_level, field_level):
+    def _run_matrix_balancing_2_stage(
+            self,
+            base_row: str,
+            depend_rows: List[str],
+            base_field: str,
+            depend_fields: List[str],
+            row_level: int,
+            field_level: int,
+    ) -> None:
+        """ЧТО-ТО НЕ ТАК ЗДЕСЬ"""
         """
         includes 5 steps :
             1) down --> balancing;
@@ -1104,133 +1133,134 @@ class ExpBalancer:
             3) each row --> balancing;
             4) each field down --> collecting
             5) each field --> improving
-
-        :param base_r: row to start
-        :param depend_rs: balancing rows
-        :param base_f: field to start
-        :param depend_fs: balancing fields
         """
-
         # 1... поиск бонусов(невязок) в Total (25) строке и запись бонуса в Total(25) строку по каждой графе
-        for f_key in depend_fs:
+        for field in depend_fields:
             try:
-                p_cell = self.current_exp[base_r][f_key]
-                ch_cells = []
-                for r_key in depend_rs:
+                parent_cell = self.current_exp[base_row][field]
+                child_cells = []
+                for row in depend_rows:
                     try:
-                        ch_cells.append(self.current_exp[r_key][f_key])
+                        child_cells.append(self.current_exp[row][field])
                     except:
                         print('Fail on second clockwise balancing phase')
-                self._make_equal_bonus_not_fix(p_cell, ch_cells, balance_level)
+                self._make_equal_bonus_not_fix(parent_cell=parent_cell, child_cells=child_cells, row_level=row_level)
             except:
                 print('2. Fail on searching Bonuses on each field')
 
         # 2... поиск бонусов по каждой строке и запись в Total графу
-        for r_key in depend_rs:
-            p_cell = self.current_exp[r_key][base_f]
-            ch_cells = []
+        """!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ЧТО-ТО НЕ ТАК ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"""
+        for row in depend_rows:
+            parent_cell = self.current_exp[row][base_field]
+            child_cells = []
             try:
-                for f_key in depend_fs:
+                for field in depend_fields:
                     try:
-                        ch_cells.append(self.current_exp[r_key][f_key])
+                        child_cells.append(self.current_exp[row][field])
                     except:
                         print('Fail on third anticlockwise balancing phase')
-                self._make_equal_bonus_not_fix_Total(p_cell, ch_cells, field_level)  # not_fix_total
+                self._make_equal_bonus_not_fix_Total(parent_cell=parent_cell, child_cells=child_cells, field_level=field_level)  # not_fix_total
 
             except:
                 print('3. Fail on searching bonus in a row')
 
         # 3... объединяем невязки(бонусы) со значениями
-        self.merge_bonuses_to_values(self.current_exp)
+        self.merge_bonuses_to_values()
 
         # 4.. фиксируем значения увязанных данных
-        for r_key in depend_rs:
-            self.current_exp[r_key][base_f]['fixed'] = True
-            for f_key in depend_fs:
-                self.current_exp[r_key][f_key]['fixed'] = True
+        for row in depend_rows:
+            self.current_exp[row][base_field]['fixed'] = True
+            for field in depend_fields:
+                self.current_exp[row][field]['fixed'] = True
 
     # увязка матрицы по графам. Если итоговая графа не увязана (fixed), то метод увязки для 1 уровня,
     # если увязана, то другой метод
-    def _run_matrix_balancing_by_base_row(self, base_row, depend_rows, row_stage):
-        for field_stage in self.field_settings['lvls']:
-            for lvl_f_key in self.field_settings[field_stage]:
+    def _run_matrix_balancing_by_base_row(self, base_row: str, depend_rows: List[str], row_level: int) -> None:
+        for field_level in self.field_settings['lvls']:
+            for field in self.field_settings[field_level]:
                 base_fields_fixed = True  # need clockwise balancing
                 for row in depend_rows:
-                    if not self.current_exp[row][lvl_f_key]['fixed']:
+                    if not self.current_exp[row][field]['fixed']:
                         base_fields_fixed = False
                         break
-
                 if base_fields_fixed:
                     self._run_matrix_clockwise_balancing(
-                        base_row,
-                        depend_rows,
-                        lvl_f_key,
-                        self.field_settings[field_stage][lvl_f_key],
-                        field_stage, row_stage
+                        base_row=base_row,
+                        depend_rows=depend_rows,
+                        base_field=field,
+                        depend_fields=self.field_settings[field_level][field],
+                        field_level=field_level,
+                        row_level=row_level,
                     )
-                    if row_stage == 2:
-                        if field_stage == 2:
+                    if row_level == 2:
+                        if field_level == 2:
                             self._run_matrix_finish_balancing(
-                                base_row,
-                                depend_rows,
-                                lvl_f_key,
-                                self.field_settings[field_stage][lvl_f_key],
-                                field_stage, row_stage
+                                base_row=base_row,
+                                depend_rows=depend_rows,
+                                base_field=field,
+                                depend_fields=self.field_settings[field_level][field],
+                                field_level=field_level,
+                                row_level=row_level,
                             )
                 else:
-                    if row_stage == 1:
-
+                    if row_level == 1:
                         self._run_matrix_balancing_1_stage(
-                            base_row,
-                            depend_rows,
-                            lvl_f_key,
-                            self.field_settings[field_stage][lvl_f_key],
-                            row_stage
+                            base_row=base_row,
+                            depend_rows=depend_rows,
+                            base_field=field,
+                            depend_fields=self.field_settings[field_level][field],
+                            row_level=row_level,
                         )
                     else:
                         self._run_matrix_balancing_2_stage(
-                            base_row,
-                            depend_rows,
-                            lvl_f_key,
-                            self.field_settings[field_stage][lvl_f_key],
-                            row_stage, field_stage
+                            base_row=base_row,
+                            depend_rows=depend_rows,
+                            base_field=field,
+                            depend_fields=self.field_settings[field_level][field],
+                            row_level=row_level,
+                            field_level=field_level,
                         )
 
-    def run_b_balancer(self, main_exp, _f_settings, _r_settings, accuracy):
+    def run_f22_balancer(
+            self,
+            main_exp: Dict[str, Dict[str, Any]],
+            field_settings: Dict[str, Dict[str, Any]],
+            row_settings: Dict[str, Dict[str, Any]],
+            accuracy: int,
+    ) -> Dict[str, Dict[str, Any]]:
+        """Уравнивание для Ф22."""
+
         self.current_exp = main_exp
         self.accuracy = int(accuracy)
-        self.field_settings = self.modify_settings(_f_settings)
-        row_settings = self.modify_settings(_r_settings)
-        self.prepare_matrix(main_exp, int(self.accuracy))
+        self.field_settings = self.modify_settings(settings=field_settings)
+        row_settings = self.modify_settings(settings=row_settings)
+        self.prepare_matrix(matrix=self.current_exp, accuracy=self.accuracy)
         try:
-            self.current_exp['25']['total']['bonus'] = \
-                self.current_exp['by_SHAPE']['total']['val'] - self.current_exp['25']['total']['val']
+            self.current_exp['25']['total']['bonus'] = self.current_exp['by_SHAPE']['total']['val'] - self.current_exp['25']['total']['val']
             self.current_exp['25']['total']['fixed'] = True
         except KeyError:
             print('Balancing Failed. No sense to balance without by_SHAPE or 25 row key')
             return self.current_exp
-        # TODO: Add by_SHAPE row to * array
 
-        for row_stage in row_settings['lvls']:
-            for lvl_r_key in row_settings[row_stage]:
-                if lvl_r_key == '*':
+        for row_level in row_settings['lvls']:
+            for row in row_settings[row_level]:
+                if row == '*':
                     print('Not matrix balancing')
-                    # TODO: run balancing by fields only for one row of rows in _r_settings['*'] array
                 else:
-                    if row_settings['lvls'].index(row_stage) == 0:  # first stage
+                    if row_settings['lvls'].index(row_level) == 0:  # first stage -- set 25 total FIXED
                         try:
-                            # setting base cells for first step fixed
-                            first_f_lvl_key = self.field_settings['lvls'][0]
-                            # should be equal to 1
-                            for main_f_key in self.field_settings[first_f_lvl_key]:
-                                self.current_exp[lvl_r_key][main_f_key]['fixed'] = True
+                            first_field_level = self.field_settings['lvls'][0]
+                            for main_field in self.field_settings[first_field_level]:
+                                self.current_exp[row][main_field]['fixed'] = True
                         except KeyError:
                             raise Exception('Failed on setting main cells to fixed')
                     try:
-                        self._run_matrix_balancing_by_base_row(lvl_r_key, row_settings[row_stage][lvl_r_key], row_stage)
+                        self._run_matrix_balancing_by_base_row(
+                            base_row=row, depend_rows=row_settings[row_level][row], row_level=row_level
+                        )
                     except Exception as e:
                         print('Ошибка:\n', traceback.format_exc())
-        self.merge_bonuses_to_values(self.current_exp)
+        self.merge_bonuses_to_values()
 
     def run_as_balancer(self, main_exp, _f_settings, _r_settings):
         print('Not yet implemented', main_exp)

@@ -482,7 +482,6 @@ class ExpWindow(QMainWindow):
     def handle_explication_progress(self, next_action_meta) -> None:
         process_message = actionLocales.get_loading_msg(next_action_meta['action'])
         self.show_loading(process_message + ' ' + next_action_meta['message'])
-        print(next_action_meta['message'])
 
     def handle_extraction_warnings(self, warnings) -> None:
         action_id = self.extractionThread.current_action

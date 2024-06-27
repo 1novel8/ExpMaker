@@ -145,22 +145,18 @@ class ExplicationWorker:
         exp_dict = exp_maker.create_exp_dict(settings_holder.rnd)
 
         if with_balance:
-            print("---------экспликация с Уравниванием----------------")
+            # print("---------экспликация с Уравниванием----------------")
             self.__emit_process_changes(expActions.MAKE_BALANCE)
-            balanceMaker.run_b_balancer(
-                exp_dict,
-                sprav_holder.expf22_f_str,
-                sprav_holder.expf22_r_str,
-                settings_holder.rnd.b_accuracy
+            balanceMaker.run_f22_balancer(
+                main_exp=exp_dict,
+                field_settings=sprav_holder.expf22_f_str,
+                row_settings=sprav_holder.expf22_r_str,
+                accuracy=settings_holder.rnd.b_accuracy,
             )
         self.__emit_process_changes(expActions.EXPORT_EXP)
         matrix = exp_maker.prepare_matrix(exp_dict, sprav_holder)
         matrix_total = exp_maker.prepare_matrix_total(exp_dict, sprav_holder)
-        print("\n---------------------матрица данных --------------------")
-        print(matrix)
-        print("\n------ матрица итогов   --------")
-        print(len(*matrix_total))
-        print(matrix_total)
+
         if is_xls_mode:
             xls = settings_holder.xls
             out_settings = {
