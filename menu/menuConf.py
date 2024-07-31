@@ -94,7 +94,14 @@ class MenuConf:
         "action_id": 12,
         "action_title": titleLocales.settings_conditions,
         "icon_path": path.join(icons_dir, 'excel.ico'),
-        "shortcut": 'Ctrl+C',
+        "shortcut": 'Ctrl+W',
         "tip": titleLocales.settings_conditions,
+    }
+    settings_drop = {
+        "action_id": 13,
+        "action_title": titleLocales.settings_drop,
+        "icon_path": path.join(icons_dir, 'excel.ico'),
+        "shortcut": 'Ctrl+D',
+        "tip": titleLocales.settings_drop,
     }
 

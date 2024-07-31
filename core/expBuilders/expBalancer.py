@@ -433,22 +433,34 @@ class ExpBalancer:
         """
 
         child_sum = 0
-        parent_val = parent_cell['val'] + parent_cell['bonus'] + parent_cell['tail'] - 0.1
+        parent_val = round(parent_cell['val'] + parent_cell['bonus'] + parent_cell['tail'], self.accuracy)
         for cell in child_cells:
-            child_sum += cell['val'] + cell['bonus']
+            child_sum += round(cell['val'] + cell['bonus'] + cell['tail'], self.accuracy)
 
-        if field_level == 1 or field_level == 2:
-            total_bonus = round(parent_val - child_sum, self.accuracy)
-            parent_cell['bonus'] -= total_bonus
-        elif field_level == 3:
+        if field_level in (1, 2, 3):
             total_bonus = round(parent_val - child_sum, self.accuracy)
             if total_bonus < 0:
-                parent_cell['bonus'] -= total_bonus
+                parent_cell['bonus'] = 0
+                parent_cell['fixed'] = True
+                parent_cell['tail'] = 0
+                parent_cell['val'] = parent_val
+                while total_bonus != 0:
+                    c = self.get_cell_with_min_tail(child_cells=child_cells)
+                    c['tail'] = 0
+                    total_bonus += 1
         else:
             for cell in child_cells:
                 if parent_val < cell['val']:
                     total_bonus = round(parent_val - cell['val'], self.accuracy)
                     parent_cell['bonus'] -= total_bonus
+
+    def get_cell_with_min_tail(self, child_cells: List[Dict[str, Any]]) -> Dict[str, Any]:
+        min_cell = child_cells[0]
+        for cell in child_cells:
+            if cell['tail'] < min_cell['tail'] and cell['tail'] >= 0.5:
+                min_cell = cell
+        return min_cell
+
 
     def _search_tail_in_a_field(self, f_key, depend_rs, is_positive):
         winner_tail_cells = []

@@ -13,7 +13,7 @@ from core.system_logger import log_error
 class DbConnector:
     def __init__(self, db_path: str, do_conn: bool = True):
         self.db_f_path = db_path
-        self.db_access = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;" % db_path
+        self.db_access = "DRIVER={Microsoft Access Driver (*.mdb)};DBQ=%s;" % db_path
         # "DRIVER={Microsoft Access Driver (*.mdb)};DBQ=%s;" % db_path
         self.__conn = None
         self.__dbc: Optional[Cursor] = None

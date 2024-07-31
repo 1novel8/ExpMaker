@@ -7,7 +7,7 @@ from ui.components import (Dropdown, ModalWindow, PrimaryButton, SrcFrame,
                            TableWidget)
 from ui.styles import representation_xls_table_label, title_label
 from ui.styles import xls_table as xls_table_styles
-
+from core.settingsHolders.settingsHolder import SettingsHolder
 
 def prepare_xl_letters(initial_val):
     return [initial_val, ] + [str(chr(x)) for x in range(65, 91)]
@@ -35,8 +35,8 @@ class SettingsBlock(QFrame):
 
 
 class EditSettingsWindow(ModalWindow):
-    def __init__(self, initial_settings, sprav_holder, parent=None, edit_action_type=None, on_save=lambda x: x):
-        self.settings = initial_settings
+    def __init__(self, initial_settings: SettingsHolder, sprav_holder, parent=None, edit_action_type=None, on_save=lambda x: x):
+        self.settings: SettingsHolder = initial_settings
         self.sprav_holder = sprav_holder
         self.setts_type = edit_action_type
         self.emit_settings_updated = on_save
@@ -55,6 +55,9 @@ class EditSettingsWindow(ModalWindow):
         elif edit_action_type == settingsActions.SHOW_EXP_FILTER:
             init_params = (titleLocales.edit_settings_exp_filter_title, 300, 300)
             init_method = self.init_exp_filter_settings
+        elif edit_action_type == settingsActions.SHOW_DROP:
+            init_params = (titleLocales.edit_settings_drop_title, 300, 300)
+            init_method = self.init_drop_settings
         else:
             raise Exception('Unsupported params provided!')
         super().__init__(parent, *init_params)
@@ -203,6 +206,10 @@ class EditSettingsWindow(ModalWindow):
         self.add_widget(self.servtype_filter_used, 1, 0, 1, 2)
         self.add_widget(save_btn, 4, 3, 1, 1)
 
+    def init_drop_settings(self):
+        save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
+        self.add_widget(save_btn, 4, 3, 1, 1)
+
     def update_settings(self):
         upd_successfull = False
         params = {'setts_type': self.setts_type}
@@ -212,20 +219,20 @@ class EditSettingsWindow(ModalWindow):
             upd_successfull = self._change_balance_setts()
         elif self.setts_type == settingsActions.SHOW_ACCURACY:
             upd_successfull = self._change_accuracy_setts()
-            QMessageBox.information(
-                self,
-                titleLocales.error_modal_warning,
-                "После изменений параметров необходимо заново запустить КОНВЕРТАЦИЮ",
-                QMessageBox.Ok
-            )
         elif self.setts_type == settingsActions.SHOW_CONDITIONS:
             upd_successfull = self._change_conditions_setts()
             params['active_condition_changed'] = upd_successfull and upd_successfull['active_condition_changed']
         elif self.setts_type == settingsActions.SHOW_EXP_FILTER:
             params['has_changes'] = self.__change_exp_filter_settings()
             upd_successfull = True
+        elif self.setts_type == settingsActions.SHOW_DROP:
+            self.drop_settings()
+            upd_successfull = True
         if upd_successfull:
             self.emit_settings_updated(params)
+
+    def drop_settings(self):
+        self.settings.set_default_settings()
 
     def get_xls_templates(self):
         a_path = self.xl_a_src_widget.get_selected_file()

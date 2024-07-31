@@ -24,4 +24,4 @@ finally:
     except Exception:
         pass
     finally:
-        pass
+        print('Done')

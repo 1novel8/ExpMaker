@@ -81,6 +81,7 @@ class ActionMessages:
         settingsActions.SHOW_BALANCE: "Установлены новые настройки запуска уравнивания",
         settingsActions.SHOW_ACCURACY: "Установлены новые настройки округления",
         settingsActions.SHOW_CONDITIONS: "Установлены новые настройки выборки и группировки данных",
+        settingsActions.SHOW_DROP: "Установлены настройки по умолчанию",
     }
 
     balance_log_messages = {

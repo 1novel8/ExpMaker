@@ -47,6 +47,7 @@ class TitleLocales:
     settings_balance = "Уравнивание Формы 22-зем"
     settings_accuracy = "Настройки округления в га"
     settings_conditions = "Настройки условий выборки"
+    settings_drop = "Сброс настроек"
 
     edit_settings_xls_title = "Настройки экспорта в Excel"
     edit_settings_xls_block_a = "Экспорт экспликации - форма А"
@@ -74,5 +75,6 @@ class TitleLocales:
     edit_settings_conditions_gr_by_cc = "Группировать по сельским советам"
     edit_settings_conditions_ctr_filter = "      Настройка выборки данных из crostab:"
     edit_settings_conditions_sv_exp_groupping = "\n      Настройка группировки сводной экспликации:"
+    edit_settings_drop_title = "Сброс"
 
     save_edited_settings = "Сохранить изменения"
