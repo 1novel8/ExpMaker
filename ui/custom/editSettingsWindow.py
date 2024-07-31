@@ -207,7 +207,7 @@ class EditSettingsWindow(ModalWindow):
         self.add_widget(save_btn, 4, 3, 1, 1)
 
     def init_drop_settings(self):
-        save_btn = PrimaryButton(self, titleLocales.save_edited_settings, on_click=self.update_settings)
+        save_btn = PrimaryButton(self, titleLocales.drop_settings, on_click=self.update_settings)
         self.add_widget(save_btn, 4, 3, 1, 1)
 
     def update_settings(self):

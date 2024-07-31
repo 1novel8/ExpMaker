@@ -78,3 +78,4 @@ class TitleLocales:
     edit_settings_drop_title = "Сброс"
 
     save_edited_settings = "Сохранить изменения"
+    drop_settings = "Сбросить настройки"
