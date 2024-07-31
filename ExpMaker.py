@@ -237,6 +237,11 @@ class ExpWindow(QMainWindow):
             MenuConf.settings_conditions,
             lambda x: self.run_settings_action(settingsActions.SHOW_CONDITIONS),
         )
+        menu.add_section_action(
+            settings_section_key,
+            MenuConf.settings_drop,
+            lambda x: self.run_settings_action(settingsActions.SHOW_DROP),
+        )
         menu.file_section_key = file_section_key
         self.menu = menu
 
@@ -520,8 +525,8 @@ class ExpWindow(QMainWindow):
 
     def run_settings_action(self, action_type) -> None:
         self.settings_window = EditSettingsWindow(
-            self.settings_holder,
-            self.sprav_holder,
+            initial_settings=self.settings_holder,
+            sprav_holder=self.sprav_holder,
             parent=self,
             edit_action_type=action_type,
             on_save=self.set_updated_settings,

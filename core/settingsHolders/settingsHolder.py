@@ -75,6 +75,9 @@ class SettingsHolder:
         out = {}
         for key in SettingsHolder.get_valid_settings_keys():
             out[key] = getattr(self, key).__dict__
+        out.pop('rnd')
+        out['conditions']['groupping_by'] = '',
+        print(out['conditions'])
         return out
 
     @staticmethod
@@ -148,7 +151,7 @@ class SettingsHolder:
                 'melio1': '',
                 'melio2': '',
                 'servtype': '',
-                'active_cond': '',
+                'active_cond': 1,
                 'groupping_by': '',
                 'custom': ''
             },

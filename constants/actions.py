@@ -20,6 +20,7 @@ class SettingsActions:
     SHOW_ACCURACY = 'show_accuracy'
     SHOW_CONDITIONS = 'show_conditions'
     SHOW_EXP_FILTER = 'show_exp_filter'
+    SHOW_DROP = 'show_drop'
 
 
 class BaseActivityActions:
